@@ -5,4 +5,5 @@
 	<string name="audio_setup_failed">audio setup failed</string>
 	<string name="audio_permission_denied">audio permission denied</string>
 	<string name="audio_recording_error">audio recording error</string>
+	<string name="scope_description">visualization of audio signal</string>
 </resources>

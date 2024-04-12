@@ -7,11 +7,13 @@ Copyright 2024 Ahmet Inan <xdsopl@gmail.com>
 package xdsopl.robot36;
 
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
 import android.os.Bundle;
 import android.Manifest;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
@@ -28,9 +30,15 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
+	private final int scopeWidth = 256, scopeHeight = 256;
+	private Bitmap scopeBitmap;
+	private int[] scopePixels;
+	private ImageView scopeView;
 	private float[] recordBuffer;
 	private AudioRecord audioRecord;
 	private TextView status;
+	private int tint;
+	private int curLine;
 
 	private void setStatus(int id) {
 		status.setText(id);
@@ -44,8 +52,24 @@ public class MainActivity extends AppCompatActivity {
 		@Override
 		public void onPeriodicNotification(AudioRecord audioRecord) {
 			audioRecord.read(recordBuffer, 0, recordBuffer.length, AudioRecord.READ_BLOCKING);
+			processSamples();
 		}
 	};
+
+	private void processSamples() {
+		for (float v : recordBuffer) {
+			int x = Math.min((int) (scopeWidth * v * v), scopeWidth);
+			for (int i = 0; i < x; ++i)
+				scopePixels[scopeWidth * curLine + i] = tint;
+			for (int i = x; i < scopeWidth; ++i)
+				scopePixels[scopeWidth * curLine + i] = 0;
+			for (int i = 0; i < scopeWidth; ++i)
+				scopePixels[scopeWidth * (curLine + scopeHeight) + i] = scopePixels[scopeWidth * curLine + i];
+			curLine = (curLine + 1) % scopeHeight;
+		}
+		scopeBitmap.setPixels(scopePixels, scopeWidth * curLine, scopeWidth, 0, 0, scopeWidth, scopeHeight);
+		scopeView.invalidate();
+	}
 
 	private void initAudioRecord() {
 		int audioSource = MediaRecorder.AudioSource.UNPROCESSED;
@@ -113,7 +137,12 @@ public class MainActivity extends AppCompatActivity {
 			v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
 			return insets;
 		});
-		status = (TextView) findViewById(R.id.status);
+		tint = getColor(R.color.tint);
+		status = findViewById(R.id.status);
+		scopeView = findViewById(R.id.scope);
+		scopeBitmap = Bitmap.createBitmap(scopeWidth, scopeHeight, Bitmap.Config.ARGB_8888);
+		scopeView.setImageBitmap(scopeBitmap);
+		scopePixels = new int[2 * scopeWidth * scopeHeight];
 		List<String> permissions = new ArrayList<>();
 		if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
 			permissions.add(Manifest.permission.RECORD_AUDIO);
