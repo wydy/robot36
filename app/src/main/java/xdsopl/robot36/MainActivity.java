@@ -1,3 +1,9 @@
+/*
+Robot36
+
+Copyright 2024 Ahmet Inan <xdsopl@gmail.com>
+*/
+
 package xdsopl.robot36;
 
 import android.os.Bundle;
