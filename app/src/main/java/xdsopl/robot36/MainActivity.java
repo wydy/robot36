@@ -6,15 +6,102 @@ Copyright 2024 Ahmet Inan <xdsopl@gmail.com>
 
 package xdsopl.robot36;
 
+import android.content.pm.PackageManager;
+import android.media.AudioFormat;
+import android.media.AudioRecord;
+import android.media.MediaRecorder;
 import android.os.Bundle;
+import android.Manifest;
+import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class MainActivity extends AppCompatActivity {
+
+	private float[] recordBuffer;
+	private AudioRecord audioRecord;
+
+	private void setStatus(int id) {
+		TextView status = (TextView) findViewById(R.id.status);
+		status.setText(id);
+	}
+
+	private final AudioRecord.OnRecordPositionUpdateListener recordListener = new AudioRecord.OnRecordPositionUpdateListener() {
+		@Override
+		public void onMarkerReached(AudioRecord ignore) {
+		}
+
+		@Override
+		public void onPeriodicNotification(AudioRecord audioRecord) {
+			audioRecord.read(recordBuffer, 0, recordBuffer.length, AudioRecord.READ_BLOCKING);
+		}
+	};
+
+	private void initAudioRecord() {
+		int audioSource = MediaRecorder.AudioSource.UNPROCESSED;
+		int channelConfig = AudioFormat.CHANNEL_IN_MONO;
+		int audioFormat = AudioFormat.ENCODING_PCM_FLOAT;
+		int sampleRate = 8000;
+		int sampleSize = 4;
+		int channelCount = 1;
+		int readsPerSecond = 50;
+		double bufferSeconds = 0.5;
+		int bufferSize = (int) (bufferSeconds * sampleRate * sampleSize);
+		recordBuffer = new float[(sampleRate * channelCount) / readsPerSecond];
+		try {
+			audioRecord = new AudioRecord(audioSource, sampleRate, channelConfig, audioFormat, bufferSize);
+			if (audioRecord.getState() == AudioRecord.STATE_INITIALIZED) {
+				audioRecord.setRecordPositionUpdateListener(recordListener);
+				audioRecord.setPositionNotificationPeriod(recordBuffer.length);
+				startListening();
+			} else {
+				setStatus(R.string.audio_init_failed);
+			}
+		} catch (IllegalArgumentException e) {
+			setStatus(R.string.audio_setup_failed);
+		} catch (SecurityException e) {
+			setStatus(R.string.audio_permission_denied);
+		}
+	}
+
+	private void startListening() {
+		if (audioRecord != null) {
+			audioRecord.startRecording();
+			if (audioRecord.getRecordingState() == AudioRecord.RECORDSTATE_RECORDING) {
+				audioRecord.read(recordBuffer, 0, recordBuffer.length, AudioRecord.READ_BLOCKING);
+				setStatus(R.string.listening);
+			} else {
+				setStatus(R.string.audio_recording_error);
+			}
+		}
+	}
+
+	private void stopListening() {
+		if (audioRecord != null)
+			audioRecord.stop();
+	}
+
+	private final int permissionID = 1;
+
+	@Override
+	public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+		super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+		if (requestCode != permissionID)
+			return;
+		for (int i = 0; i < permissions.length; ++i)
+			if (permissions[i].equals(Manifest.permission.RECORD_AUDIO) && grantResults[i] == PackageManager.PERMISSION_GRANTED)
+				initAudioRecord();
+	}
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -26,5 +113,26 @@ public class MainActivity extends AppCompatActivity {
 			v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
 			return insets;
 		});
+		List<String> permissions = new ArrayList<>();
+		if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+			permissions.add(Manifest.permission.RECORD_AUDIO);
+			setStatus(R.string.audio_permission_denied);
+		} else {
+			initAudioRecord();
+		}
+		if (!permissions.isEmpty())
+			ActivityCompat.requestPermissions(this, permissions.toArray(new String[0]), permissionID);
+	}
+
+	@Override
+	protected void onResume() {
+		startListening();
+		super.onResume();
+	}
+
+	@Override
+	protected void onPause() {
+		stopListening();
+		super.onPause();
 	}
 }

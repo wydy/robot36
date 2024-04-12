@@ -1,3 +1,8 @@
 <resources>
 	<string name="app_name">Robot36</string>
+	<string name="listening">listening</string>
+	<string name="audio_init_failed">audio init failed</string>
+	<string name="audio_setup_failed">audio setup failed</string>
+	<string name="audio_permission_denied">audio permission denied</string>
+	<string name="audio_recording_error">audio recording error</string>
 </resources>
