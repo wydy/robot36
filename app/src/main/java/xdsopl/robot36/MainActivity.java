@@ -30,9 +30,9 @@ public class MainActivity extends AppCompatActivity {
 
 	private float[] recordBuffer;
 	private AudioRecord audioRecord;
+	private TextView status;
 
 	private void setStatus(int id) {
-		TextView status = (TextView) findViewById(R.id.status);
 		status.setText(id);
 	}
 
@@ -113,6 +113,7 @@ public class MainActivity extends AppCompatActivity {
 			v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
 			return insets;
 		});
+		status = (TextView) findViewById(R.id.status);
 		List<String> permissions = new ArrayList<>();
 		if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
 			permissions.add(Manifest.permission.RECORD_AUDIO);
