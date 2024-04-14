@@ -37,6 +37,7 @@ public class MainActivity extends AppCompatActivity {
 	private float[] recordBuffer;
 	private AudioRecord audioRecord;
 	private TextView status;
+	private SimpleMovingAverage powerAvg;
 	private int tint;
 	private int curLine;
 
@@ -58,7 +59,7 @@ public class MainActivity extends AppCompatActivity {
 
 	private void processSamples() {
 		for (float v : recordBuffer) {
-			int x = Math.min((int) (scopeWidth * v * v), scopeWidth);
+			int x = Math.min((int) (scopeWidth * powerAvg.avg(v * v)), scopeWidth);
 			for (int i = 0; i < x; ++i)
 				scopePixels[scopeWidth * curLine + i] = tint;
 			for (int i = x; i < scopeWidth; ++i)
@@ -69,6 +70,11 @@ public class MainActivity extends AppCompatActivity {
 		}
 		scopeBitmap.setPixels(scopePixels, scopeWidth * curLine, scopeWidth, 0, 0, scopeWidth, scopeHeight);
 		scopeView.invalidate();
+	}
+
+	private void initTools(int sampleRate) {
+		double powerWindowSeconds = 0.5;
+		powerAvg = new SimpleMovingAverage((int) Math.round(powerWindowSeconds * sampleRate));
 	}
 
 	private void initAudioRecord() {
@@ -87,6 +93,7 @@ public class MainActivity extends AppCompatActivity {
 			if (audioRecord.getState() == AudioRecord.STATE_INITIALIZED) {
 				audioRecord.setRecordPositionUpdateListener(recordListener);
 				audioRecord.setPositionNotificationPeriod(recordBuffer.length);
+				initTools(sampleRate);
 				startListening();
 			} else {
 				setStatus(R.string.audio_init_failed);
