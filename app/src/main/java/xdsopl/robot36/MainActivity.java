@@ -38,6 +38,9 @@ public class MainActivity extends AppCompatActivity {
 	private AudioRecord audioRecord;
 	private TextView status;
 	private SimpleMovingAverage powerAvg;
+	private SimpleMovingAverage realSyncAvg, imagSyncAvg;
+	private Phasor osc_1200;
+	private Complex sad;
 	private int tint;
 	private int curLine;
 
@@ -59,7 +62,13 @@ public class MainActivity extends AppCompatActivity {
 
 	private void processSamples() {
 		for (float v : recordBuffer) {
-			int x = Math.min((int) (scopeWidth * powerAvg.avg(v * v)), scopeWidth);
+			sad.real = v;
+			sad.imag = 0;
+			sad.mul(osc_1200.rotate());
+			sad.real = realSyncAvg.avg(sad.real);
+			sad.imag = imagSyncAvg.avg(sad.imag);
+			float level = sad.norm() / powerAvg.avg(v * v);
+			int x = Math.min((int) (scopeWidth * level), scopeWidth);
 			for (int i = 0; i < x; ++i)
 				scopePixels[scopeWidth * curLine + i] = tint;
 			for (int i = x; i < scopeWidth; ++i)
@@ -74,7 +83,14 @@ public class MainActivity extends AppCompatActivity {
 
 	private void initTools(int sampleRate) {
 		double powerWindowSeconds = 0.5;
-		powerAvg = new SimpleMovingAverage((int) Math.round(powerWindowSeconds * sampleRate));
+		int powerWindowSamples = (int) Math.round(powerWindowSeconds * sampleRate);
+		powerAvg = new SimpleMovingAverage(powerWindowSamples);
+		double syncPulseSeconds = 0.01;
+		int syncPulseSamples = (int) Math.round(syncPulseSeconds * sampleRate);
+		realSyncAvg = new SimpleMovingAverage(syncPulseSamples);
+		imagSyncAvg = new SimpleMovingAverage(syncPulseSamples);
+		osc_1200 = new Phasor(-1200, sampleRate);
+		sad = new Complex();
 	}
 
 	private void initAudioRecord() {
