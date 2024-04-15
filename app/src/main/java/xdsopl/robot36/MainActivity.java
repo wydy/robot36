@@ -37,11 +37,14 @@ public class MainActivity extends AppCompatActivity {
 	private float[] recordBuffer;
 	private AudioRecord audioRecord;
 	private TextView status;
-	private Delay powerDelay;
+	private ComplexDelay powerDelay;
 	private SimpleMovingAverage powerAvg;
 	private ComplexMovingAverage syncAvg;
-	private Phasor osc_1200;
-	private Complex sad;
+	private ComplexMovingAverage baseBandLowPass;
+	private Phasor syncPulseOscillator;
+	private Phasor baseBandOscillator;
+	private Complex baseBand;
+	private Complex syncPulse;
 	private int tint;
 	private int curLine;
 
@@ -63,8 +66,9 @@ public class MainActivity extends AppCompatActivity {
 
 	private void processSamples() {
 		for (float v : recordBuffer) {
-			sad = syncAvg.avg(sad.set(powerDelay.push(v)).mul(osc_1200.rotate()));
-			float level = sad.norm() / powerAvg.avg(v * v);
+			baseBand = baseBandLowPass.avg(baseBand.set(v).mul(baseBandOscillator.rotate()));
+			syncPulse = syncAvg.avg(powerDelay.push(baseBand).mul(syncPulseOscillator.rotate()));
+			float level = syncPulse.norm() / powerAvg.avg(baseBand.norm());
 			int x = Math.min((int) (scopeWidth * level), scopeWidth);
 			for (int i = 0; i < x; ++i)
 				scopePixels[scopeWidth * curLine + i] = tint;
@@ -82,12 +86,21 @@ public class MainActivity extends AppCompatActivity {
 		double powerWindowSeconds = 0.5;
 		int powerWindowSamples = (int) Math.round(powerWindowSeconds * sampleRate) | 1;
 		powerAvg = new SimpleMovingAverage(powerWindowSamples);
-		powerDelay = new Delay((powerWindowSamples - 1) / 2);
+		powerDelay = new ComplexDelay((powerWindowSamples - 1) / 2);
 		double syncPulseSeconds = 0.009;
 		int syncPulseSamples = (int) Math.round(syncPulseSeconds * sampleRate);
 		syncAvg = new ComplexMovingAverage(syncPulseSamples);
-		osc_1200 = new Phasor(-1200, sampleRate);
-		sad = new Complex();
+		float lowestFrequency = 1100;
+		float highestFrequency = 2300;
+		float cutoffFrequency = (highestFrequency - lowestFrequency) / 2;
+		int lowPassSamples = (int) Math.round(0.443 * sampleRate / cutoffFrequency) | 1;
+		baseBandLowPass = new ComplexMovingAverage(lowPassSamples);
+		float centerFrequency = (lowestFrequency + highestFrequency) / 2;
+		baseBandOscillator = new Phasor(-centerFrequency, sampleRate);
+		float syncPulseFrequency = 1200;
+		syncPulseOscillator = new Phasor(-(syncPulseFrequency - centerFrequency), sampleRate);
+		baseBand = new Complex();
+		syncPulse = new Complex();
 	}
 
 	private void initAudioRecord() {
