@@ -40,13 +40,18 @@ public class MainActivity extends AppCompatActivity {
 	private Delay powerDelay;
 	private SimpleMovingAverage powerAvg;
 	private ComplexMovingAverage syncPulseFilter;
+	private ComplexMovingAverage scanLineFilter;
 	private ComplexMovingAverage baseBandLowPass;
+	private FrequencyModulation scanLineDemod;
 	private Phasor syncPulseOscillator;
+	private Phasor scanLineOscillator;
 	private Phasor baseBandOscillator;
 	private Complex baseBand;
 	private Complex syncPulse;
+	private Complex scanLine;
 	private int tint;
 	private int curLine;
+	private int curColumn;
 
 	private void setStatus(int id) {
 		status.setText(id);
@@ -68,15 +73,17 @@ public class MainActivity extends AppCompatActivity {
 		for (float v : recordBuffer) {
 			baseBand = baseBandLowPass.avg(baseBand.set(v).mul(baseBandOscillator.rotate()));
 			syncPulse = syncPulseFilter.avg(syncPulse.set(baseBand).mul(syncPulseOscillator.rotate()));
+			scanLine = scanLineFilter.avg(scanLine.set(baseBand).mul(scanLineOscillator.rotate()));
 			float level = powerDelay.push(syncPulse.norm()) / powerAvg.avg(baseBand.norm());
-			int x = Math.min((int) (scopeWidth * level), scopeWidth);
-			for (int i = 0; i < x; ++i)
-				scopePixels[scopeWidth * curLine + i] = tint;
-			for (int i = x; i < scopeWidth; ++i)
-				scopePixels[scopeWidth * curLine + i] = 0;
-			for (int i = 0; i < scopeWidth; ++i)
-				scopePixels[scopeWidth * (curLine + scopeHeight) + i] = scopePixels[scopeWidth * curLine + i];
-			curLine = (curLine + 1) % scopeHeight;
+			float value = 0.5f * (scanLineDemod.demod(scanLine) + 1);
+			int x = (int) Math.round(Math.min(Math.max(255 * Math.sqrt(value), 0), 255));
+			scopePixels[scopeWidth * curLine + curColumn] = 0xff000000 | 0x00010101 * x;
+			if (++curColumn >= scopeWidth) {
+				curColumn = 0;
+				for (int i = 0; i < scopeWidth; ++i)
+					scopePixels[scopeWidth * (curLine + scopeHeight) + i] = scopePixels[scopeWidth * curLine + i];
+				curLine = (curLine + 1) % scopeHeight;
+			}
 		}
 		scopeBitmap.setPixels(scopePixels, scopeWidth * curLine, scopeWidth, 0, 0, scopeWidth, scopeHeight);
 		scopeView.invalidate();
@@ -87,6 +94,13 @@ public class MainActivity extends AppCompatActivity {
 		int powerWindowSamples = (int) Math.round(powerWindowSeconds * sampleRate) | 1;
 		powerAvg = new SimpleMovingAverage(powerWindowSamples);
 		powerDelay = new Delay((powerWindowSamples - 1) / 2);
+		float blackFrequency = 1500;
+		float whiteFrequency = 2300;
+		float scanLineBandwidth = whiteFrequency - blackFrequency;
+		scanLineDemod = new FrequencyModulation(scanLineBandwidth, sampleRate);
+		float scanLineCutoff = scanLineBandwidth / 2;
+		int scanLineSamples = (int) Math.round(0.443 * sampleRate / scanLineCutoff) | 1;
+		scanLineFilter = new ComplexMovingAverage(scanLineSamples);
 		double syncPulseSeconds = 0.009;
 		int syncPulseSamples = (int) Math.round(syncPulseSeconds * sampleRate);
 		syncPulseFilter = new ComplexMovingAverage(syncPulseSamples);
@@ -99,8 +113,11 @@ public class MainActivity extends AppCompatActivity {
 		baseBandOscillator = new Phasor(-centerFrequency, sampleRate);
 		float syncPulseFrequency = 1200;
 		syncPulseOscillator = new Phasor(-(syncPulseFrequency - centerFrequency), sampleRate);
+		float grayFrequency = (blackFrequency + whiteFrequency) / 2;
+		scanLineOscillator = new Phasor(-(grayFrequency - centerFrequency), sampleRate);
 		baseBand = new Complex();
 		syncPulse = new Complex();
+		scanLine = new Complex();
 	}
 
 	private void initAudioRecord() {
