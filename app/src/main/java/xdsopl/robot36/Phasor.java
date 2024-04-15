@@ -15,7 +15,6 @@ public class Phasor {
 		delta = new Complex((float) Math.cos(omega), (float) Math.sin(omega));
 	}
 	Complex rotate() {
-		value.mul(delta);
-		return value.div(value.abs());
+		return value.div(value.mul(delta).abs());
 	}
 }
