@@ -39,7 +39,7 @@ public class MainActivity extends AppCompatActivity {
 	private TextView status;
 	private Delay powerDelay;
 	private SimpleMovingAverage powerAvg;
-	private ComplexMovingAverage syncAvg;
+	private ComplexMovingAverage syncPulseFilter;
 	private ComplexMovingAverage baseBandLowPass;
 	private Phasor syncPulseOscillator;
 	private Phasor baseBandOscillator;
@@ -67,7 +67,7 @@ public class MainActivity extends AppCompatActivity {
 	private void processSamples() {
 		for (float v : recordBuffer) {
 			baseBand = baseBandLowPass.avg(baseBand.set(v).mul(baseBandOscillator.rotate()));
-			syncPulse = syncAvg.avg(syncPulse.set(baseBand).mul(syncPulseOscillator.rotate()));
+			syncPulse = syncPulseFilter.avg(syncPulse.set(baseBand).mul(syncPulseOscillator.rotate()));
 			float level = powerDelay.push(syncPulse.norm()) / powerAvg.avg(baseBand.norm());
 			int x = Math.min((int) (scopeWidth * level), scopeWidth);
 			for (int i = 0; i < x; ++i)
@@ -89,7 +89,7 @@ public class MainActivity extends AppCompatActivity {
 		powerDelay = new Delay((powerWindowSamples - 1) / 2);
 		double syncPulseSeconds = 0.009;
 		int syncPulseSamples = (int) Math.round(syncPulseSeconds * sampleRate);
-		syncAvg = new ComplexMovingAverage(syncPulseSamples);
+		syncPulseFilter = new ComplexMovingAverage(syncPulseSamples);
 		float lowestFrequency = 1100;
 		float highestFrequency = 2300;
 		float cutoffFrequency = (highestFrequency - lowestFrequency) / 2;
