@@ -83,10 +83,10 @@ public class MainActivity extends AppCompatActivity {
 				for (int i = 0; i < scopeWidth; ++i)
 					scopePixels[scopeWidth * (curLine + scopeHeight) + i] = scopePixels[scopeWidth * curLine + i];
 				curLine = (curLine + 1) % scopeHeight;
+				scopeBitmap.setPixels(scopePixels, scopeWidth * curLine, scopeWidth, 0, 0, scopeWidth, scopeHeight);
+				scopeView.invalidate();
 			}
 		}
-		scopeBitmap.setPixels(scopePixels, scopeWidth * curLine, scopeWidth, 0, 0, scopeWidth, scopeHeight);
-		scopeView.invalidate();
 	}
 
 	private void initTools(int sampleRate) {
