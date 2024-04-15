@@ -16,6 +16,11 @@ public class Complex {
 		this.real = real;
 		this.imag = imag;
 	}
+	Complex set(Complex other) {
+		real = other.real;
+		imag = other.imag;
+		return this;
+	}
 	Complex set(float real, float imag) {
 		this.real = real;
 		this.imag = imag;

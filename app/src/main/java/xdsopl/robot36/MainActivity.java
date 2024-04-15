@@ -37,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
 	private float[] recordBuffer;
 	private AudioRecord audioRecord;
 	private TextView status;
-	private ComplexDelay powerDelay;
+	private Delay powerDelay;
 	private SimpleMovingAverage powerAvg;
 	private ComplexMovingAverage syncAvg;
 	private ComplexMovingAverage baseBandLowPass;
@@ -67,8 +67,8 @@ public class MainActivity extends AppCompatActivity {
 	private void processSamples() {
 		for (float v : recordBuffer) {
 			baseBand = baseBandLowPass.avg(baseBand.set(v).mul(baseBandOscillator.rotate()));
-			syncPulse = syncAvg.avg(powerDelay.push(baseBand).mul(syncPulseOscillator.rotate()));
-			float level = syncPulse.norm() / powerAvg.avg(baseBand.norm());
+			syncPulse = syncAvg.avg(syncPulse.set(baseBand).mul(syncPulseOscillator.rotate()));
+			float level = powerDelay.push(syncPulse.norm()) / powerAvg.avg(baseBand.norm());
 			int x = Math.min((int) (scopeWidth * level), scopeWidth);
 			for (int i = 0; i < x; ++i)
 				scopePixels[scopeWidth * curLine + i] = tint;
@@ -86,7 +86,7 @@ public class MainActivity extends AppCompatActivity {
 		double powerWindowSeconds = 0.5;
 		int powerWindowSamples = (int) Math.round(powerWindowSeconds * sampleRate) | 1;
 		powerAvg = new SimpleMovingAverage(powerWindowSamples);
-		powerDelay = new ComplexDelay((powerWindowSamples - 1) / 2);
+		powerDelay = new Delay((powerWindowSamples - 1) / 2);
 		double syncPulseSeconds = 0.009;
 		int syncPulseSamples = (int) Math.round(syncPulseSeconds * sampleRate);
 		syncAvg = new ComplexMovingAverage(syncPulseSamples);
