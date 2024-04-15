@@ -37,6 +37,7 @@ public class MainActivity extends AppCompatActivity {
 	private float[] recordBuffer;
 	private AudioRecord audioRecord;
 	private TextView status;
+	private Delay powerDelay;
 	private SimpleMovingAverage powerAvg;
 	private ComplexMovingAverage syncAvg;
 	private Phasor osc_1200;
@@ -62,7 +63,7 @@ public class MainActivity extends AppCompatActivity {
 
 	private void processSamples() {
 		for (float v : recordBuffer) {
-			sad = syncAvg.avg(sad.set(v).mul(osc_1200.rotate()));
+			sad = syncAvg.avg(sad.set(powerDelay.push(v)).mul(osc_1200.rotate()));
 			float level = sad.norm() / powerAvg.avg(v * v);
 			int x = Math.min((int) (scopeWidth * level), scopeWidth);
 			for (int i = 0; i < x; ++i)
@@ -79,8 +80,9 @@ public class MainActivity extends AppCompatActivity {
 
 	private void initTools(int sampleRate) {
 		double powerWindowSeconds = 0.5;
-		int powerWindowSamples = (int) Math.round(powerWindowSeconds * sampleRate);
+		int powerWindowSamples = (int) Math.round(powerWindowSeconds * sampleRate) | 1;
 		powerAvg = new SimpleMovingAverage(powerWindowSamples);
+		powerDelay = new Delay((powerWindowSamples - 1) / 2);
 		double syncPulseSeconds = 0.009;
 		int syncPulseSamples = (int) Math.round(syncPulseSeconds * sampleRate);
 		syncAvg = new ComplexMovingAverage(syncPulseSamples);
