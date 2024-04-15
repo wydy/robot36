@@ -81,7 +81,7 @@ public class MainActivity extends AppCompatActivity {
 		double powerWindowSeconds = 0.5;
 		int powerWindowSamples = (int) Math.round(powerWindowSeconds * sampleRate);
 		powerAvg = new SimpleMovingAverage(powerWindowSamples);
-		double syncPulseSeconds = 0.01;
+		double syncPulseSeconds = 0.009;
 		int syncPulseSamples = (int) Math.round(syncPulseSeconds * sampleRate);
 		syncAvg = new ComplexMovingAverage(syncPulseSamples);
 		osc_1200 = new Phasor(-1200, sampleRate);
