@@ -75,8 +75,8 @@ public class MainActivity extends AppCompatActivity {
 			syncPulse = syncPulseFilter.avg(syncPulse.set(baseBand).mul(syncPulseOscillator.rotate()));
 			scanLine = scanLineFilter.avg(scanLine.set(baseBand).mul(scanLineOscillator.rotate()));
 			float level = powerDelay.push(syncPulse.norm()) / powerAvg.avg(baseBand.norm());
-			float value = 0.5f * (scanLineDemod.demod(scanLine) + 1);
-			int x = (int) Math.round(Math.min(Math.max(255 * Math.sqrt(value), 0), 255));
+			float value = Math.min(Math.max(0.5f * (scanLineDemod.demod(scanLine) + 1), 0), 1);
+			int x = (int) Math.round(255 * Math.sqrt(value));
 			scopePixels[scopeWidth * curLine + curColumn] = 0xff000000 | 0x00010101 * x;
 			if (++curColumn >= scopeWidth) {
 				curColumn = 0;
