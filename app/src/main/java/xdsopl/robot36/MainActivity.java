@@ -30,7 +30,7 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-	private final int scopeWidth = 1200, scopeHeight = 512;
+	private final int scopeWidth = 1234, scopeHeight = 512;
 	private Bitmap scopeBitmap;
 	private int[] scopePixels;
 	private ImageView scopeView;
@@ -42,7 +42,6 @@ public class MainActivity extends AppCompatActivity {
 	private int tint;
 	private int curLine;
 	private int curColumn;
-	private int syncPulseToleranceSamples;
 
 	private void setStatus(int id) {
 		status.setText(id);
@@ -70,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
 
 	private void visualizeSignal(boolean syncPulseDetected) {
 		int syncPulseOffset = curColumn + demodulator.syncPulseOffset;
-		if (syncPulseDetected && syncPulseOffset >= syncPulseToleranceSamples && syncPulseOffset < curColumn) {
+		if (syncPulseDetected && syncPulseOffset >= 0 && syncPulseOffset < curColumn) {
 			syncPulseDetected = false;
 			int nextLine = (curLine + 1) % scopeHeight;
 			for (int i = 0; i < curColumn - syncPulseOffset; ++i)
@@ -86,6 +85,9 @@ public class MainActivity extends AppCompatActivity {
 			scopePixels[scopeWidth * curLine + curColumn] = pixelColor;
 			boolean syncNow = syncPulseDetected && syncPulseOffset == curColumn;
 			if (syncNow || ++curColumn >= scopeWidth) {
+				if (syncNow)
+					while (curColumn < scopeWidth)
+						scopePixels[scopeWidth * curLine + curColumn++] = 0xffff0000;
 				syncPulseDetected = false;
 				curColumn = 0;
 				slideUpOneLine();
@@ -95,8 +97,6 @@ public class MainActivity extends AppCompatActivity {
 
 	void initTools(int sampleRate) {
 		demodulator = new Demodulator(sampleRate);
-		double syncPulseToleranceSeconds = 0.001;
-		syncPulseToleranceSamples = (int) Math.round(syncPulseToleranceSeconds * sampleRate);
 	}
 
 	private void initAudioRecord() {
