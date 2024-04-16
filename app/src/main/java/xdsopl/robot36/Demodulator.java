@@ -26,6 +26,8 @@ public class Demodulator {
 	private Complex syncPulse;
 	private Complex scanLine;
 
+	public int syncPulseOffset;
+
 	Demodulator(int sampleRate) {
 		double powerWindowSeconds = 0.5;
 		int powerWindowSamples = (int) Math.round(powerWindowSeconds * sampleRate) | 1;
@@ -61,7 +63,8 @@ public class Demodulator {
 		scanLine = new Complex();
 	}
 
-	public void process(float[] buffer) {
+	public boolean process(float[] buffer) {
+		boolean syncPulseDetected = false;
 		for (int i = 0; i < buffer.length; ++i) {
 			baseBand = baseBandLowPass.avg(baseBand.set(buffer[i]).mul(baseBandOscillator.rotate()));
 			syncPulse = syncPulseFilter.avg(syncPulse.set(baseBand).mul(syncPulseOscillator.rotate()));
@@ -76,19 +79,17 @@ public class Demodulator {
 					syncPulseMaxPosition = syncPulseCounter;
 				}
 				++syncPulseCounter;
-				buffer[i] = syncPulseLevel;
 			} else if (syncPulseCounter > 0 && syncPulseCounter < syncPulseSamples) {
-				int offset = syncPulseCounter - syncPulseMaxPosition;
-				if (offset <= i)
-					buffer[i - offset] = -1;
+				syncPulseOffset = i + syncPulseMaxPosition - syncPulseCounter;
+				syncPulseDetected = true;
 				syncPulseCounter = 0;
 				syncPulseMaxLevel = 0;
-				buffer[i] = scanLineLevel;
 			} else {
 				syncPulseCounter = 0;
 				syncPulseMaxLevel = 0;
-				buffer[i] = scanLineLevel;
 			}
+			buffer[i] = scanLineLevel;
 		}
+		return syncPulseDetected;
 	}
 }

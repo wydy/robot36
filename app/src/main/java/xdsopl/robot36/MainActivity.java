@@ -42,6 +42,7 @@ public class MainActivity extends AppCompatActivity {
 	private int tint;
 	private int curLine;
 	private int curColumn;
+	private int syncPulseToleranceSamples;
 
 	private void setStatus(int id) {
 		status.setText(id);
@@ -55,28 +56,47 @@ public class MainActivity extends AppCompatActivity {
 		@Override
 		public void onPeriodicNotification(AudioRecord audioRecord) {
 			audioRecord.read(recordBuffer, 0, recordBuffer.length, AudioRecord.READ_BLOCKING);
-			demodulator.process(recordBuffer);
-			visualizeSignal();
+			visualizeSignal(demodulator.process(recordBuffer));
 		}
 	};
 
-	private void visualizeSignal() {
+	private void slideUpOneLine() {
+		for (int i = 0; i < scopeWidth; ++i)
+			scopePixels[scopeWidth * (curLine + scopeHeight) + i] = scopePixels[scopeWidth * curLine + i];
+		curLine = (curLine + 1) % scopeHeight;
+		scopeBitmap.setPixels(scopePixels, scopeWidth * curLine, scopeWidth, 0, 0, scopeWidth, scopeHeight);
+		scopeView.invalidate();
+	}
+
+	private void visualizeSignal(boolean syncPulseDetected) {
+		int syncPulseOffset = curColumn + demodulator.syncPulseOffset;
+		if (syncPulseDetected && syncPulseOffset >= syncPulseToleranceSamples && syncPulseOffset < curColumn) {
+			syncPulseDetected = false;
+			int nextLine = (curLine + 1) % scopeHeight;
+			for (int i = 0; i < curColumn - syncPulseOffset; ++i)
+				scopePixels[scopeWidth * nextLine + i] = scopePixels[scopeWidth * curLine + syncPulseOffset + i];
+			for (int i = syncPulseOffset; i < scopeWidth; ++i)
+				scopePixels[scopeWidth * curLine + i] = 0xff00ff00;
+			curColumn -= syncPulseOffset;
+			slideUpOneLine();
+		}
 		for (float v : recordBuffer) {
-			int pixelColor = 0xff00ff00;
-			if (v >= 0) {
-				int intensity = (int) Math.round(255 * Math.sqrt(v));
-				pixelColor = 0xff000000 | 0x00010101 * intensity;
-			}
+			int intensity = (int) Math.round(255 * Math.sqrt(v));
+			int pixelColor = 0xff000000 | 0x00010101 * intensity;
 			scopePixels[scopeWidth * curLine + curColumn] = pixelColor;
-			if (++curColumn >= scopeWidth) {
+			boolean syncNow = syncPulseDetected && syncPulseOffset == curColumn;
+			if (syncNow || ++curColumn >= scopeWidth) {
+				syncPulseDetected = false;
 				curColumn = 0;
-				for (int i = 0; i < scopeWidth; ++i)
-					scopePixels[scopeWidth * (curLine + scopeHeight) + i] = scopePixels[scopeWidth * curLine + i];
-				curLine = (curLine + 1) % scopeHeight;
-				scopeBitmap.setPixels(scopePixels, scopeWidth * curLine, scopeWidth, 0, 0, scopeWidth, scopeHeight);
-				scopeView.invalidate();
+				slideUpOneLine();
 			}
 		}
+	}
+
+	void initTools(int sampleRate) {
+		demodulator = new Demodulator(sampleRate);
+		double syncPulseToleranceSeconds = 0.001;
+		syncPulseToleranceSamples = (int) Math.round(syncPulseToleranceSeconds * sampleRate);
 	}
 
 	private void initAudioRecord() {
@@ -95,7 +115,7 @@ public class MainActivity extends AppCompatActivity {
 			if (audioRecord.getState() == AudioRecord.STATE_INITIALIZED) {
 				audioRecord.setRecordPositionUpdateListener(recordListener);
 				audioRecord.setPositionNotificationPeriod(recordBuffer.length);
-				demodulator = new Demodulator(sampleRate);
+				initTools(sampleRate);
 				startListening();
 			} else {
 				setStatus(R.string.audio_init_failed);
