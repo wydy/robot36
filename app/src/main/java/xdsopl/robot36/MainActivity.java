@@ -62,15 +62,11 @@ public class MainActivity extends AppCompatActivity {
 
 	private void visualizeSignal() {
 		for (float v : recordBuffer) {
-			int pixelColor = 0x00010101;
-			float level = v;
-			if (v < 0) {
-				level = -v;
-				pixelColor = 0x00000100;
+			int pixelColor = 0xff00ff00;
+			if (v >= 0) {
+				int intensity = (int) Math.round(255 * Math.sqrt(v));
+				pixelColor = 0xff000000 | 0x00010101 * intensity;
 			}
-			int intensity = (int) Math.round(255 * Math.sqrt(level));
-			pixelColor *= intensity;
-			pixelColor |= 0xff000000;
 			scopePixels[scopeWidth * curLine + curColumn] = pixelColor;
 			if (++curColumn >= scopeWidth) {
 				curColumn = 0;
