@@ -30,7 +30,7 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-	private final int scopeWidth = 256, scopeHeight = 256;
+	private final int scopeWidth = 1200, scopeHeight = 512;
 	private Bitmap scopeBitmap;
 	private int[] scopePixels;
 	private ImageView scopeView;
@@ -74,10 +74,20 @@ public class MainActivity extends AppCompatActivity {
 			baseBand = baseBandLowPass.avg(baseBand.set(v).mul(baseBandOscillator.rotate()));
 			syncPulse = syncPulseFilter.avg(syncPulse.set(baseBand).mul(syncPulseOscillator.rotate()));
 			scanLine = scanLineFilter.avg(scanLine.set(baseBand).mul(scanLineOscillator.rotate()));
-			float level = powerDelay.push(syncPulse.norm()) / powerAvg.avg(baseBand.norm());
-			float value = Math.min(Math.max(0.5f * (scanLineDemod.demod(scanLine) + 1), 0), 1);
-			int x = (int) Math.round(255 * Math.sqrt(value));
-			scopePixels[scopeWidth * curLine + curColumn] = 0xff000000 | 0x00010101 * x;
+			float syncPulseValue = powerDelay.push(syncPulse.norm()) / powerAvg.avg(baseBand.norm());
+			float scanLineValue = scanLineDemod.demod(scanLine);
+			float syncPulseLevel = Math.min(Math.max(syncPulseValue, 0), 1);
+			float scanLineLevel = Math.min(Math.max(0.5f * (scanLineValue + 1), 0), 1);
+			int syncPulseIntensity = (int) Math.round(255 * Math.sqrt(syncPulseLevel));
+			int scanLineIntensity = (int) Math.round(255 * Math.sqrt(scanLineLevel));
+			int syncPulseColor = 0x00000100 * syncPulseIntensity;
+			int scanLineColor = 0x00010101 * scanLineIntensity;
+			int pixelColor =  0xff000000;
+			if (syncPulseLevel > 0.1)
+				pixelColor |= syncPulseColor;
+			else
+				pixelColor |= scanLineColor;
+			scopePixels[scopeWidth * curLine + curColumn] = pixelColor;
 			if (++curColumn >= scopeWidth) {
 				curColumn = 0;
 				for (int i = 0; i < scopeWidth; ++i)
