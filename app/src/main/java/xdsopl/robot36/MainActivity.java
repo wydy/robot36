@@ -37,19 +37,8 @@ public class MainActivity extends AppCompatActivity {
 	private float[] recordBuffer;
 	private AudioRecord audioRecord;
 	private TextView status;
-	private Delay syncPulseDelay;
-	private Delay scanLineDelay;
-	private SimpleMovingAverage powerAvg;
-	private ComplexMovingAverage syncPulseFilter;
-	private ComplexMovingAverage scanLineFilter;
-	private ComplexMovingAverage baseBandLowPass;
-	private FrequencyModulation scanLineDemod;
-	private Phasor syncPulseOscillator;
-	private Phasor scanLineOscillator;
-	private Phasor baseBandOscillator;
-	private Complex baseBand;
-	private Complex syncPulse;
-	private Complex scanLine;
+	private Demodulator demodulator;
+
 	private int tint;
 	private int curLine;
 	private int curColumn;
@@ -66,28 +55,22 @@ public class MainActivity extends AppCompatActivity {
 		@Override
 		public void onPeriodicNotification(AudioRecord audioRecord) {
 			audioRecord.read(recordBuffer, 0, recordBuffer.length, AudioRecord.READ_BLOCKING);
-			processSamples();
+			demodulator.process(recordBuffer);
+			visualizeSignal();
 		}
 	};
 
-	private void processSamples() {
+	private void visualizeSignal() {
 		for (float v : recordBuffer) {
-			baseBand = baseBandLowPass.avg(baseBand.set(v).mul(baseBandOscillator.rotate()));
-			syncPulse = syncPulseFilter.avg(syncPulse.set(baseBand).mul(syncPulseOscillator.rotate()));
-			scanLine = scanLineFilter.avg(scanLine.set(baseBand).mul(scanLineOscillator.rotate()));
-			float syncPulseValue = syncPulseDelay.push(syncPulse.norm()) / powerAvg.avg(baseBand.norm());
-			float scanLineValue = scanLineDelay.push(scanLineDemod.demod(scanLine));
-			float syncPulseLevel = Math.min(Math.max(syncPulseValue, 0), 1);
-			float scanLineLevel = Math.min(Math.max(0.5f * (scanLineValue + 1), 0), 1);
-			int syncPulseIntensity = (int) Math.round(255 * Math.sqrt(syncPulseLevel));
-			int scanLineIntensity = (int) Math.round(255 * Math.sqrt(scanLineLevel));
-			int syncPulseColor = 0x00000100 * syncPulseIntensity;
-			int scanLineColor = 0x00010101 * scanLineIntensity;
-			int pixelColor =  0xff000000;
-			if (syncPulseLevel > 0.1)
-				pixelColor |= syncPulseColor;
-			else
-				pixelColor |= scanLineColor;
+			int pixelColor = 0x00010101;
+			float level = v;
+			if (v < 0) {
+				level = -v;
+				pixelColor = 0x00000100;
+			}
+			int intensity = (int) Math.round(255 * Math.sqrt(level));
+			pixelColor *= intensity;
+			pixelColor |= 0xff000000;
 			scopePixels[scopeWidth * curLine + curColumn] = pixelColor;
 			if (++curColumn >= scopeWidth) {
 				curColumn = 0;
@@ -98,40 +81,6 @@ public class MainActivity extends AppCompatActivity {
 				scopeView.invalidate();
 			}
 		}
-	}
-
-	private void initTools(int sampleRate) {
-		double powerWindowSeconds = 0.5;
-		int powerWindowSamples = (int) Math.round(powerWindowSeconds * sampleRate) | 1;
-		powerAvg = new SimpleMovingAverage(powerWindowSamples);
-		float blackFrequency = 1500;
-		float whiteFrequency = 2300;
-		float scanLineBandwidth = whiteFrequency - blackFrequency;
-		scanLineDemod = new FrequencyModulation(scanLineBandwidth, sampleRate);
-		float scanLineCutoff = scanLineBandwidth / 2;
-		int scanLineFilterSamples = (int) Math.round(0.443 * sampleRate / scanLineCutoff) | 1;
-		scanLineFilter = new ComplexMovingAverage(scanLineFilterSamples);
-		double syncPulseSeconds = 0.009;
-		int syncPulseFilterSamples = (int) Math.round(syncPulseSeconds * sampleRate) | 1;
-		syncPulseFilter = new ComplexMovingAverage(syncPulseFilterSamples);
-		float lowestFrequency = 1100;
-		float highestFrequency = 2300;
-		float cutoffFrequency = (highestFrequency - lowestFrequency) / 2;
-		int lowPassSamples = (int) Math.round(0.443 * sampleRate / cutoffFrequency) | 1;
-		baseBandLowPass = new ComplexMovingAverage(lowPassSamples);
-		float centerFrequency = (lowestFrequency + highestFrequency) / 2;
-		baseBandOscillator = new Phasor(-centerFrequency, sampleRate);
-		float syncPulseFrequency = 1200;
-		syncPulseOscillator = new Phasor(-(syncPulseFrequency - centerFrequency), sampleRate);
-		float grayFrequency = (blackFrequency + whiteFrequency) / 2;
-		scanLineOscillator = new Phasor(-(grayFrequency - centerFrequency), sampleRate);
-		int syncPulseDelaySamples = (powerWindowSamples - 1) / 2;
-		syncPulseDelay = new Delay(syncPulseDelaySamples);
-		int scanLineDelaySamples = (powerWindowSamples - 1) / 2 + (syncPulseFilterSamples - 1) / 2 - (scanLineFilterSamples - 1) / 2;
-		scanLineDelay = new Delay(scanLineDelaySamples);
-		baseBand = new Complex();
-		syncPulse = new Complex();
-		scanLine = new Complex();
 	}
 
 	private void initAudioRecord() {
@@ -150,7 +99,7 @@ public class MainActivity extends AppCompatActivity {
 			if (audioRecord.getState() == AudioRecord.STATE_INITIALIZED) {
 				audioRecord.setRecordPositionUpdateListener(recordListener);
 				audioRecord.setPositionNotificationPeriod(recordBuffer.length);
-				initTools(sampleRate);
+				demodulator = new Demodulator(sampleRate);
 				startListening();
 			} else {
 				setStatus(R.string.audio_init_failed);
