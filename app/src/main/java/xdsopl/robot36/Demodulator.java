@@ -12,6 +12,7 @@ public class Demodulator {
 	private final ComplexMovingAverage scanLineFilter;
 	private final ComplexMovingAverage baseBandLowPass;
 	private final FrequencyModulation scanLineDemod;
+	private final SchmittTrigger syncPulseTrigger;
 	private final Phasor syncPulseOscillator;
 	private final Phasor scanLineOscillator;
 	private final Phasor baseBandOscillator;
@@ -50,6 +51,7 @@ public class Demodulator {
 		syncPulseDelay = new Delay(syncPulseDelaySamples);
 		int scanLineDelaySamples = (powerWindowSamples - 1) / 2 + (syncPulseFilterSamples - 1) / 2 - (scanLineFilterSamples - 1) / 2;
 		scanLineDelay = new Delay(scanLineDelaySamples);
+		syncPulseTrigger = new SchmittTrigger(0.17f, 0.19f);
 		baseBand = new Complex();
 		syncPulse = new Complex();
 		scanLine = new Complex();
@@ -64,7 +66,7 @@ public class Demodulator {
 			float scanLineValue = scanLineDelay.push(scanLineDemod.demod(scanLine));
 			float syncPulseLevel = Math.min(Math.max(syncPulseValue, 0), 1);
 			float scanLineLevel = Math.min(Math.max(0.5f * (scanLineValue + 1), 0), 1);
-			if (syncPulseLevel > 0.1)
+			if (syncPulseTrigger.latch(syncPulseLevel))
 				buffer[i] = -syncPulseLevel;
 			else
 				buffer[i] = scanLineLevel;
