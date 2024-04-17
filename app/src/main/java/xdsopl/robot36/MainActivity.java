@@ -97,7 +97,7 @@ public class MainActivity extends AppCompatActivity {
 
 	void initTools(int sampleRate) {
 		demodulator = new Demodulator(sampleRate);
-		double scanLineMaxSeconds = 0.500;
+		double scanLineMaxSeconds = 1.5;
 		int scanLineMaxSamples = (int) Math.round(scanLineMaxSeconds * sampleRate);
 		scanLineBuffer = new float[scanLineMaxSamples];
 	}

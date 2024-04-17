@@ -17,7 +17,6 @@ public class Demodulator {
 	private final Phasor scanLineOscillator;
 	private final Phasor baseBandOscillator;
 	private final Delay syncPulseDelay;
-	private final Delay scanLineDelay;
 	private final int syncPulseLowMark;
 	private final int syncPulseHighMark;
 	private float syncPulseMaxValue;
@@ -30,7 +29,7 @@ public class Demodulator {
 	public int syncPulseOffset;
 
 	Demodulator(int sampleRate) {
-		double powerWindowSeconds = 0.5;
+		double powerWindowSeconds = 0.1;
 		int powerWindowSamples = (int) Math.round(powerWindowSeconds * sampleRate) | 1;
 		powerAvg = new SimpleMovingAverage(powerWindowSamples);
 		float blackFrequency = 1500;
@@ -58,8 +57,6 @@ public class Demodulator {
 		scanLineOscillator = new Phasor(-(grayFrequency - centerFrequency), sampleRate);
 		int syncPulseDelaySamples = (powerWindowSamples - 1) / 2;
 		syncPulseDelay = new Delay(syncPulseDelaySamples);
-		int scanLineDelaySamples = (powerWindowSamples - 1) / 2 + (syncPulseSamples - 1) / 2 - (scanLineFilterSamples - 1) / 2;
-		scanLineDelay = new Delay(scanLineDelaySamples);
 		syncPulseTrigger = new SchmittTrigger(0.17f, 0.19f);
 		baseBand = new Complex();
 		syncPulse = new Complex();
@@ -73,7 +70,7 @@ public class Demodulator {
 			syncPulse = syncPulseFilter.avg(syncPulse.set(baseBand).mul(syncPulseOscillator.rotate()));
 			scanLine = scanLineFilter.avg(scanLine.set(baseBand).mul(scanLineOscillator.rotate()));
 			float syncPulseValue = syncPulseDelay.push(syncPulse.norm()) / powerAvg.avg(baseBand.norm());
-			float scanLineValue = scanLineDelay.push(scanLineDemod.demod(scanLine));
+			float scanLineValue = scanLineDemod.demod(scanLine);
 			float scanLineLevel = Math.min(Math.max(0.5f * (scanLineValue + 1), 0), 1);
 			if (syncPulseTrigger.latch(syncPulseValue)) {
 				if (syncPulseMaxValue < syncPulseValue) {
@@ -82,7 +79,10 @@ public class Demodulator {
 				}
 				++syncPulseCounter;
 			} else if (syncPulseCounter > syncPulseLowMark && syncPulseCounter < syncPulseHighMark) {
-				syncPulseOffset = i + syncPulseMaxPosition - syncPulseCounter;
+				int filterDelay = (powerAvg.length - 1) / 2
+					+ (syncPulseFilter.length - 1) / 2
+					- (scanLineFilter.length - 1) / 2;
+				syncPulseOffset = i + syncPulseMaxPosition - syncPulseCounter - filterDelay;
 				syncPulseDetected = true;
 				syncPulseCounter = 0;
 				syncPulseMaxValue = 0;
