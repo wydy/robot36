@@ -19,7 +19,7 @@ public class Demodulator {
 	private final Delay syncPulseDelay;
 	private final Delay scanLineDelay;
 	private final int syncPulseSamples;
-	private float syncPulseMaxLevel;
+	private float syncPulseMaxValue;
 	private int syncPulseMaxPosition;
 	private int syncPulseCounter;
 	private Complex baseBand;
@@ -71,11 +71,10 @@ public class Demodulator {
 			scanLine = scanLineFilter.avg(scanLine.set(baseBand).mul(scanLineOscillator.rotate()));
 			float syncPulseValue = syncPulseDelay.push(syncPulse.norm()) / powerAvg.avg(baseBand.norm());
 			float scanLineValue = scanLineDelay.push(scanLineDemod.demod(scanLine));
-			float syncPulseLevel = Math.min(Math.max(syncPulseValue, 0), 1);
 			float scanLineLevel = Math.min(Math.max(0.5f * (scanLineValue + 1), 0), 1);
-			if (syncPulseTrigger.latch(syncPulseLevel)) {
-				if (syncPulseMaxLevel < syncPulseLevel) {
-					syncPulseMaxLevel = syncPulseLevel;
+			if (syncPulseTrigger.latch(syncPulseValue)) {
+				if (syncPulseMaxValue < syncPulseValue) {
+					syncPulseMaxValue = syncPulseValue;
 					syncPulseMaxPosition = syncPulseCounter;
 				}
 				++syncPulseCounter;
@@ -83,10 +82,10 @@ public class Demodulator {
 				syncPulseOffset = i + syncPulseMaxPosition - syncPulseCounter;
 				syncPulseDetected = true;
 				syncPulseCounter = 0;
-				syncPulseMaxLevel = 0;
+				syncPulseMaxValue = 0;
 			} else {
 				syncPulseCounter = 0;
-				syncPulseMaxLevel = 0;
+				syncPulseMaxValue = 0;
 			}
 			buffer[i] = scanLineLevel;
 		}
