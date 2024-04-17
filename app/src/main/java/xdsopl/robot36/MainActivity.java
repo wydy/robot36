@@ -87,6 +87,17 @@ public class MainActivity extends AppCompatActivity {
 			}
 		}
 		if (syncPulseDetected && syncPulseIndex >= 0) {
+			switch (demodulator.syncPulseWidth) {
+				case FiveMilliSeconds:
+					status.setText("5 ms sync pulse");
+					break;
+				case NineMilliSeconds:
+					status.setText("9 ms sync pulse");
+					break;
+				case TwentyMilliSeconds:
+					status.setText("20 ms sync pulse");
+					break;
+			}
 			processOneLine(syncPulseIndex);
 			int count = curSample - syncPulseIndex;
 			curSample = 0;

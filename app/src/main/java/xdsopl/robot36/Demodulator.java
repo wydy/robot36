@@ -8,7 +8,9 @@ package xdsopl.robot36;
 
 public class Demodulator {
 	private final SimpleMovingAverage powerAvg;
-	private final ComplexMovingAverage syncPulseFilter;
+	private final ComplexMovingAverage syncPulse5msFilter;
+	private final ComplexMovingAverage syncPulse9msFilter;
+	private final ComplexMovingAverage syncPulse20msFilter;
 	private final ComplexMovingAverage scanLineFilter;
 	private final ComplexMovingAverage baseBandLowPass;
 	private final FrequencyModulation scanLineDemod;
@@ -16,16 +18,31 @@ public class Demodulator {
 	private final Phasor syncPulseOscillator;
 	private final Phasor scanLineOscillator;
 	private final Phasor baseBandOscillator;
-	private final Delay syncPulseDelay;
+	private final Delay syncPulse5msDelay;
+	private final Delay syncPulse9msDelay;
+	private final Delay syncPulse20msDelay;
 	private final int syncPulseLowMark;
 	private final int syncPulseHighMark;
-	private float syncPulseMaxValue;
-	private int syncPulseMaxPosition;
+	private float syncPulse5msMaxValue;
+	private float syncPulse9msMaxValue;
+	private float syncPulse20msMaxValue;
+	private int syncPulse5msMaxPosition;
+	private int syncPulse9msMaxPosition;
+	private int syncPulse20msMaxPosition;
 	private int syncPulseCounter;
 	private Complex baseBand;
 	private Complex syncPulse;
+	private Complex syncPulse5ms;
+	private Complex syncPulse9ms;
+	private Complex syncPulse20ms;
 	private Complex scanLine;
 
+	public enum SyncPulseWidth {
+		FiveMilliSeconds,
+		NineMilliSeconds,
+		TwentyMilliSeconds
+	}
+	public SyncPulseWidth syncPulseWidth;
 	public int syncPulseOffset;
 
 	Demodulator(int sampleRate) {
@@ -39,11 +56,17 @@ public class Demodulator {
 		float scanLineCutoff = scanLineBandwidth / 2;
 		int scanLineFilterSamples = (int) Math.round(0.443 * sampleRate / scanLineCutoff) | 1;
 		scanLineFilter = new ComplexMovingAverage(scanLineFilterSamples);
-		double syncPulseSeconds = 0.009;
-		int syncPulseSamples = (int) Math.round(syncPulseSeconds * sampleRate) | 1;
-		syncPulseLowMark = syncPulseSamples / 2;
-		syncPulseHighMark = syncPulseSamples * 2;
-		syncPulseFilter = new ComplexMovingAverage(syncPulseSamples);
+		double syncPulse5msSeconds = 0.005;
+		double syncPulse9msSeconds = 0.009;
+		double syncPulse20msSeconds = 0.020;
+		int syncPulse5msSamples = (int) Math.round(syncPulse5msSeconds * sampleRate) | 1;
+		int syncPulse9msSamples = (int) Math.round(syncPulse9msSeconds * sampleRate) | 1;
+		int syncPulse20msSamples = (int) Math.round(syncPulse20msSeconds * sampleRate) | 1;
+		syncPulseLowMark = syncPulse5msSamples / 2;
+		syncPulseHighMark = syncPulse20msSamples * 2;
+		syncPulse5msFilter = new ComplexMovingAverage(syncPulse5msSamples);
+		syncPulse9msFilter = new ComplexMovingAverage(syncPulse9msSamples);
+		syncPulse20msFilter = new ComplexMovingAverage(syncPulse20msSamples);
 		float lowestFrequency = 1100;
 		float highestFrequency = 2300;
 		float cutoffFrequency = (highestFrequency - lowestFrequency) / 2;
@@ -55,11 +78,18 @@ public class Demodulator {
 		syncPulseOscillator = new Phasor(-(syncPulseFrequency - centerFrequency), sampleRate);
 		float grayFrequency = (blackFrequency + whiteFrequency) / 2;
 		scanLineOscillator = new Phasor(-(grayFrequency - centerFrequency), sampleRate);
-		int syncPulseDelaySamples = (powerWindowSamples - 1) / 2;
-		syncPulseDelay = new Delay(syncPulseDelaySamples);
+		int syncPulse5msDelaySamples = (powerWindowSamples - 1) / 2 - (syncPulse5msSamples - 1) / 2;
+		int syncPulse9msDelaySamples = (powerWindowSamples - 1) / 2 - (syncPulse9msSamples - 1) / 2;
+		int syncPulse20msDelaySamples = (powerWindowSamples - 1) / 2 - (syncPulse20msSamples - 1) / 2;
+		syncPulse5msDelay = new Delay(syncPulse5msDelaySamples);
+		syncPulse9msDelay = new Delay(syncPulse9msDelaySamples);
+		syncPulse20msDelay = new Delay(syncPulse20msDelaySamples);
 		syncPulseTrigger = new SchmittTrigger(0.17f, 0.19f);
 		baseBand = new Complex();
 		syncPulse = new Complex();
+		syncPulse5ms = new Complex();
+		syncPulse9ms = new Complex();
+		syncPulse20ms = new Complex();
 		scanLine = new Complex();
 	}
 
@@ -67,28 +97,54 @@ public class Demodulator {
 		boolean syncPulseDetected = false;
 		for (int i = 0; i < buffer.length; ++i) {
 			baseBand = baseBandLowPass.avg(baseBand.set(buffer[i]).mul(baseBandOscillator.rotate()));
-			syncPulse = syncPulseFilter.avg(syncPulse.set(baseBand).mul(syncPulseOscillator.rotate()));
+			syncPulse = syncPulse.set(baseBand).mul(syncPulseOscillator.rotate());
+			syncPulse5ms = syncPulse5msFilter.avg(syncPulse5ms.set(syncPulse));
+			syncPulse9ms = syncPulse9msFilter.avg(syncPulse9ms.set(syncPulse));
+			syncPulse20ms = syncPulse20msFilter.avg(syncPulse20ms.set(syncPulse));
 			scanLine = scanLineFilter.avg(scanLine.set(baseBand).mul(scanLineOscillator.rotate()));
-			float syncPulseValue = syncPulseDelay.push(syncPulse.norm()) / powerAvg.avg(baseBand.norm());
+			float averagePower = powerAvg.avg(baseBand.norm());
+			float syncPulse5msValue = syncPulse5msDelay.push(syncPulse5ms.norm()) / averagePower;
+			float syncPulse9msValue = syncPulse9msDelay.push(syncPulse9ms.norm()) / averagePower;
+			float syncPulse20msValue = syncPulse20msDelay.push(syncPulse20ms.norm()) / averagePower;
 			float scanLineValue = scanLineDemod.demod(scanLine);
 			float scanLineLevel = Math.min(Math.max(0.5f * (scanLineValue + 1), 0), 1);
-			if (syncPulseTrigger.latch(syncPulseValue)) {
-				if (syncPulseMaxValue < syncPulseValue) {
-					syncPulseMaxValue = syncPulseValue;
-					syncPulseMaxPosition = syncPulseCounter;
+			if (syncPulseTrigger.latch(syncPulse5msValue)) {
+				if (syncPulse5msMaxValue < syncPulse5msValue) {
+					syncPulse5msMaxValue = syncPulse5msValue;
+					syncPulse5msMaxPosition = syncPulseCounter;
+				}
+				if (syncPulse9msMaxValue < syncPulse9msValue) {
+					syncPulse9msMaxValue = syncPulse9msValue;
+					syncPulse9msMaxPosition = syncPulseCounter;
+				}
+				if (syncPulse20msMaxValue < syncPulse20msValue) {
+					syncPulse20msMaxValue = syncPulse20msValue;
+					syncPulse20msMaxPosition = syncPulseCounter;
 				}
 				++syncPulseCounter;
 			} else if (syncPulseCounter > syncPulseLowMark && syncPulseCounter < syncPulseHighMark) {
-				int filterDelay = (powerAvg.length - 1) / 2
-					+ (syncPulseFilter.length - 1) / 2
-					- (scanLineFilter.length - 1) / 2;
-				syncPulseOffset = i + syncPulseMaxPosition - syncPulseCounter - filterDelay;
+				int filterDelay = (powerAvg.length - 1) / 2 - (scanLineFilter.length - 1) / 2;
+				syncPulseOffset = i - syncPulseCounter - filterDelay;
+				if (syncPulse20msMaxValue > (9.f / 20.f) * syncPulse9msMaxValue) {
+					syncPulseOffset += syncPulse20msMaxPosition;
+					syncPulseWidth = SyncPulseWidth.TwentyMilliSeconds;
+				} else if (syncPulse9msMaxValue > (5.f / 9.f) * syncPulse5msMaxValue) {
+					syncPulseOffset += syncPulse9msMaxPosition;
+					syncPulseWidth = SyncPulseWidth.NineMilliSeconds;
+				} else {
+					syncPulseOffset += syncPulse5msMaxPosition;
+					syncPulseWidth = SyncPulseWidth.FiveMilliSeconds;
+				}
 				syncPulseDetected = true;
 				syncPulseCounter = 0;
-				syncPulseMaxValue = 0;
+				syncPulse5msMaxValue = 0;
+				syncPulse9msMaxValue = 0;
+				syncPulse20msMaxValue = 0;
 			} else {
 				syncPulseCounter = 0;
-				syncPulseMaxValue = 0;
+				syncPulse5msMaxValue = 0;
+				syncPulse9msMaxValue = 0;
+				syncPulse20msMaxValue = 0;
 			}
 			buffer[i] = scanLineLevel;
 		}
