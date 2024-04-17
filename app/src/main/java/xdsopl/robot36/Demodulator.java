@@ -18,7 +18,8 @@ public class Demodulator {
 	private final Phasor baseBandOscillator;
 	private final Delay syncPulseDelay;
 	private final Delay scanLineDelay;
-	private final int syncPulseSamples;
+	private final int syncPulseLowMark;
+	private final int syncPulseHighMark;
 	private float syncPulseMaxValue;
 	private int syncPulseMaxPosition;
 	private int syncPulseCounter;
@@ -40,7 +41,9 @@ public class Demodulator {
 		int scanLineFilterSamples = (int) Math.round(0.443 * sampleRate / scanLineCutoff) | 1;
 		scanLineFilter = new ComplexMovingAverage(scanLineFilterSamples);
 		double syncPulseSeconds = 0.009;
-		syncPulseSamples = (int) Math.round(syncPulseSeconds * sampleRate) | 1;
+		int syncPulseSamples = (int) Math.round(syncPulseSeconds * sampleRate) | 1;
+		syncPulseLowMark = syncPulseSamples / 2;
+		syncPulseHighMark = syncPulseSamples * 2;
 		syncPulseFilter = new ComplexMovingAverage(syncPulseSamples);
 		float lowestFrequency = 1100;
 		float highestFrequency = 2300;
@@ -78,7 +81,7 @@ public class Demodulator {
 					syncPulseMaxPosition = syncPulseCounter;
 				}
 				++syncPulseCounter;
-			} else if (syncPulseCounter > 0 && syncPulseCounter < syncPulseSamples) {
+			} else if (syncPulseCounter > syncPulseLowMark && syncPulseCounter < syncPulseHighMark) {
 				syncPulseOffset = i + syncPulseMaxPosition - syncPulseCounter;
 				syncPulseDetected = true;
 				syncPulseCounter = 0;
