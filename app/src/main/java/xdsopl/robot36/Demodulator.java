@@ -42,6 +42,7 @@ public class Demodulator {
 		NineMilliSeconds,
 		TwentyMilliSeconds
 	}
+
 	public SyncPulseWidth syncPulseWidth;
 	public int syncPulseOffset;
 
@@ -125,10 +126,14 @@ public class Demodulator {
 			} else if (syncPulseCounter > syncPulseLowMark && syncPulseCounter < syncPulseHighMark) {
 				int filterDelay = (powerAvg.length - 1) / 2 - (scanLineFilter.length - 1) / 2;
 				syncPulseOffset = i - syncPulseCounter - filterDelay;
-				if (syncPulse20msMaxValue > (9.f / 20.f) * syncPulse9msMaxValue) {
+				float mid9ms20msSum = ((9.f / 20.f) + 1.f) / 2.f;
+				float mid9ms20msPwr = mid9ms20msSum * mid9ms20msSum;
+				float mid5ms9msSum = ((5.f / 9.f) + 1.f) / 2.f;
+				float mid5ms9msPwr = mid5ms9msSum * mid5ms9msSum;
+				if (syncPulse20msMaxValue > mid9ms20msPwr * syncPulse9msMaxValue) {
 					syncPulseOffset += syncPulse20msMaxPosition;
 					syncPulseWidth = SyncPulseWidth.TwentyMilliSeconds;
-				} else if (syncPulse9msMaxValue > (5.f / 9.f) * syncPulse5msMaxValue) {
+				} else if (syncPulse9msMaxValue > mid5ms9msPwr * syncPulse5msMaxValue) {
 					syncPulseOffset += syncPulse9msMaxPosition;
 					syncPulseWidth = SyncPulseWidth.NineMilliSeconds;
 				} else {
