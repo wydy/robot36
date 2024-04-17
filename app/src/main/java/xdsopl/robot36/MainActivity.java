@@ -30,18 +30,19 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-	private final int scopeWidth = 1234, scopeHeight = 512;
+	private final int scopeWidth = 320, scopeHeight = 640;
 	private Bitmap scopeBitmap;
 	private int[] scopePixels;
 	private ImageView scopeView;
 	private float[] recordBuffer;
+	private float[] scanLineBuffer;
 	private AudioRecord audioRecord;
 	private TextView status;
 	private Demodulator demodulator;
 
 	private int tint;
 	private int curLine;
-	private int curColumn;
+	private int curSample;
 
 	private void setStatus(int id) {
 		status.setText(id);
@@ -59,7 +60,13 @@ public class MainActivity extends AppCompatActivity {
 		}
 	};
 
-	private void slideUpOneLine() {
+	private void processOneLine(int syncPulseIndex) {
+		for (int i = 0; i < scopeWidth; ++i) {
+			int position = (i * syncPulseIndex) / scopeWidth;
+			int intensity = (int) Math.round(255 * Math.sqrt(scanLineBuffer[position]));
+			int pixelColor = 0xff000000 | 0x00010101 * intensity;
+			scopePixels[scopeWidth * curLine + i] = pixelColor;
+		}
 		for (int i = 0; i < scopeWidth; ++i)
 			scopePixels[scopeWidth * (curLine + scopeHeight) + i] = scopePixels[scopeWidth * curLine + i];
 		curLine = (curLine + 1) % scopeHeight;
@@ -68,35 +75,31 @@ public class MainActivity extends AppCompatActivity {
 	}
 
 	private void visualizeSignal(boolean syncPulseDetected) {
-		int syncPulseOffset = curColumn + demodulator.syncPulseOffset;
-		if (syncPulseDetected && syncPulseOffset >= 0 && syncPulseOffset < curColumn) {
-			syncPulseDetected = false;
-			int nextLine = (curLine + 1) % scopeHeight;
-			for (int i = 0; i < curColumn - syncPulseOffset; ++i)
-				scopePixels[scopeWidth * nextLine + i] = scopePixels[scopeWidth * curLine + syncPulseOffset + i];
-			for (int i = syncPulseOffset; i < scopeWidth; ++i)
-				scopePixels[scopeWidth * curLine + i] = 0xff00ff00;
-			curColumn -= syncPulseOffset;
-			slideUpOneLine();
-		}
+		int syncPulseIndex = curSample + demodulator.syncPulseOffset;
 		for (float v : recordBuffer) {
-			int intensity = (int) Math.round(255 * Math.sqrt(v));
-			int pixelColor = 0xff000000 | 0x00010101 * intensity;
-			scopePixels[scopeWidth * curLine + curColumn] = pixelColor;
-			boolean syncNow = syncPulseDetected && syncPulseOffset == curColumn;
-			if (syncNow || ++curColumn >= scopeWidth) {
-				if (syncNow)
-					while (curColumn < scopeWidth)
-						scopePixels[scopeWidth * curLine + curColumn++] = 0xffff0000;
-				syncPulseDetected = false;
-				curColumn = 0;
-				slideUpOneLine();
+			scanLineBuffer[curSample++] = v;
+			if (curSample >= scanLineBuffer.length) {
+				int shift = scanLineBuffer.length / 2;
+				syncPulseIndex -= shift;
+				curSample = 0;
+				for (int i = shift; i < scanLineBuffer.length; ++i)
+					scanLineBuffer[curSample++] = scanLineBuffer[i];
 			}
+		}
+		if (syncPulseDetected && syncPulseIndex >= 0) {
+			processOneLine(syncPulseIndex);
+			int count = curSample - syncPulseIndex;
+			curSample = 0;
+			for (int i = 0; i < count; ++i)
+				scanLineBuffer[curSample++] = scanLineBuffer[syncPulseIndex + i];
 		}
 	}
 
 	void initTools(int sampleRate) {
 		demodulator = new Demodulator(sampleRate);
+		double scanLineMaxSeconds = 0.500;
+		int scanLineMaxSamples = (int) Math.round(scanLineMaxSeconds * sampleRate);
+		scanLineBuffer = new float[scanLineMaxSamples];
 	}
 
 	private void initAudioRecord() {
