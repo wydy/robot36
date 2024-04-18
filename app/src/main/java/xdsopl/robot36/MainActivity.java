@@ -82,11 +82,16 @@ public class MainActivity extends AppCompatActivity {
 		pulses[pulses.length - 1] = index;
 	}
 
-	private int scanLineStdDev(int[] lines) {
+	private double scanLineMean(int[] lines) {
 		double mean = 0;
 		for (int diff : lines)
 			mean += diff;
 		mean /= lines.length;
+		return mean;
+	}
+
+	private int scanLineStdDev(int[] lines) {
+		double mean = scanLineMean(lines);
 		double stdDev = 0;
 		for (int diff : lines)
 			stdDev += (diff - mean) * (diff - mean);
