@@ -6,13 +6,13 @@ Copyright 2024 Ahmet Inan <xdsopl@gmail.com>
 
 package xdsopl.robot36;
 
+import android.Manifest;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
 import android.os.Bundle;
-import android.Manifest;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -26,6 +26,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
@@ -39,10 +40,17 @@ public class MainActivity extends AppCompatActivity {
 	private AudioRecord audioRecord;
 	private TextView status;
 	private Demodulator demodulator;
+	private int[] last5msSyncPulses;
+	private int[] last9msSyncPulses;
+	private int[] last20msSyncPulses;
+	private int[] last5msScanLines;
+	private int[] last9msScanLines;
+	private int[] last20msScanLines;
 
 	private int tint;
 	private int curLine;
 	private int curSample;
+	private int scanLineToleranceSamples;
 
 	private void setStatus(int id) {
 		status.setText(id);
@@ -60,13 +68,73 @@ public class MainActivity extends AppCompatActivity {
 		}
 	};
 
-	private void processOneLine(int syncPulseIndex) {
+	private void adjustSyncPulses(int[] pulses, int shift) {
+		for (int i = 0; i < pulses.length; ++i)
+			pulses[i] -= shift;
+	}
+
+	private void addSyncPulse(int[] pulses, int[] lines, int index) {
+		for (int i = 1; i < lines.length; ++i)
+			lines[i - 1] = lines[i];
+		lines[lines.length - 1] = index - pulses[pulses.length - 1];
+		for (int i = 1; i < pulses.length; ++i)
+			pulses[i - 1] = pulses[i];
+		pulses[pulses.length - 1] = index;
+	}
+
+	private int scanLineStdDev(int[] lines) {
+		double mean = 0;
+		for (int diff : lines)
+			mean += diff;
+		mean /= lines.length;
+		double stdDev = 0;
+		for (int diff : lines)
+			stdDev += (diff - mean) * (diff - mean);
+		stdDev = Math.sqrt(stdDev / lines.length);
+		return (int) Math.round(stdDev);
+	}
+
+	private void processBuffer() {
+		int prevPulseIndex = 0;
+		int nextPulseIndex = 0;
+		int scanLineSamples = 0;
+		if (last5msScanLines[0] > 0 && scanLineStdDev(last5msScanLines) < scanLineToleranceSamples) {
+			prevPulseIndex = last5msSyncPulses[0];
+			nextPulseIndex = last5msSyncPulses[1];
+			scanLineSamples = last5msScanLines[0];
+			Arrays.fill(last9msScanLines, 0);
+			Arrays.fill(last20msScanLines, 0);
+		}
+		if (last9msScanLines[0] > 0 && scanLineStdDev(last9msScanLines) < scanLineToleranceSamples) {
+			prevPulseIndex = last9msSyncPulses[0];
+			nextPulseIndex = last9msSyncPulses[1];
+			scanLineSamples = last9msScanLines[0];
+			Arrays.fill(last5msScanLines, 0);
+			Arrays.fill(last20msScanLines, 0);
+		}
+		if (last20msScanLines[0] > 0 && scanLineStdDev(last20msScanLines) < scanLineToleranceSamples) {
+			prevPulseIndex = last20msSyncPulses[0];
+			nextPulseIndex = last20msSyncPulses[1];
+			scanLineSamples = last20msScanLines[0];
+			Arrays.fill(last5msScanLines, 0);
+			Arrays.fill(last9msScanLines, 0);
+		}
+		if (scanLineSamples == 0 || prevPulseIndex < 0 || nextPulseIndex <= 0)
+			return;
 		for (int i = 0; i < scopeWidth; ++i) {
-			int position = (i * syncPulseIndex) / scopeWidth;
+			int position = (i * scanLineSamples) / scopeWidth + prevPulseIndex;
 			int intensity = (int) Math.round(255 * Math.sqrt(scanLineBuffer[position]));
 			int pixelColor = 0xff000000 | 0x00010101 * intensity;
 			scopePixels[scopeWidth * curLine + i] = pixelColor;
 		}
+		int shift = nextPulseIndex;
+		adjustSyncPulses(last5msSyncPulses, shift);
+		adjustSyncPulses(last9msSyncPulses, shift);
+		adjustSyncPulses(last20msSyncPulses, shift);
+		int endSample = curSample;
+		curSample = 0;
+		for (int i = shift; i < endSample; ++i)
+			scanLineBuffer[curSample++] = scanLineBuffer[i];
 		for (int i = 0; i < scopeWidth; ++i)
 			scopePixels[scopeWidth * (curLine + scopeHeight) + i] = scopePixels[scopeWidth * curLine + i];
 		curLine = (curLine + 1) % scopeHeight;
@@ -81,6 +149,9 @@ public class MainActivity extends AppCompatActivity {
 			if (curSample >= scanLineBuffer.length) {
 				int shift = scanLineBuffer.length / 2;
 				syncPulseIndex -= shift;
+				adjustSyncPulses(last5msSyncPulses, shift);
+				adjustSyncPulses(last9msSyncPulses, shift);
+				adjustSyncPulses(last20msSyncPulses, shift);
 				curSample = 0;
 				for (int i = shift; i < scanLineBuffer.length; ++i)
 					scanLineBuffer[curSample++] = scanLineBuffer[i];
@@ -89,28 +160,34 @@ public class MainActivity extends AppCompatActivity {
 		if (syncPulseDetected && syncPulseIndex >= 0) {
 			switch (demodulator.syncPulseWidth) {
 				case FiveMilliSeconds:
-					status.setText("5 ms sync pulse");
+					addSyncPulse(last5msSyncPulses, last5msScanLines, syncPulseIndex);
 					break;
 				case NineMilliSeconds:
-					status.setText("9 ms sync pulse");
+					addSyncPulse(last9msSyncPulses, last9msScanLines, syncPulseIndex);
 					break;
 				case TwentyMilliSeconds:
-					status.setText("20 ms sync pulse");
+					addSyncPulse(last20msSyncPulses, last20msScanLines, syncPulseIndex);
 					break;
 			}
-			processOneLine(syncPulseIndex);
-			int count = curSample - syncPulseIndex;
-			curSample = 0;
-			for (int i = 0; i < count; ++i)
-				scanLineBuffer[curSample++] = scanLineBuffer[syncPulseIndex + i];
+			processBuffer();
 		}
 	}
 
 	void initTools(int sampleRate) {
 		demodulator = new Demodulator(sampleRate);
-		double scanLineMaxSeconds = 1.5;
+		double scanLineMaxSeconds = 5;
 		int scanLineMaxSamples = (int) Math.round(scanLineMaxSeconds * sampleRate);
 		scanLineBuffer = new float[scanLineMaxSamples];
+		int scanLineCount = 3;
+		last5msScanLines = new int[scanLineCount];
+		last9msScanLines = new int[scanLineCount];
+		last20msScanLines = new int[scanLineCount];
+		int syncPulseCount = scanLineCount + 1;
+		last5msSyncPulses = new int[syncPulseCount];
+		last9msSyncPulses = new int[syncPulseCount];
+		last20msSyncPulses = new int[syncPulseCount];
+		double scanLineToleranceSeconds = 0.001;
+		scanLineToleranceSamples = (int) Math.round(scanLineToleranceSeconds * sampleRate);
 	}
 
 	private void initAudioRecord() {
