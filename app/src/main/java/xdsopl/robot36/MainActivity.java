@@ -102,6 +102,7 @@ public class MainActivity extends AppCompatActivity {
 			prevPulseIndex = last5msSyncPulses[0];
 			nextPulseIndex = last5msSyncPulses[1];
 			scanLineSamples = last5msScanLines[0];
+			last5msScanLines[0] = 0;
 			Arrays.fill(last9msScanLines, 0);
 			Arrays.fill(last20msScanLines, 0);
 		}
@@ -109,6 +110,7 @@ public class MainActivity extends AppCompatActivity {
 			prevPulseIndex = last9msSyncPulses[0];
 			nextPulseIndex = last9msSyncPulses[1];
 			scanLineSamples = last9msScanLines[0];
+			last9msScanLines[0] = 0;
 			Arrays.fill(last5msScanLines, 0);
 			Arrays.fill(last20msScanLines, 0);
 		}
@@ -116,6 +118,7 @@ public class MainActivity extends AppCompatActivity {
 			prevPulseIndex = last20msSyncPulses[0];
 			nextPulseIndex = last20msSyncPulses[1];
 			scanLineSamples = last20msScanLines[0];
+			last20msScanLines[0] = 0;
 			Arrays.fill(last5msScanLines, 0);
 			Arrays.fill(last9msScanLines, 0);
 		}
