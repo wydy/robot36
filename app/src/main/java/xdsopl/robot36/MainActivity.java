@@ -90,19 +90,8 @@ public class MainActivity extends AppCompatActivity {
 		return (int) Math.round(stdDev);
 	}
 
-	private void processSyncPulse(int[] pulses, int[] lines, int index) {
-		for (int i = 1; i < lines.length; ++i)
-			lines[i - 1] = lines[i];
-		lines[lines.length - 1] = index - pulses[pulses.length - 1];
-		for (int i = 1; i < pulses.length; ++i)
-			pulses[i - 1] = pulses[i];
-		pulses[pulses.length - 1] = index;
-		int prevPulseIndex = pulses[0];
-		int nextPulseIndex = pulses[1];
-		int scanLineSamples = lines[0];
-		if (scanLineSamples == 0 || prevPulseIndex < 0 || nextPulseIndex <= 0)
-			return;
-		if (scanLineStdDev(lines) > scanLineToleranceSamples)
+	private void processOneLine(int prevPulseIndex, int scanLineSamples) {
+		if (prevPulseIndex < 0 || prevPulseIndex + scanLineSamples >= scanLineBuffer.length)
 			return;
 		for (int i = 0; i < scopeWidth; ++i) {
 			int position = (i * scanLineSamples) / scopeWidth + prevPulseIndex;
@@ -110,7 +99,30 @@ public class MainActivity extends AppCompatActivity {
 			int pixelColor = 0xff000000 | 0x00010101 * intensity;
 			scopePixels[scopeWidth * curLine + i] = pixelColor;
 		}
-		int shift = nextPulseIndex;
+	}
+
+	private void processSyncPulse(int[] pulses, int[] lines, int index) {
+		for (int i = 1; i < lines.length; ++i)
+			lines[i - 1] = lines[i];
+		lines[lines.length - 1] = index - pulses[pulses.length - 1];
+		for (int i = 1; i < pulses.length; ++i)
+			pulses[i - 1] = pulses[i];
+		pulses[pulses.length - 1] = index;
+		if (lines[0] == 0)
+			return;
+		if (scanLineStdDev(lines) > scanLineToleranceSamples)
+			return;
+		if (pulses[0] >= lines[0]) {
+			int lineSamples = lines[0];
+			int endPulse = pulses[0];
+			int extrapolate = endPulse / lineSamples;
+			int firstPulse = endPulse - extrapolate * lineSamples;
+			for (int pulseIndex = firstPulse; pulseIndex < endPulse; pulseIndex += lineSamples)
+				processOneLine(pulseIndex, lineSamples);
+		}
+		for (int i = 0; i < lines.length; ++i)
+			processOneLine(pulses[i], lines[i]);
+		int shift = pulses[pulses.length - 1];
 		adjustSyncPulses(last5msSyncPulses, shift);
 		adjustSyncPulses(last9msSyncPulses, shift);
 		adjustSyncPulses(last20msSyncPulses, shift);
