@@ -38,7 +38,6 @@ public class MainActivity extends AppCompatActivity {
 	private AudioRecord audioRecord;
 	private TextView status;
 	private Decoder decoder;
-	private int tint;
 
 	private void setStatus(int id) {
 		status.setText(id);
@@ -126,7 +125,6 @@ public class MainActivity extends AppCompatActivity {
 			v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
 			return insets;
 		});
-		tint = getColor(R.color.tint);
 		status = findViewById(R.id.status);
 		scopeView = findViewById(R.id.scope);
 		scopeBitmap = Bitmap.createBitmap(scopeWidth, scopeHeight, Bitmap.Config.ARGB_8888);
