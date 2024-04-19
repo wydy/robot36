@@ -73,15 +73,6 @@ public class MainActivity extends AppCompatActivity {
 			pulses[i] -= shift;
 	}
 
-	private void addSyncPulse(int[] pulses, int[] lines, int index) {
-		for (int i = 1; i < lines.length; ++i)
-			lines[i - 1] = lines[i];
-		lines[lines.length - 1] = index - pulses[pulses.length - 1];
-		for (int i = 1; i < pulses.length; ++i)
-			pulses[i - 1] = pulses[i];
-		pulses[pulses.length - 1] = index;
-	}
-
 	private double scanLineMean(int[] lines) {
 		double mean = 0;
 		for (int diff : lines)
@@ -99,35 +90,19 @@ public class MainActivity extends AppCompatActivity {
 		return (int) Math.round(stdDev);
 	}
 
-	private void processBuffer() {
-		int prevPulseIndex = 0;
-		int nextPulseIndex = 0;
-		int scanLineSamples = 0;
-		if (last5msScanLines[0] > 0 && scanLineStdDev(last5msScanLines) < scanLineToleranceSamples) {
-			prevPulseIndex = last5msSyncPulses[0];
-			nextPulseIndex = last5msSyncPulses[1];
-			scanLineSamples = last5msScanLines[0];
-			last5msScanLines[0] = 0;
-			Arrays.fill(last9msScanLines, 0);
-			Arrays.fill(last20msScanLines, 0);
-		}
-		if (last9msScanLines[0] > 0 && scanLineStdDev(last9msScanLines) < scanLineToleranceSamples) {
-			prevPulseIndex = last9msSyncPulses[0];
-			nextPulseIndex = last9msSyncPulses[1];
-			scanLineSamples = last9msScanLines[0];
-			last9msScanLines[0] = 0;
-			Arrays.fill(last5msScanLines, 0);
-			Arrays.fill(last20msScanLines, 0);
-		}
-		if (last20msScanLines[0] > 0 && scanLineStdDev(last20msScanLines) < scanLineToleranceSamples) {
-			prevPulseIndex = last20msSyncPulses[0];
-			nextPulseIndex = last20msSyncPulses[1];
-			scanLineSamples = last20msScanLines[0];
-			last20msScanLines[0] = 0;
-			Arrays.fill(last5msScanLines, 0);
-			Arrays.fill(last9msScanLines, 0);
-		}
+	private void processSyncPulse(int[] pulses, int[] lines, int index) {
+		for (int i = 1; i < lines.length; ++i)
+			lines[i - 1] = lines[i];
+		lines[lines.length - 1] = index - pulses[pulses.length - 1];
+		for (int i = 1; i < pulses.length; ++i)
+			pulses[i - 1] = pulses[i];
+		pulses[pulses.length - 1] = index;
+		int prevPulseIndex = pulses[0];
+		int nextPulseIndex = pulses[1];
+		int scanLineSamples = lines[0];
 		if (scanLineSamples == 0 || prevPulseIndex < 0 || nextPulseIndex <= 0)
+			return;
+		if (scanLineStdDev(lines) > scanLineToleranceSamples)
 			return;
 		for (int i = 0; i < scopeWidth; ++i) {
 			int position = (i * scanLineSamples) / scopeWidth + prevPulseIndex;
@@ -165,19 +140,18 @@ public class MainActivity extends AppCompatActivity {
 					scanLineBuffer[curSample++] = scanLineBuffer[i];
 			}
 		}
-		if (syncPulseDetected && syncPulseIndex >= 0) {
+		if (syncPulseDetected) {
 			switch (demodulator.syncPulseWidth) {
 				case FiveMilliSeconds:
-					addSyncPulse(last5msSyncPulses, last5msScanLines, syncPulseIndex);
+					processSyncPulse(last5msSyncPulses, last5msScanLines, syncPulseIndex);
 					break;
 				case NineMilliSeconds:
-					addSyncPulse(last9msSyncPulses, last9msScanLines, syncPulseIndex);
+					processSyncPulse(last9msSyncPulses, last9msScanLines, syncPulseIndex);
 					break;
 				case TwentyMilliSeconds:
-					addSyncPulse(last20msSyncPulses, last20msScanLines, syncPulseIndex);
+					processSyncPulse(last20msSyncPulses, last20msScanLines, syncPulseIndex);
 					break;
 			}
-			processBuffer();
 		}
 	}
 
