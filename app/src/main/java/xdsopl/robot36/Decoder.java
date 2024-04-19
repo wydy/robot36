@@ -83,13 +83,13 @@ public class Decoder {
 		return mean;
 	}
 
-	private int scanLineStdDev(int[] lines) {
+	private double scanLineStdDev(int[] lines) {
 		double mean = scanLineMean(lines);
 		double stdDev = 0;
 		for (int diff : lines)
 			stdDev += (diff - mean) * (diff - mean);
 		stdDev = Math.sqrt(stdDev / lines.length);
-		return (int) Math.round(stdDev);
+		return stdDev;
 	}
 
 	private void processOneLine(int prevPulseIndex, int scanLineSamples) {
@@ -127,15 +127,15 @@ public class Decoder {
 			return false;
 		if (scanLineStdDev(lines) > scanLineToleranceSamples)
 			return false;
-		Mode mode = detectMode(modes, lines[0]);
+		int meanSamples = (int) Math.round(scanLineMean(lines));
+		Mode mode = detectMode(modes, meanSamples);
 		curMode = mode.getName();
-		if (pulses[0] >= lines[0]) {
-			int lineSamples = lines[0];
+		if (pulses[0] >= meanSamples) {
 			int endPulse = pulses[0];
-			int extrapolate = endPulse / lineSamples;
-			int firstPulse = endPulse - extrapolate * lineSamples;
-			for (int pulseIndex = firstPulse; pulseIndex < endPulse; pulseIndex += lineSamples)
-				processOneLine(pulseIndex, lineSamples);
+			int extrapolate = endPulse / meanSamples;
+			int firstPulse = endPulse - extrapolate * meanSamples;
+			for (int pulseIndex = firstPulse; pulseIndex < endPulse; pulseIndex += meanSamples)
+				processOneLine(pulseIndex, meanSamples);
 		}
 		for (int i = 0; i < lines.length; ++i)
 			processOneLine(pulses[i], lines[i]);
