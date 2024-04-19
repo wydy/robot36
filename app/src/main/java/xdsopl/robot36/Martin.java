@@ -45,11 +45,11 @@ public class Martin implements Mode {
 	}
 
 	@Override
-	public boolean decodeScanLine(int[] pixelBuffer, float[] scanLineBuffer, int prevPulseIndex, int ignore) {
+	public int decodeScanLine(int[] evenBuffer, int[] oddBuffer, float[] scanLineBuffer, int prevPulseIndex, int ignore) {
 		if (prevPulseIndex + greenBeginSamples < 0 || prevPulseIndex + redEndSamples > scanLineBuffer.length)
-			return false;
-		for (int i = 0; i < pixelBuffer.length; ++i) {
-			int position = (i * channelSamples) / pixelBuffer.length + prevPulseIndex;
+			return 0;
+		for (int i = 0; i < evenBuffer.length; ++i) {
+			int position = (i * channelSamples) / evenBuffer.length + prevPulseIndex;
 			int greenPos = position + greenBeginSamples;
 			int bluePos = position + blueBeginSamples;
 			int redPos = position + redBeginSamples;
@@ -57,8 +57,8 @@ public class Martin implements Mode {
 			int blue = Math.round(255 * scanLineBuffer[bluePos]);
 			int red = Math.round(255 * scanLineBuffer[redPos]);
 			int pixelColor = 0xff000000 | (red << 16) | (green << 8) | blue;
-			pixelBuffer[i] = pixelColor;
+			evenBuffer[i] = pixelColor;
 		}
-		return true;
+		return 1;
 	}
 }

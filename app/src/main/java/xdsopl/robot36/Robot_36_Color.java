@@ -31,15 +31,15 @@ public class Robot_36_Color implements Mode {
 	}
 
 	@Override
-	public boolean decodeScanLine(int[] pixelBuffer, float[] scanLineBuffer, int prevPulseIndex, int scanLineSamples) {
+	public int decodeScanLine(int[] evenBuffer, int[] oddBuffer, float[] scanLineBuffer, int prevPulseIndex, int scanLineSamples) {
 		if (prevPulseIndex < 0 || prevPulseIndex + scanLineSamples >= scanLineBuffer.length)
-			return false;
-		for (int i = 0; i < pixelBuffer.length; ++i) {
-			int position = (i * scanLineSamples) / pixelBuffer.length + prevPulseIndex;
+			return 0;
+		for (int i = 0; i < evenBuffer.length; ++i) {
+			int position = (i * scanLineSamples) / evenBuffer.length + prevPulseIndex;
 			int intensity = (int) Math.round(255 * Math.sqrt(scanLineBuffer[position]));
 			int pixelColor = 0xff000000 | 0x00010101 * intensity;
-			pixelBuffer[i] = pixelColor;
+			evenBuffer[i] = pixelColor;
 		}
-		return true;
+		return 1;
 	}
 }

@@ -42,11 +42,11 @@ public class Wraase_SC2_180 implements Mode {
 	}
 
 	@Override
-	public boolean decodeScanLine(int[] pixelBuffer, float[] scanLineBuffer, int prevPulseIndex, int ignore) {
+	public int decodeScanLine(int[] evenBuffer, int[] oddBuffer, float[] scanLineBuffer, int prevPulseIndex, int ignore) {
 		if (prevPulseIndex + redBeginSamples < 0 || prevPulseIndex + blueEndSamples > scanLineBuffer.length)
-			return false;
-		for (int i = 0; i < pixelBuffer.length; ++i) {
-			int position = (i * channelSamples) / pixelBuffer.length + prevPulseIndex;
+			return 0;
+		for (int i = 0; i < evenBuffer.length; ++i) {
+			int position = (i * channelSamples) / evenBuffer.length + prevPulseIndex;
 			int redPos = position + redBeginSamples;
 			int greenPos = position + greenBeginSamples;
 			int bluePos = position + blueBeginSamples;
@@ -54,8 +54,8 @@ public class Wraase_SC2_180 implements Mode {
 			int green = Math.round(255 * scanLineBuffer[greenPos]);
 			int blue = Math.round(255 * scanLineBuffer[bluePos]);
 			int pixelColor = 0xff000000 | (red << 16) | (green << 8) | blue;
-			pixelBuffer[i] = pixelColor;
+			evenBuffer[i] = pixelColor;
 		}
-		return true;
+		return 1;
 	}
 }

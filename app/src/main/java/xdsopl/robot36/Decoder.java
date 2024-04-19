@@ -12,7 +12,8 @@ public class Decoder {
 
 	private final Demodulator demodulator;
 	private final float[] scanLineBuffer;
-	private final int[] pixelBuffer;
+	private final int[] evenBuffer;
+	private final int[] oddBuffer;
 	private final int[] scopePixels;
 	private final int[] last5msSyncPulses;
 	private final int[] last9msSyncPulses;
@@ -36,7 +37,8 @@ public class Decoder {
 		this.scopePixels = scopePixels;
 		this.scopeWidth = scopeWidth;
 		this.scopeHeight = scopeHeight;
-		pixelBuffer = new int[scopeWidth];
+		evenBuffer = new int[scopeWidth];
+		oddBuffer = new int[scopeWidth];
 		demodulator = new Demodulator(sampleRate);
 		double scanLineMaxSeconds = 5;
 		int scanLineMaxSamples = (int) Math.round(scanLineMaxSeconds * sampleRate);
@@ -107,10 +109,17 @@ public class Decoder {
 		return bestMode;
 	}
 
-	private void slideOneLine() {
-		System.arraycopy(pixelBuffer, 0, scopePixels, scopeWidth * curLine, scopeWidth);
-		System.arraycopy(pixelBuffer, 0, scopePixels, scopeWidth * (curLine + scopeHeight), scopeWidth);
-		curLine = (curLine + 1) % scopeHeight;
+	private void copyLines(int lines) {
+		if (lines > 0) {
+			System.arraycopy(evenBuffer, 0, scopePixels, scopeWidth * curLine, scopeWidth);
+			System.arraycopy(evenBuffer, 0, scopePixels, scopeWidth * (curLine + scopeHeight), scopeWidth);
+			curLine = (curLine + 1) % scopeHeight;
+		}
+		if (lines == 2) {
+			System.arraycopy(oddBuffer, 0, scopePixels, scopeWidth * curLine, scopeWidth);
+			System.arraycopy(oddBuffer, 0, scopePixels, scopeWidth * (curLine + scopeHeight), scopeWidth);
+			curLine = (curLine + 1) % scopeHeight;
+		}
 	}
 
 	private boolean processSyncPulse(ArrayList<Mode> modes, int[] pulses, int[] lines, int index) {
@@ -132,12 +141,10 @@ public class Decoder {
 			int extrapolate = endPulse / meanSamples;
 			int firstPulse = endPulse - extrapolate * meanSamples;
 			for (int pulseIndex = firstPulse; pulseIndex < endPulse; pulseIndex += meanSamples)
-				if (mode.decodeScanLine(pixelBuffer, scanLineBuffer, pulseIndex, meanSamples))
-					slideOneLine();
+				copyLines(mode.decodeScanLine(evenBuffer, oddBuffer, scanLineBuffer, pulseIndex, meanSamples));
 		}
 		for (int i = 0; i < lines.length; ++i)
-			if (mode.decodeScanLine(pixelBuffer, scanLineBuffer, pulses[i], lines[i]))
-				slideOneLine();
+			copyLines(mode.decodeScanLine(evenBuffer, oddBuffer, scanLineBuffer, pulses[i], lines[i]));
 		int shift = pulses[pulses.length - 1];
 		adjustSyncPulses(last5msSyncPulses, shift);
 		adjustSyncPulses(last9msSyncPulses, shift);
