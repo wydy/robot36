@@ -8,6 +8,11 @@ package xdsopl.robot36;
 
 public class Wraase_SC2_180 implements Mode {
 	private final int scanLineSamples;
+	private final int channelSamples;
+	private final int redBeginSamples;
+	private final int greenBeginSamples;
+	private final int blueBeginSamples;
+	private final int blueEndSamples;
 
 	Wraase_SC2_180(int sampleRate) {
 		double syncPulseSeconds = 0.0055225;
@@ -15,6 +20,15 @@ public class Wraase_SC2_180 implements Mode {
 		double channelSeconds = 0.235;
 		double scanLineSeconds = syncPulseSeconds + syncPorchSeconds + 3 * channelSeconds;
 		scanLineSamples = (int) Math.round(scanLineSeconds * sampleRate);
+		channelSamples = (int) Math.round(channelSeconds * sampleRate);
+		double redBeginSeconds = syncPulseSeconds / 2 + syncPorchSeconds;
+		redBeginSamples = (int) Math.round(redBeginSeconds * sampleRate);
+		double greenBeginSeconds = redBeginSeconds + channelSeconds;
+		greenBeginSamples = (int) Math.round(greenBeginSeconds * sampleRate);
+		double blueBeginSeconds = greenBeginSeconds + channelSeconds;
+		blueBeginSamples = (int) Math.round(blueBeginSeconds * sampleRate);
+		double blueEndSeconds = blueBeginSeconds + channelSeconds;
+		blueEndSamples = (int) Math.round(blueEndSeconds * sampleRate);
 	}
 
 	@Override
@@ -28,13 +42,18 @@ public class Wraase_SC2_180 implements Mode {
 	}
 
 	@Override
-	public boolean decodeScanLine(int[] pixelBuffer, float[] scanLineBuffer, int prevPulseIndex, int scanLineSamples) {
-		if (prevPulseIndex < 0 || prevPulseIndex + scanLineSamples >= scanLineBuffer.length)
+	public boolean decodeScanLine(int[] pixelBuffer, float[] scanLineBuffer, int prevPulseIndex, int ignore) {
+		if (prevPulseIndex + redBeginSamples < 0 || prevPulseIndex + blueEndSamples > scanLineBuffer.length)
 			return false;
 		for (int i = 0; i < pixelBuffer.length; ++i) {
-			int position = (i * scanLineSamples) / pixelBuffer.length + prevPulseIndex;
-			int intensity = (int) Math.round(255 * Math.sqrt(scanLineBuffer[position]));
-			int pixelColor = 0xff000000 | 0x00010101 * intensity;
+			int position = (i * channelSamples) / pixelBuffer.length + prevPulseIndex;
+			int redPos = position + redBeginSamples;
+			int greenPos = position + greenBeginSamples;
+			int bluePos = position + blueBeginSamples;
+			int red = Math.round(255 * scanLineBuffer[redPos]);
+			int green = Math.round(255 * scanLineBuffer[greenPos]);
+			int blue = Math.round(255 * scanLineBuffer[bluePos]);
+			int pixelColor = 0xff000000 | (red << 16) | (green << 8) | blue;
 			pixelBuffer[i] = pixelColor;
 		}
 		return true;
