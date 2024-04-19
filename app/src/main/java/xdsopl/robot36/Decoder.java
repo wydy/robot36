@@ -6,6 +6,8 @@ Copyright 2024 Ahmet Inan <xdsopl@gmail.com>
 
 package xdsopl.robot36;
 
+import java.util.ArrayList;
+
 public class Decoder {
 
 	private final Demodulator demodulator;
@@ -20,7 +22,12 @@ public class Decoder {
 	private final int scanLineToleranceSamples;
 	private final int scopeWidth;
 	private final int scopeHeight;
+	private final Mode rawMode;
+	private final ArrayList<Mode> syncPulse5msModes;
+	private final ArrayList<Mode> syncPulse9msModes;
+	private final ArrayList<Mode> syncPulse20msModes;
 
+	public String curMode;
 	public int curLine;
 	private int curSample;
 
@@ -42,6 +49,25 @@ public class Decoder {
 		last20msSyncPulses = new int[syncPulseCount];
 		double scanLineToleranceSeconds = 0.001;
 		scanLineToleranceSamples = (int) Math.round(scanLineToleranceSeconds * sampleRate);
+		rawMode = new Raw();
+		syncPulse5msModes = new ArrayList<>();
+		syncPulse5msModes.add(new Wraase_SC2_180(sampleRate));
+		syncPulse5msModes.add(new Martin("1", 0.146432, sampleRate));
+		syncPulse5msModes.add(new Martin("2", 0.073216, sampleRate));
+		syncPulse9msModes = new ArrayList<>();
+		syncPulse9msModes.add(new Robot_36_Color(sampleRate));
+		syncPulse9msModes.add(new Robot_72_Color(sampleRate));
+		syncPulse9msModes.add(new Scottie("1", 0.138240, sampleRate));
+		syncPulse9msModes.add(new Scottie("2", 0.088064, sampleRate));
+		syncPulse9msModes.add(new Scottie("DX", 0.3456, sampleRate));
+		syncPulse20msModes = new ArrayList<>();
+		syncPulse20msModes.add(new PaulDon("50", 0.09152, sampleRate));
+		syncPulse20msModes.add(new PaulDon("90", 0.17024, sampleRate));
+		syncPulse20msModes.add(new PaulDon("120", 0.1216, sampleRate));
+		syncPulse20msModes.add(new PaulDon("160", 0.195584, sampleRate));
+		syncPulse20msModes.add(new PaulDon("180", 0.18304, sampleRate));
+		syncPulse20msModes.add(new PaulDon("240", 0.24448, sampleRate));
+		syncPulse20msModes.add(new PaulDon("290", 0.2288, sampleRate));
 	}
 
 	private void adjustSyncPulses(int[] pulses, int shift) {
@@ -77,7 +103,20 @@ public class Decoder {
 		}
 	}
 
-	private boolean processSyncPulse(int[] pulses, int[] lines, int index) {
+	private Mode detectMode(ArrayList<Mode> modes, int line) {
+		Mode bestMode = rawMode;
+		int bestDist = Integer.MAX_VALUE;
+		for (Mode mode : modes) {
+			int dist = Math.abs(line - mode.getScanLineSamples());
+			if (dist <= scanLineToleranceSamples && dist < bestDist) {
+				bestDist = dist;
+				bestMode = mode;
+			}
+		}
+		return bestMode;
+	}
+
+	private boolean processSyncPulse(ArrayList<Mode> modes, int[] pulses, int[] lines, int index) {
 		for (int i = 1; i < lines.length; ++i)
 			lines[i - 1] = lines[i];
 		lines[lines.length - 1] = index - pulses[pulses.length - 1];
@@ -88,6 +127,8 @@ public class Decoder {
 			return false;
 		if (scanLineStdDev(lines) > scanLineToleranceSamples)
 			return false;
+		Mode mode = detectMode(modes, lines[0]);
+		curMode = mode.getName();
 		if (pulses[0] >= lines[0]) {
 			int lineSamples = lines[0];
 			int endPulse = pulses[0];
@@ -131,11 +172,11 @@ public class Decoder {
 		if (syncPulseDetected) {
 			switch (demodulator.syncPulseWidth) {
 				case FiveMilliSeconds:
-					return processSyncPulse(last5msSyncPulses, last5msScanLines, syncPulseIndex);
+					return processSyncPulse(syncPulse5msModes, last5msSyncPulses, last5msScanLines, syncPulseIndex);
 				case NineMilliSeconds:
-					return processSyncPulse(last9msSyncPulses, last9msScanLines, syncPulseIndex);
+					return processSyncPulse(syncPulse9msModes, last9msSyncPulses, last9msScanLines, syncPulseIndex);
 				case TwentyMilliSeconds:
-					return processSyncPulse(last20msSyncPulses, last20msScanLines, syncPulseIndex);
+					return processSyncPulse(syncPulse20msModes, last20msSyncPulses, last20msScanLines, syncPulseIndex);
 			}
 		}
 		return false;
