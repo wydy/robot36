@@ -12,6 +12,7 @@ public class Decoder {
 
 	private final Demodulator demodulator;
 	private final float[] scanLineBuffer;
+	private final int[] pixelBuffer;
 	private final int[] scopePixels;
 	private final int[] last5msSyncPulses;
 	private final int[] last9msSyncPulses;
@@ -35,6 +36,7 @@ public class Decoder {
 		this.scopePixels = scopePixels;
 		this.scopeWidth = scopeWidth;
 		this.scopeHeight = scopeHeight;
+		pixelBuffer = new int[scopeWidth];
 		demodulator = new Demodulator(sampleRate);
 		double scanLineMaxSeconds = 5;
 		int scanLineMaxSamples = (int) Math.round(scanLineMaxSeconds * sampleRate);
@@ -92,17 +94,6 @@ public class Decoder {
 		return stdDev;
 	}
 
-	private void processOneLine(int prevPulseIndex, int scanLineSamples) {
-		if (prevPulseIndex < 0 || prevPulseIndex + scanLineSamples >= scanLineBuffer.length)
-			return;
-		for (int i = 0; i < scopeWidth; ++i) {
-			int position = (i * scanLineSamples) / scopeWidth + prevPulseIndex;
-			int intensity = (int) Math.round(255 * Math.sqrt(scanLineBuffer[position]));
-			int pixelColor = 0xff000000 | 0x00010101 * intensity;
-			scopePixels[scopeWidth * curLine + i] = pixelColor;
-		}
-	}
-
 	private Mode detectMode(ArrayList<Mode> modes, int line) {
 		Mode bestMode = rawMode;
 		int bestDist = Integer.MAX_VALUE;
@@ -114,6 +105,12 @@ public class Decoder {
 			}
 		}
 		return bestMode;
+	}
+
+	private void slideOneLine() {
+		System.arraycopy(pixelBuffer, 0, scopePixels, scopeWidth * curLine, scopeWidth);
+		System.arraycopy(pixelBuffer, 0, scopePixels, scopeWidth * (curLine + scopeHeight), scopeWidth);
+		curLine = (curLine + 1) % scopeHeight;
 	}
 
 	private boolean processSyncPulse(ArrayList<Mode> modes, int[] pulses, int[] lines, int index) {
@@ -135,10 +132,12 @@ public class Decoder {
 			int extrapolate = endPulse / meanSamples;
 			int firstPulse = endPulse - extrapolate * meanSamples;
 			for (int pulseIndex = firstPulse; pulseIndex < endPulse; pulseIndex += meanSamples)
-				processOneLine(pulseIndex, meanSamples);
+				if (mode.decodeScanLine(pixelBuffer, scanLineBuffer, pulseIndex, meanSamples))
+					slideOneLine();
 		}
 		for (int i = 0; i < lines.length; ++i)
-			processOneLine(pulses[i], lines[i]);
+			if (mode.decodeScanLine(pixelBuffer, scanLineBuffer, pulses[i], lines[i]))
+				slideOneLine();
 		int shift = pulses[pulses.length - 1];
 		adjustSyncPulses(last5msSyncPulses, shift);
 		adjustSyncPulses(last9msSyncPulses, shift);
@@ -147,9 +146,6 @@ public class Decoder {
 		curSample = 0;
 		for (int i = shift; i < endSample; ++i)
 			scanLineBuffer[curSample++] = scanLineBuffer[i];
-		for (int i = 0; i < scopeWidth; ++i)
-			scopePixels[scopeWidth * (curLine + scopeHeight) + i] = scopePixels[scopeWidth * curLine + i];
-		curLine = (curLine + 1) % scopeHeight;
 		return true;
 	}
 
