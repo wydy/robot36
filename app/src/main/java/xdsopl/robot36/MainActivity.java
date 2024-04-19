@@ -64,7 +64,10 @@ public class MainActivity extends AppCompatActivity {
 		@Override
 		public void onPeriodicNotification(AudioRecord audioRecord) {
 			audioRecord.read(recordBuffer, 0, recordBuffer.length, AudioRecord.READ_BLOCKING);
-			visualizeSignal(demodulator.process(recordBuffer));
+			if (visualizeSignal(demodulator.process(recordBuffer))) {
+				scopeBitmap.setPixels(scopePixels, scopeWidth * curLine, scopeWidth, 0, 0, scopeWidth, scopeHeight);
+				scopeView.invalidate();
+			}
 		}
 	};
 
@@ -101,7 +104,7 @@ public class MainActivity extends AppCompatActivity {
 		}
 	}
 
-	private void processSyncPulse(int[] pulses, int[] lines, int index) {
+	private boolean processSyncPulse(int[] pulses, int[] lines, int index) {
 		for (int i = 1; i < lines.length; ++i)
 			lines[i - 1] = lines[i];
 		lines[lines.length - 1] = index - pulses[pulses.length - 1];
@@ -109,9 +112,9 @@ public class MainActivity extends AppCompatActivity {
 			pulses[i - 1] = pulses[i];
 		pulses[pulses.length - 1] = index;
 		if (lines[0] == 0)
-			return;
+			return false;
 		if (scanLineStdDev(lines) > scanLineToleranceSamples)
-			return;
+			return false;
 		if (pulses[0] >= lines[0]) {
 			int lineSamples = lines[0];
 			int endPulse = pulses[0];
@@ -133,11 +136,10 @@ public class MainActivity extends AppCompatActivity {
 		for (int i = 0; i < scopeWidth; ++i)
 			scopePixels[scopeWidth * (curLine + scopeHeight) + i] = scopePixels[scopeWidth * curLine + i];
 		curLine = (curLine + 1) % scopeHeight;
-		scopeBitmap.setPixels(scopePixels, scopeWidth * curLine, scopeWidth, 0, 0, scopeWidth, scopeHeight);
-		scopeView.invalidate();
+		return true;
 	}
 
-	private void visualizeSignal(boolean syncPulseDetected) {
+	private boolean visualizeSignal(boolean syncPulseDetected) {
 		int syncPulseIndex = curSample + demodulator.syncPulseOffset;
 		for (float v : recordBuffer) {
 			scanLineBuffer[curSample++] = v;
@@ -155,16 +157,14 @@ public class MainActivity extends AppCompatActivity {
 		if (syncPulseDetected) {
 			switch (demodulator.syncPulseWidth) {
 				case FiveMilliSeconds:
-					processSyncPulse(last5msSyncPulses, last5msScanLines, syncPulseIndex);
-					break;
+					return processSyncPulse(last5msSyncPulses, last5msScanLines, syncPulseIndex);
 				case NineMilliSeconds:
-					processSyncPulse(last9msSyncPulses, last9msScanLines, syncPulseIndex);
-					break;
+					return processSyncPulse(last9msSyncPulses, last9msScanLines, syncPulseIndex);
 				case TwentyMilliSeconds:
-					processSyncPulse(last20msSyncPulses, last20msScanLines, syncPulseIndex);
-					break;
+					return processSyncPulse(last20msSyncPulses, last20msScanLines, syncPulseIndex);
 			}
 		}
+		return false;
 	}
 
 	void initTools(int sampleRate) {
