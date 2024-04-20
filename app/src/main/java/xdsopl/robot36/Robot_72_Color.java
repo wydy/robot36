@@ -17,7 +17,7 @@ public class Robot_72_Color implements Mode {
 	private final int uBeginSamples;
 	private final int endSamples;
 
-	Robot_72_Color(int sampleRate, int bufferWidth) {
+	Robot_72_Color(int sampleRate) {
 		double syncPulseSeconds = 0.009;
 		double syncPorchSeconds = 0.003;
 		double luminanceSeconds = 0.138;
@@ -39,7 +39,7 @@ public class Robot_72_Color implements Mode {
 		uBeginSamples = (int) Math.round(uBeginSeconds * sampleRate);
 		double uEndSeconds = uBeginSeconds + chrominanceSeconds;
 		endSamples = (int) Math.round(uEndSeconds * sampleRate);
-		lowPassFilter = new ExponentialMovingAverage((float) (bufferWidth / (sampleRate * luminanceSeconds)));
+		lowPassFilter = new ExponentialMovingAverage();
 	}
 
 	@Override
@@ -56,10 +56,10 @@ public class Robot_72_Color implements Mode {
 	public int decodeScanLine(int[] evenBuffer, int[] oddBuffer, float[] scanLineBuffer, int prevPulseIndex, int scanLineSamples) {
 		if (prevPulseIndex + beginSamples < 0 || prevPulseIndex + endSamples > scanLineBuffer.length)
 			return 0;
-		lowPassFilter.reset();
+		lowPassFilter.reset(evenBuffer.length / (float) luminanceSamples);
 		for (int i = prevPulseIndex + beginSamples; i < prevPulseIndex + endSamples; ++i)
 			scanLineBuffer[i] = lowPassFilter.avg(scanLineBuffer[i]);
-		lowPassFilter.reset();
+		lowPassFilter.reset(evenBuffer.length / (float) luminanceSamples);
 		for (int i = prevPulseIndex + endSamples - 1; i >= scanLineSamples + beginSamples; --i)
 			scanLineBuffer[i] = lowPassFilter.avg(scanLineBuffer[i]);
 		for (int i = 0; i < evenBuffer.length; ++i) {

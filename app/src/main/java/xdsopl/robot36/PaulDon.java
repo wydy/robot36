@@ -18,7 +18,7 @@ public class PaulDon implements Mode {
 	private final int endSamples;
 	private final String name;
 
-	PaulDon(String name, double channelSeconds, int sampleRate, int bufferWidth) {
+	PaulDon(String name, double channelSeconds, int sampleRate) {
 		this.name = "PD " + name;
 		double syncPulseSeconds = 0.02;
 		double syncPorchSeconds = 0.00208;
@@ -36,7 +36,7 @@ public class PaulDon implements Mode {
 		yOddBeginSamples = (int) Math.round(yOddBeginSeconds * sampleRate);
 		double yOddEndSeconds = yOddBeginSeconds + channelSeconds;
 		endSamples = (int) Math.round(yOddEndSeconds * sampleRate);
-		lowPassFilter = new ExponentialMovingAverage((float) (bufferWidth / (sampleRate * channelSeconds)));
+		lowPassFilter = new ExponentialMovingAverage();
 	}
 
 	@Override
@@ -53,10 +53,10 @@ public class PaulDon implements Mode {
 	public int decodeScanLine(int[] evenBuffer, int[] oddBuffer, float[] scanLineBuffer, int prevPulseIndex, int scanLineSamples) {
 		if (prevPulseIndex + beginSamples < 0 || prevPulseIndex + endSamples > scanLineBuffer.length)
 			return 0;
-		lowPassFilter.reset();
+		lowPassFilter.reset(evenBuffer.length / (float) channelSamples);
 		for (int i = prevPulseIndex + beginSamples; i < prevPulseIndex + endSamples; ++i)
 			scanLineBuffer[i] = lowPassFilter.avg(scanLineBuffer[i]);
-		lowPassFilter.reset();
+		lowPassFilter.reset(evenBuffer.length / (float) channelSamples);
 		for (int i = prevPulseIndex + endSamples - 1; i >= scanLineSamples + beginSamples; --i)
 			scanLineBuffer[i] = lowPassFilter.avg(scanLineBuffer[i]);
 		for (int i = 0; i < evenBuffer.length; ++i) {

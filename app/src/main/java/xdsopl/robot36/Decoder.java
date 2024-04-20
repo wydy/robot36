@@ -55,23 +55,23 @@ public class Decoder {
 		scanLineToleranceSamples = (int) Math.round(scanLineToleranceSeconds * sampleRate);
 		rawMode = new RawDecoder();
 		syncPulse5msModes = new ArrayList<>();
-		syncPulse5msModes.add(RGBModes.Wraase_SC2_180(sampleRate, scopeWidth));
-		syncPulse5msModes.add(RGBModes.Martin("1", 0.146432, sampleRate, scopeWidth));
-		syncPulse5msModes.add(RGBModes.Martin("2", 0.073216, sampleRate, scopeWidth));
+		syncPulse5msModes.add(RGBModes.Wraase_SC2_180(sampleRate));
+		syncPulse5msModes.add(RGBModes.Martin("1", 0.146432, sampleRate));
+		syncPulse5msModes.add(RGBModes.Martin("2", 0.073216, sampleRate));
 		syncPulse9msModes = new ArrayList<>();
-		syncPulse9msModes.add(new Robot_36_Color(sampleRate, scopeWidth));
-		syncPulse9msModes.add(new Robot_72_Color(sampleRate, scopeWidth));
-		syncPulse9msModes.add(RGBModes.Scottie("1", 0.138240, sampleRate, scopeWidth));
-		syncPulse9msModes.add(RGBModes.Scottie("2", 0.088064, sampleRate, scopeWidth));
-		syncPulse9msModes.add(RGBModes.Scottie("DX", 0.3456, sampleRate, scopeWidth));
+		syncPulse9msModes.add(new Robot_36_Color(sampleRate));
+		syncPulse9msModes.add(new Robot_72_Color(sampleRate));
+		syncPulse9msModes.add(RGBModes.Scottie("1", 0.138240, sampleRate));
+		syncPulse9msModes.add(RGBModes.Scottie("2", 0.088064, sampleRate));
+		syncPulse9msModes.add(RGBModes.Scottie("DX", 0.3456, sampleRate));
 		syncPulse20msModes = new ArrayList<>();
-		syncPulse20msModes.add(new PaulDon("50", 0.09152, sampleRate, scopeWidth));
-		syncPulse20msModes.add(new PaulDon("90", 0.17024, sampleRate, scopeWidth));
-		syncPulse20msModes.add(new PaulDon("120", 0.1216, sampleRate, scopeWidth));
-		syncPulse20msModes.add(new PaulDon("160", 0.195584, sampleRate, scopeWidth));
-		syncPulse20msModes.add(new PaulDon("180", 0.18304, sampleRate, scopeWidth));
-		syncPulse20msModes.add(new PaulDon("240", 0.24448, sampleRate, scopeWidth));
-		syncPulse20msModes.add(new PaulDon("290", 0.2288, sampleRate, scopeWidth));
+		syncPulse20msModes.add(new PaulDon("50", 0.09152, sampleRate));
+		syncPulse20msModes.add(new PaulDon("90", 0.17024, sampleRate));
+		syncPulse20msModes.add(new PaulDon("120", 0.1216, sampleRate));
+		syncPulse20msModes.add(new PaulDon("160", 0.195584, sampleRate));
+		syncPulse20msModes.add(new PaulDon("180", 0.18304, sampleRate));
+		syncPulse20msModes.add(new PaulDon("240", 0.24448, sampleRate));
+		syncPulse20msModes.add(new PaulDon("290", 0.2288, sampleRate));
 	}
 
 	private void adjustSyncPulses(int[] pulses, int shift) {

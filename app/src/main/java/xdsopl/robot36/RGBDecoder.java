@@ -19,7 +19,7 @@ public class RGBDecoder implements Mode {
 	private final int endSamples;
 	private final String name;
 
-	RGBDecoder(String name, double scanLineSeconds, double beginSeconds, double redBeginSeconds, double redEndSeconds, double greenBeginSeconds, double greenEndSeconds, double blueBeginSeconds, double blueEndSeconds, double endSeconds, int sampleRate, int bufferWidth) {
+	RGBDecoder(String name, double scanLineSeconds, double beginSeconds, double redBeginSeconds, double redEndSeconds, double greenBeginSeconds, double greenEndSeconds, double blueBeginSeconds, double blueEndSeconds, double endSeconds, int sampleRate) {
 		this.name = name;
 		scanLineSamples = (int) Math.round(scanLineSeconds * sampleRate);
 		beginSamples = (int) Math.round(beginSeconds * sampleRate);
@@ -30,7 +30,7 @@ public class RGBDecoder implements Mode {
 		blueBeginSamples = (int) Math.round(blueBeginSeconds * sampleRate);
 		blueSamples = (int) Math.round((blueEndSeconds - blueBeginSeconds) * sampleRate);
 		endSamples = (int) Math.round(endSeconds * sampleRate);
-		lowPassFilter = new ExponentialMovingAverage((float) (bufferWidth / (sampleRate * (greenEndSeconds - greenBeginSeconds))));
+		lowPassFilter = new ExponentialMovingAverage();
 	}
 
 	@Override
@@ -47,10 +47,10 @@ public class RGBDecoder implements Mode {
 	public int decodeScanLine(int[] evenBuffer, int[] oddBuffer, float[] scanLineBuffer, int prevPulseIndex, int scanLineSamples) {
 		if (prevPulseIndex + beginSamples < 0 || prevPulseIndex + endSamples > scanLineBuffer.length)
 			return 0;
-		lowPassFilter.reset();
+		lowPassFilter.reset(evenBuffer.length / (float) greenSamples);
 		for (int i = prevPulseIndex + beginSamples; i < prevPulseIndex + endSamples; ++i)
 			scanLineBuffer[i] = lowPassFilter.avg(scanLineBuffer[i]);
-		lowPassFilter.reset();
+		lowPassFilter.reset(evenBuffer.length / (float) greenSamples);
 		for (int i = prevPulseIndex + endSamples - 1; i >= scanLineSamples + beginSamples; --i)
 			scanLineBuffer[i] = lowPassFilter.avg(scanLineBuffer[i]);
 		for (int i = 0; i < evenBuffer.length; ++i) {
