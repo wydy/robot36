@@ -8,6 +8,14 @@ package xdsopl.robot36;
 
 public class Robot_36_Color implements Mode {
 	private final int scanLineSamples;
+	private final int luminanceSamples;
+	private final int separatorSamples;
+	private final int chrominanceSamples;
+	private final int beginSamples;
+	private final int luminanceBeginSamples;
+	private final int separatorBeginSamples;
+	private final int chrominanceBeginSamples;
+	private final int endSamples;
 
 	Robot_36_Color(int sampleRate) {
 		double syncPulseSeconds = 0.009;
@@ -18,6 +26,19 @@ public class Robot_36_Color implements Mode {
 		double chrominanceSeconds = 0.044;
 		double scanLineSeconds = syncPulseSeconds + syncPorchSeconds + luminanceSeconds + separatorSeconds + porchSeconds + chrominanceSeconds;
 		scanLineSamples = (int) Math.round(scanLineSeconds * sampleRate);
+		luminanceSamples = (int) Math.round(luminanceSeconds * sampleRate);
+		separatorSamples = (int) Math.round(separatorSeconds * sampleRate);
+		chrominanceSamples = (int) Math.round(chrominanceSeconds * sampleRate);
+		double luminanceBeginSeconds = syncPulseSeconds / 2 + syncPorchSeconds;
+		luminanceBeginSamples = (int) Math.round(luminanceBeginSeconds * sampleRate);
+		beginSamples = luminanceBeginSamples;
+		double separatorBeginSeconds = luminanceBeginSeconds + luminanceSeconds;
+		separatorBeginSamples = (int) Math.round(separatorBeginSeconds * sampleRate);
+		double separatorEndSeconds = separatorBeginSeconds + separatorSeconds;
+		double chrominanceBeginSeconds = separatorEndSeconds + porchSeconds;
+		chrominanceBeginSamples = (int) Math.round(chrominanceBeginSeconds * sampleRate);
+		double chrominanceEndSeconds = chrominanceBeginSeconds + chrominanceSeconds;
+		endSamples = (int) Math.round(chrominanceEndSeconds * sampleRate);
 	}
 
 	@Override
@@ -32,11 +53,11 @@ public class Robot_36_Color implements Mode {
 
 	@Override
 	public int decodeScanLine(int[] evenBuffer, int[] oddBuffer, float[] scanLineBuffer, int prevPulseIndex, int scanLineSamples) {
-		if (prevPulseIndex < 0 || prevPulseIndex + scanLineSamples >= scanLineBuffer.length)
+		if (prevPulseIndex + beginSamples < 0 || prevPulseIndex + endSamples > scanLineBuffer.length)
 			return 0;
 		for (int i = 0; i < evenBuffer.length; ++i) {
-			int position = (i * scanLineSamples) / evenBuffer.length + prevPulseIndex;
-			evenBuffer[i] = ColorConverter.GRAY(scanLineBuffer[position]);
+			int yPos = luminanceBeginSamples + (i * luminanceSamples) / evenBuffer.length + prevPulseIndex;
+			evenBuffer[i] = ColorConverter.GRAY(scanLineBuffer[yPos]);
 		}
 		return 1;
 	}
