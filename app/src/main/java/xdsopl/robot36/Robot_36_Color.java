@@ -7,6 +7,7 @@ Copyright 2024 Ahmet Inan <xdsopl@gmail.com>
 package xdsopl.robot36;
 
 public class Robot_36_Color implements Mode {
+	private final ExponentialMovingAverage lowPassFilter;
 	private final int scanLineSamples;
 	private final int luminanceSamples;
 	private final int separatorSamples;
@@ -17,7 +18,7 @@ public class Robot_36_Color implements Mode {
 	private final int chrominanceBeginSamples;
 	private final int endSamples;
 
-	Robot_36_Color(int sampleRate) {
+	Robot_36_Color(int sampleRate, int bufferWidth) {
 		double syncPulseSeconds = 0.009;
 		double syncPorchSeconds = 0.003;
 		double luminanceSeconds = 0.088;
@@ -39,6 +40,7 @@ public class Robot_36_Color implements Mode {
 		chrominanceBeginSamples = (int) Math.round(chrominanceBeginSeconds * sampleRate);
 		double chrominanceEndSeconds = chrominanceBeginSeconds + chrominanceSeconds;
 		endSamples = (int) Math.round(chrominanceEndSeconds * sampleRate);
+		lowPassFilter = new ExponentialMovingAverage((float) (bufferWidth / (sampleRate * luminanceSeconds)));
 	}
 
 	@Override
@@ -60,6 +62,12 @@ public class Robot_36_Color implements Mode {
 			separator += scanLineBuffer[prevPulseIndex + separatorBeginSamples + i];
 		separator /= separatorSamples;
 		boolean even = separator < 0.5f;
+		lowPassFilter.reset();
+		for (int i = prevPulseIndex + beginSamples; i < prevPulseIndex + endSamples; ++i)
+			scanLineBuffer[i] = lowPassFilter.avg(scanLineBuffer[i]);
+		lowPassFilter.reset();
+		for (int i = prevPulseIndex + endSamples - 1; i >= scanLineSamples + beginSamples; --i)
+			scanLineBuffer[i] = lowPassFilter.avg(scanLineBuffer[i]);
 		for (int i = 0; i < evenBuffer.length; ++i) {
 			int luminancePos = luminanceBeginSamples + (i * luminanceSamples) / evenBuffer.length + prevPulseIndex;
 			int chrominancePos = chrominanceBeginSamples + (i * chrominanceSamples) / evenBuffer.length + prevPulseIndex;
