@@ -60,7 +60,7 @@ public class Robot_72_Color implements Mode {
 		for (int i = prevPulseIndex + beginSamples; i < prevPulseIndex + endSamples; ++i)
 			scanLineBuffer[i] = lowPassFilter.avg(scanLineBuffer[i]);
 		lowPassFilter.reset(evenBuffer.length / (float) luminanceSamples);
-		for (int i = prevPulseIndex + endSamples - 1; i >= scanLineSamples + beginSamples; --i)
+		for (int i = prevPulseIndex + endSamples - 1; i >= prevPulseIndex + beginSamples; --i)
 			scanLineBuffer[i] = lowPassFilter.avg(scanLineBuffer[i]);
 		for (int i = 0; i < evenBuffer.length; ++i) {
 			int yPos = yBeginSamples + (i * luminanceSamples) / evenBuffer.length + prevPulseIndex;
