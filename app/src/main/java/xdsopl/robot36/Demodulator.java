@@ -57,7 +57,7 @@ public class Demodulator {
 		float scanLineCutoff = scanLineBandwidth / 2;
 		int scanLineFilterSamples = (int) Math.round(0.443 * sampleRate / scanLineCutoff) | 1;
 		scanLineFilter = new ComplexMovingAverage(scanLineFilterSamples);
-		double syncPulse5msSeconds = 0.005;
+		double syncPulse5msSeconds = 0.0055;
 		double syncPulse9msSeconds = 0.009;
 		double syncPulse20msSeconds = 0.020;
 		int syncPulse5msSamples = (int) Math.round(syncPulse5msSeconds * sampleRate) | 1;
