@@ -1,14 +1,14 @@
 /*
-Raw mode
+Raw decoder
 
 Copyright 2024 Ahmet Inan <xdsopl@gmail.com>
 */
 
 package xdsopl.robot36;
 
-public class Raw implements Mode {
+public class RawDecoder implements Mode {
 
-	Raw() {
+	RawDecoder() {
 	}
 
 	@Override
