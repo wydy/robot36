@@ -55,10 +55,22 @@ public class Robot_36_Color implements Mode {
 	public int decodeScanLine(int[] evenBuffer, int[] oddBuffer, float[] scanLineBuffer, int prevPulseIndex, int scanLineSamples) {
 		if (prevPulseIndex + beginSamples < 0 || prevPulseIndex + endSamples > scanLineBuffer.length)
 			return 0;
+		float separator = 0;
+		for (int i = 0; i < separatorSamples; ++i)
+			separator += scanLineBuffer[prevPulseIndex + separatorBeginSamples + i];
+		separator /= separatorSamples;
+		boolean even = separator < 0.5f;
 		for (int i = 0; i < evenBuffer.length; ++i) {
-			int yPos = luminanceBeginSamples + (i * luminanceSamples) / evenBuffer.length + prevPulseIndex;
-			evenBuffer[i] = ColorConverter.GRAY(scanLineBuffer[yPos]);
+			int luminancePos = luminanceBeginSamples + (i * luminanceSamples) / evenBuffer.length + prevPulseIndex;
+			int chrominancePos = chrominanceBeginSamples + (i * chrominanceSamples) / evenBuffer.length + prevPulseIndex;
+			if (even) {
+				evenBuffer[i] = ColorConverter.RGB(scanLineBuffer[luminancePos], 0, scanLineBuffer[chrominancePos]);
+			} else {
+				oddBuffer[i] = ColorConverter.RGB(scanLineBuffer[luminancePos], scanLineBuffer[chrominancePos], 0);
+				evenBuffer[i] = ColorConverter.YUV2RGB(evenBuffer[i] | (oddBuffer[i] & 0x0000ff00));
+				oddBuffer[i] = ColorConverter.YUV2RGB(oddBuffer[i] | (evenBuffer[i] & 0x000000ff));
+			}
 		}
-		return 1;
+		return even ? 0 : 2;
 	}
 }

@@ -47,4 +47,8 @@ public final class ColorConverter {
 	public static int YUV2RGB(float Y, float U, float V) {
 		return YUV2RGB(float2int(Y), float2int(U), float2int(V));
 	}
+
+	public static int YUV2RGB(int YUV) {
+		return YUV2RGB((YUV & 0x00ff0000) >> 16, (YUV & 0x0000ff00) >> 8, YUV & 0x000000ff);
+	}
 }
