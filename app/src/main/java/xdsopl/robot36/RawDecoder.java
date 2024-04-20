@@ -23,7 +23,7 @@ public class RawDecoder implements Mode {
 
 	@Override
 	public int decodeScanLine(int[] evenBuffer, int[] oddBuffer, float[] scanLineBuffer, int prevPulseIndex, int scanLineSamples) {
-		if (prevPulseIndex < 0 || prevPulseIndex + scanLineSamples >= scanLineBuffer.length)
+		if (prevPulseIndex < 0 || prevPulseIndex + scanLineSamples > scanLineBuffer.length)
 			return 0;
 		for (int i = 0; i < evenBuffer.length; ++i) {
 			int position = (i * scanLineSamples) / evenBuffer.length + prevPulseIndex;

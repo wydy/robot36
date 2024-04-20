@@ -9,11 +9,12 @@ package xdsopl.robot36;
 public class PaulDon implements Mode {
 	private final int scanLineSamples;
 	private final int channelSamples;
+	private final int beginSamples;
 	private final int yEvenBeginSamples;
 	private final int vAvgBeginSamples;
 	private final int uAvgBeginSamples;
 	private final int yOddBeginSamples;
-	private final int yOddEndSamples;
+	private final int endSamples;
 	private final String name;
 
 	PaulDon(String name, double channelSeconds, int sampleRate) {
@@ -25,6 +26,7 @@ public class PaulDon implements Mode {
 		channelSamples = (int) Math.round(channelSeconds * sampleRate);
 		double yEvenBeginSeconds = syncPulseSeconds / 2 + syncPorchSeconds;
 		yEvenBeginSamples = (int) Math.round(yEvenBeginSeconds * sampleRate);
+		beginSamples = yEvenBeginSamples;
 		double vAvgBeginSeconds = yEvenBeginSeconds + channelSeconds;
 		vAvgBeginSamples = (int) Math.round(vAvgBeginSeconds * sampleRate);
 		double uAvgBeginSeconds = vAvgBeginSeconds + channelSeconds;
@@ -32,7 +34,7 @@ public class PaulDon implements Mode {
 		double yOddBeginSeconds = uAvgBeginSeconds + channelSeconds;
 		yOddBeginSamples = (int) Math.round(yOddBeginSeconds * sampleRate);
 		double yOddEndSeconds = yOddBeginSeconds + channelSeconds;
-		yOddEndSamples = (int) Math.round(yOddEndSeconds * sampleRate);
+		endSamples = (int) Math.round(yOddEndSeconds * sampleRate);
 	}
 
 	@Override
@@ -47,7 +49,7 @@ public class PaulDon implements Mode {
 
 	@Override
 	public int decodeScanLine(int[] evenBuffer, int[] oddBuffer, float[] scanLineBuffer, int prevPulseIndex, int scanLineSamples) {
-		if (prevPulseIndex + yEvenBeginSamples < 0 || prevPulseIndex + yOddEndSamples > scanLineBuffer.length)
+		if (prevPulseIndex + beginSamples < 0 || prevPulseIndex + endSamples > scanLineBuffer.length)
 			return 0;
 		for (int i = 0; i < evenBuffer.length; ++i) {
 			int position = (i * channelSamples) / evenBuffer.length + prevPulseIndex;

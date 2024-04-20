@@ -10,10 +10,11 @@ public class Robot_72_Color implements Mode {
 	private final int scanLineSamples;
 	private final int luminanceSamples;
 	private final int chrominanceSamples;
+	private final int beginSamples;
 	private final int yBeginSamples;
 	private final int vBeginSamples;
 	private final int uBeginSamples;
-	private final int uEndSamples;
+	private final int endSamples;
 
 	Robot_72_Color(int sampleRate) {
 		double syncPulseSeconds = 0.009;
@@ -28,6 +29,7 @@ public class Robot_72_Color implements Mode {
 		chrominanceSamples = (int) Math.round(chrominanceSeconds * sampleRate);
 		double yBeginSeconds = syncPulseSeconds / 2 + syncPorchSeconds;
 		yBeginSamples = (int) Math.round(yBeginSeconds * sampleRate);
+		beginSamples = yBeginSamples;
 		double yEndSeconds = yBeginSeconds + luminanceSeconds;
 		double vBeginSeconds = yEndSeconds + separatorSeconds + porchSeconds;
 		vBeginSamples = (int) Math.round(vBeginSeconds * sampleRate);
@@ -35,7 +37,7 @@ public class Robot_72_Color implements Mode {
 		double uBeginSeconds = vEndSeconds + separatorSeconds + porchSeconds;
 		uBeginSamples = (int) Math.round(uBeginSeconds * sampleRate);
 		double uEndSeconds = uBeginSeconds + chrominanceSeconds;
-		uEndSamples = (int) Math.round(uEndSeconds * sampleRate);
+		endSamples = (int) Math.round(uEndSeconds * sampleRate);
 	}
 
 	@Override
@@ -50,7 +52,7 @@ public class Robot_72_Color implements Mode {
 
 	@Override
 	public int decodeScanLine(int[] evenBuffer, int[] oddBuffer, float[] scanLineBuffer, int prevPulseIndex, int scanLineSamples) {
-		if (prevPulseIndex + yBeginSamples < 0 || prevPulseIndex + uEndSamples > scanLineBuffer.length)
+		if (prevPulseIndex + beginSamples < 0 || prevPulseIndex + endSamples > scanLineBuffer.length)
 			return 0;
 		for (int i = 0; i < evenBuffer.length; ++i) {
 			int yPos = yBeginSamples + (i * luminanceSamples) / evenBuffer.length + prevPulseIndex;
