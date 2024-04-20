@@ -145,7 +145,7 @@ public class Decoder {
 		}
 		for (int i = 0; i < lines.length; ++i)
 			copyLines(mode.decodeScanLine(evenBuffer, oddBuffer, scanLineBuffer, pulses[i], lines[i]));
-		int shift = pulses[pulses.length - 1];
+		int shift = pulses[pulses.length - 1] - (meanSamples * 3) / 4;
 		adjustSyncPulses(last5msSyncPulses, shift);
 		adjustSyncPulses(last9msSyncPulses, shift);
 		adjustSyncPulses(last20msSyncPulses, shift);
