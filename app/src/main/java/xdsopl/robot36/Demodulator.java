@@ -108,7 +108,7 @@ public class Demodulator {
 			float syncPulse9msValue = syncPulse9msDelay.push(syncPulse9ms.norm()) / averagePower;
 			float syncPulse20msValue = syncPulse20msDelay.push(syncPulse20ms.norm()) / averagePower;
 			float scanLineValue = scanLineDemod.demod(scanLine);
-			float scanLineLevel = Math.min(Math.max(0.5f * (scanLineValue + 1), 0), 1);
+			float scanLineLevel = 0.5f * (scanLineValue + 1);
 			if (syncPulseTrigger.latch(syncPulse5msValue)) {
 				if (syncPulse5msMaxValue < syncPulse5msValue) {
 					syncPulse5msMaxValue = syncPulse5msValue;

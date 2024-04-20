@@ -50,13 +50,10 @@ public class Martin implements Mode {
 			return 0;
 		for (int i = 0; i < evenBuffer.length; ++i) {
 			int position = (i * channelSamples) / evenBuffer.length + prevPulseIndex;
+			int redPos = position + redBeginSamples;
 			int greenPos = position + greenBeginSamples;
 			int bluePos = position + blueBeginSamples;
-			int redPos = position + redBeginSamples;
-			int green = Math.round(255 * scanLineBuffer[greenPos]);
-			int blue = Math.round(255 * scanLineBuffer[bluePos]);
-			int red = Math.round(255 * scanLineBuffer[redPos]);
-			evenBuffer[i] = 0xff000000 | (red << 16) | (green << 8) | blue;
+			evenBuffer[i] = ColorConverter.RGB(scanLineBuffer[redPos], scanLineBuffer[greenPos], scanLineBuffer[bluePos]);
 		}
 		return 1;
 	}

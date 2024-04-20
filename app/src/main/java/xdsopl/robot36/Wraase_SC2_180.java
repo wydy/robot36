@@ -50,10 +50,7 @@ public class Wraase_SC2_180 implements Mode {
 			int redPos = position + redBeginSamples;
 			int greenPos = position + greenBeginSamples;
 			int bluePos = position + blueBeginSamples;
-			int red = Math.round(255 * scanLineBuffer[redPos]);
-			int green = Math.round(255 * scanLineBuffer[greenPos]);
-			int blue = Math.round(255 * scanLineBuffer[bluePos]);
-			evenBuffer[i] = 0xff000000 | (red << 16) | (green << 8) | blue;
+			evenBuffer[i] = ColorConverter.RGB(scanLineBuffer[redPos], scanLineBuffer[greenPos], scanLineBuffer[bluePos]);
 		}
 		return 1;
 	}

@@ -34,8 +34,7 @@ public class Scottie implements Mode {
 			return 0;
 		for (int i = 0; i < evenBuffer.length; ++i) {
 			int position = (i * scanLineSamples) / evenBuffer.length + prevPulseIndex;
-			int intensity = (int) Math.round(255 * Math.sqrt(scanLineBuffer[position]));
-			evenBuffer[i] = 0xff000000 | 0x00010101 * intensity;
+			evenBuffer[i] = ColorConverter.GRAY(scanLineBuffer[position]);
 		}
 		return 1;
 	}

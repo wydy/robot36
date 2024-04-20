@@ -55,12 +55,8 @@ public class PaulDon implements Mode {
 			int vAvgPos = position + vAvgBeginSamples;
 			int uAvgPos = position + uAvgBeginSamples;
 			int yOddPos = position + yOddBeginSamples;
-			int yEven = Math.round(255 * scanLineBuffer[yEvenPos]);
-			int vAvg = Math.round(255 * scanLineBuffer[vAvgPos]);
-			int uAvg = Math.round(255 * scanLineBuffer[uAvgPos]);
-			int yOdd = Math.round(255 * scanLineBuffer[yOddPos]);
-			evenBuffer[i] = ColorConverter.YUV2RGB(yEven, uAvg, vAvg);
-			oddBuffer[i] = ColorConverter.YUV2RGB(yOdd, uAvg, vAvg);
+			evenBuffer[i] = ColorConverter.YUV2RGB(scanLineBuffer[yEvenPos], scanLineBuffer[uAvgPos], scanLineBuffer[vAvgPos]);
+			oddBuffer[i] = ColorConverter.YUV2RGB(scanLineBuffer[yOddPos], scanLineBuffer[uAvgPos], scanLineBuffer[vAvgPos]);
 		}
 		return 2;
 	}
