@@ -74,9 +74,10 @@ public class Robot_36_Color implements Mode {
 			if (even) {
 				evenBuffer[i] = ColorConverter.RGB(scanLineBuffer[luminancePos], 0, scanLineBuffer[chrominancePos]);
 			} else {
-				oddBuffer[i] = ColorConverter.RGB(scanLineBuffer[luminancePos], scanLineBuffer[chrominancePos], 0);
-				evenBuffer[i] = ColorConverter.YUV2RGB(evenBuffer[i] | (oddBuffer[i] & 0x0000ff00));
-				oddBuffer[i] = ColorConverter.YUV2RGB(oddBuffer[i] | (evenBuffer[i] & 0x000000ff));
+				int evenYUV = evenBuffer[i];
+				int oddYUV =  ColorConverter.RGB(scanLineBuffer[luminancePos], scanLineBuffer[chrominancePos], 0);
+				evenBuffer[i] = ColorConverter.YUV2RGB((evenYUV & 0x00ff00ff) | (oddYUV & 0x0000ff00));
+				oddBuffer[i] = ColorConverter.YUV2RGB((oddYUV & 0x00ffff00) | (evenYUV & 0x000000ff));
 			}
 		}
 		return even ? 0 : 2;
