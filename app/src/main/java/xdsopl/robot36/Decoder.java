@@ -43,7 +43,7 @@ public class Decoder {
 		double scanLineMaxSeconds = 5;
 		int scanLineMaxSamples = (int) Math.round(scanLineMaxSeconds * sampleRate);
 		scanLineBuffer = new float[scanLineMaxSamples];
-		int scanLineCount = 3;
+		int scanLineCount = 4;
 		last5msScanLines = new int[scanLineCount];
 		last9msScanLines = new int[scanLineCount];
 		last20msScanLines = new int[scanLineCount];
