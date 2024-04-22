@@ -12,7 +12,7 @@ public class Demodulator {
 	private final ComplexMovingAverage syncPulse9msFilter;
 	private final ComplexMovingAverage syncPulse20msFilter;
 	private final ComplexMovingAverage scanLineFilter;
-	private final ComplexMovingAverage baseBandLowPass;
+	private final ComplexConvolution baseBandLowPass;
 	private final FrequencyModulation scanLineDemod;
 	private final SchmittTrigger syncPulseTrigger;
 	private final Phasor syncPulseOscillator;
@@ -71,8 +71,12 @@ public class Demodulator {
 		float lowestFrequency = 1100;
 		float highestFrequency = 2300;
 		float cutoffFrequency = (highestFrequency - lowestFrequency) / 2;
-		int lowPassSamples = (int) Math.round(0.443 * sampleRate / cutoffFrequency) | 1;
-		baseBandLowPass = new ComplexMovingAverage(lowPassSamples);
+		double baseBandLowPassSeconds = 0.002;
+		int baseBandLowPassSamples = (int) Math.round(baseBandLowPassSeconds * sampleRate) | 1;
+		baseBandLowPass = new ComplexConvolution(baseBandLowPassSamples);
+		Kaiser kaiser = new Kaiser();
+		for (int i = 0; i < baseBandLowPass.length; ++i)
+			baseBandLowPass.taps[i] = (float) (kaiser.window(2.0, i, baseBandLowPass.length) * Filter.lowPass(cutoffFrequency, i, baseBandLowPass.length));
 		float centerFrequency = (lowestFrequency + highestFrequency) / 2;
 		baseBandOscillator = new Phasor(-centerFrequency, sampleRate);
 		float syncPulseFrequency = 1200;
@@ -97,7 +101,7 @@ public class Demodulator {
 	public boolean process(float[] buffer) {
 		boolean syncPulseDetected = false;
 		for (int i = 0; i < buffer.length; ++i) {
-			baseBand = baseBandLowPass.avg(baseBand.set(buffer[i]).mul(baseBandOscillator.rotate()));
+			baseBand = baseBandLowPass.push(baseBand.set(buffer[i]).mul(baseBandOscillator.rotate()));
 			syncPulse = syncPulse.set(baseBand).mul(syncPulseOscillator.rotate());
 			syncPulse5ms = syncPulse5msFilter.avg(syncPulse5ms.set(syncPulse));
 			syncPulse9ms = syncPulse9msFilter.avg(syncPulse9ms.set(syncPulse));
