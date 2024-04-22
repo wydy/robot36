@@ -87,8 +87,7 @@ public class Decoder {
 		return mean;
 	}
 
-	private double scanLineStdDev(int[] lines) {
-		double mean = scanLineMean(lines);
+	private double scanLineStdDev(int[] lines, double mean) {
 		double stdDev = 0;
 		for (int diff : lines)
 			stdDev += (diff - mean) * (diff - mean);
@@ -131,9 +130,10 @@ public class Decoder {
 		pulses[pulses.length - 1] = index;
 		if (lines[0] == 0)
 			return false;
-		if (scanLineStdDev(lines) > scanLineToleranceSamples)
+		double mean = scanLineMean(lines);
+		if (scanLineStdDev(lines, mean) > scanLineToleranceSamples)
 			return false;
-		int meanSamples = (int) Math.round(scanLineMean(lines));
+		int meanSamples = (int) Math.round(mean);
 		Mode mode = detectMode(modes, meanSamples);
 		curMode = mode.getName();
 		if (pulses[0] >= meanSamples) {
