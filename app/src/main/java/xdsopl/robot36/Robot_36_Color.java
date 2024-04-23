@@ -31,7 +31,7 @@ public class Robot_36_Color implements Mode {
 		luminanceSamples = (int) Math.round(luminanceSeconds * sampleRate);
 		separatorSamples = (int) Math.round(separatorSeconds * sampleRate);
 		chrominanceSamples = (int) Math.round(chrominanceSeconds * sampleRate);
-		double luminanceBeginSeconds = syncPulseSeconds / 2 + syncPorchSeconds;
+		double luminanceBeginSeconds = syncPorchSeconds;
 		luminanceBeginSamples = (int) Math.round(luminanceBeginSeconds * sampleRate);
 		beginSamples = luminanceBeginSamples;
 		double separatorBeginSeconds = luminanceBeginSeconds + luminanceSeconds;

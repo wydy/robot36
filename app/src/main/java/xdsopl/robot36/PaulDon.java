@@ -26,7 +26,7 @@ public class PaulDon implements Mode {
 		double scanLineSeconds = syncPulseSeconds + syncPorchSeconds + 4 * (channelSeconds);
 		scanLineSamples = (int) Math.round(scanLineSeconds * sampleRate);
 		channelSamples = (int) Math.round(channelSeconds * sampleRate);
-		double yEvenBeginSeconds = syncPulseSeconds / 2 + syncPorchSeconds;
+		double yEvenBeginSeconds = syncPorchSeconds;
 		yEvenBeginSamples = (int) Math.round(yEvenBeginSeconds * sampleRate);
 		beginSamples = yEvenBeginSamples;
 		double vAvgBeginSeconds = yEvenBeginSeconds + channelSeconds;

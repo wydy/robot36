@@ -29,7 +29,7 @@ public class Robot_72_Color implements Mode {
 		scanLineSamples = (int) Math.round(scanLineSeconds * sampleRate);
 		luminanceSamples = (int) Math.round(luminanceSeconds * sampleRate);
 		chrominanceSamples = (int) Math.round(chrominanceSeconds * sampleRate);
-		double yBeginSeconds = syncPulseSeconds / 2 + syncPorchSeconds;
+		double yBeginSeconds = syncPorchSeconds;
 		yBeginSamples = (int) Math.round(yBeginSeconds * sampleRate);
 		beginSamples = yBeginSamples;
 		double yEndSeconds = yBeginSeconds + luminanceSeconds;
