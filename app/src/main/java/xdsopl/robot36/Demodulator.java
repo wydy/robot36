@@ -12,6 +12,9 @@ public class Demodulator {
 	private final FrequencyModulation frequencyModulation;
 	private final SchmittTrigger syncPulseTrigger;
 	private final Phasor baseBandOscillator;
+	private final Delay syncPulseValueDelay;
+	private final float syncPulseFrequencyValue;
+	private final float syncPulseFrequencyTolerance;
 	private final int syncPulse5msMinSamples;
 	private final int syncPulse5msMaxSamples;
 	private final int syncPulse9msMaxSamples;
@@ -28,6 +31,7 @@ public class Demodulator {
 
 	public SyncPulseWidth syncPulseWidth;
 	public int syncPulseOffset;
+	public float frequencyOffset;
 
 	Demodulator(int sampleRate) {
 		float blackFrequency = 1500;
@@ -49,6 +53,7 @@ public class Demodulator {
 		int syncPulseFilterSamples = (int) Math.round(syncPulseFilterSeconds * sampleRate) | 1;
 		syncPulseFilterDelay = (syncPulseFilterSamples - 1) / 2;
 		syncPulseFilter = new SimpleMovingAverage(syncPulseFilterSamples);
+		syncPulseValueDelay = new Delay(syncPulseFilterSamples);
 		float lowestFrequency = 1000;
 		float highestFrequency = 2800;
 		float cutoffFrequency = (highestFrequency - lowestFrequency) / 2;
@@ -61,6 +66,8 @@ public class Demodulator {
 		float centerFrequency = (lowestFrequency + highestFrequency) / 2;
 		baseBandOscillator = new Phasor(-centerFrequency, sampleRate);
 		float syncPulseFrequency = 1200;
+		syncPulseFrequencyValue = (syncPulseFrequency - centerFrequency) * 2 / scanLineBandwidth;
+		syncPulseFrequencyTolerance = 50 * 2 / scanLineBandwidth;
 		float syncPorchFrequency = 1500;
 		float syncHighFrequency = (syncPulseFrequency + syncPorchFrequency) / 2;
 		float syncLowFrequency = (syncPulseFrequency + syncHighFrequency) / 2;
@@ -76,28 +83,22 @@ public class Demodulator {
 			baseBand = baseBandLowPass.push(baseBand.set(buffer[i]).mul(baseBandOscillator.rotate()));
 			float frequencyValue = frequencyModulation.demod(baseBand);
 			float syncPulseValue = syncPulseFilter.avg(frequencyValue);
-			float scanLineLevel = 0.5f * (frequencyValue + 1);
-			buffer[i] = scanLineLevel;
+			float syncPulseDelayedValue = syncPulseValueDelay.push(syncPulseValue);
+			buffer[i] = frequencyValue;
 			if (!syncPulseTrigger.latch(syncPulseValue)) {
 				++syncPulseCounter;
-			} else if (syncPulseCounter < syncPulse5msMinSamples) {
-				syncPulseCounter = 0;
-			} else if (syncPulseCounter < syncPulse5msMaxSamples) {
-				syncPulseWidth = SyncPulseWidth.FiveMilliSeconds;
-				syncPulseOffset = i - syncPulseFilterDelay;
-				syncPulseDetected = true;
-				syncPulseCounter = 0;
-			} else if (syncPulseCounter < syncPulse9msMaxSamples) {
-				syncPulseWidth = SyncPulseWidth.NineMilliSeconds;
-				syncPulseOffset = i - syncPulseFilterDelay;
-				syncPulseDetected = true;
-				syncPulseCounter = 0;
-			} else if (syncPulseCounter < syncPulse20msMaxSamples) {
-				syncPulseWidth = SyncPulseWidth.TwentyMilliSeconds;
-				syncPulseOffset = i - syncPulseFilterDelay;
-				syncPulseDetected = true;
+			} else if (syncPulseCounter < syncPulse5msMinSamples || syncPulseCounter > syncPulse20msMaxSamples || Math.abs(syncPulseDelayedValue - syncPulseFrequencyValue) > syncPulseFrequencyTolerance) {
 				syncPulseCounter = 0;
 			} else {
+				if (syncPulseCounter < syncPulse5msMaxSamples)
+					syncPulseWidth = SyncPulseWidth.FiveMilliSeconds;
+				else if (syncPulseCounter < syncPulse9msMaxSamples)
+					syncPulseWidth = SyncPulseWidth.NineMilliSeconds;
+				else
+					syncPulseWidth = SyncPulseWidth.TwentyMilliSeconds;
+				syncPulseOffset = i - syncPulseFilterDelay;
+				frequencyOffset = syncPulseDelayedValue - syncPulseFrequencyValue;
+				syncPulseDetected = true;
 				syncPulseCounter = 0;
 			}
 		}

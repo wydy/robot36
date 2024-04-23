@@ -44,6 +44,10 @@ public class Robot_36_Color implements Mode {
 		lowPassFilter = new ExponentialMovingAverage();
 	}
 
+	private float freqToLevel(float frequency, float offset) {
+		return 0.5f * (frequency - offset + 1.f);
+	}
+
 	@Override
 	public String getName() {
 		return "Robot 36 Color";
@@ -55,20 +59,20 @@ public class Robot_36_Color implements Mode {
 	}
 
 	@Override
-	public int decodeScanLine(int[] evenBuffer, int[] oddBuffer, float[] scanLineBuffer, int prevPulseIndex, int scanLineSamples) {
+	public int decodeScanLine(int[] evenBuffer, int[] oddBuffer, float[] scanLineBuffer, int prevPulseIndex, int scanLineSamples, float frequencyOffset) {
 		if (prevPulseIndex + beginSamples < 0 || prevPulseIndex + endSamples > scanLineBuffer.length)
 			return 0;
 		float separator = 0;
 		for (int i = 0; i < separatorSamples; ++i)
 			separator += scanLineBuffer[prevPulseIndex + separatorBeginSamples + i];
 		separator /= separatorSamples;
-		boolean even = separator < 0.5f;
+		boolean even = separator < 0;
 		lowPassFilter.reset(evenBuffer.length / (float) luminanceSamples);
 		for (int i = prevPulseIndex + beginSamples; i < prevPulseIndex + endSamples; ++i)
 			scanLineBuffer[i] = lowPassFilter.avg(scanLineBuffer[i]);
 		lowPassFilter.reset(evenBuffer.length / (float) luminanceSamples);
 		for (int i = prevPulseIndex + endSamples - 1; i >= prevPulseIndex + beginSamples; --i)
-			scanLineBuffer[i] = lowPassFilter.avg(scanLineBuffer[i]);
+			scanLineBuffer[i] = freqToLevel(lowPassFilter.avg(scanLineBuffer[i]), frequencyOffset);
 		for (int i = 0; i < evenBuffer.length; ++i) {
 			int luminancePos = luminanceBeginSamples + (i * luminanceSamples) / evenBuffer.length + prevPulseIndex;
 			int chrominancePos = chrominanceBeginSamples + (i * chrominanceSamples) / evenBuffer.length + prevPulseIndex;
@@ -76,7 +80,7 @@ public class Robot_36_Color implements Mode {
 				evenBuffer[i] = ColorConverter.RGB(scanLineBuffer[luminancePos], 0, scanLineBuffer[chrominancePos]);
 			} else {
 				int evenYUV = evenBuffer[i];
-				int oddYUV =  ColorConverter.RGB(scanLineBuffer[luminancePos], scanLineBuffer[chrominancePos], 0);
+				int oddYUV = ColorConverter.RGB(scanLineBuffer[luminancePos], scanLineBuffer[chrominancePos], 0);
 				evenBuffer[i] = ColorConverter.YUV2RGB((evenYUV & 0x00ff00ff) | (oddYUV & 0x0000ff00));
 				oddBuffer[i] = ColorConverter.YUV2RGB((oddYUV & 0x00ffff00) | (evenYUV & 0x000000ff));
 			}

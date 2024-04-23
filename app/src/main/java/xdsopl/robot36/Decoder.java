@@ -21,6 +21,9 @@ public class Decoder {
 	private final int[] last5msScanLines;
 	private final int[] last9msScanLines;
 	private final int[] last20msScanLines;
+	private final float[] last5msFrequencyOffsets;
+	private final float[] last9msFrequencyOffsets;
+	private final float[] last20msFrequencyOffsets;
 	private final int scanLineToleranceSamples;
 	private final int scopeWidth;
 	private final int scopeHeight;
@@ -51,6 +54,9 @@ public class Decoder {
 		last5msSyncPulses = new int[syncPulseCount];
 		last9msSyncPulses = new int[syncPulseCount];
 		last20msSyncPulses = new int[syncPulseCount];
+		last5msFrequencyOffsets = new float[syncPulseCount];
+		last9msFrequencyOffsets = new float[syncPulseCount];
+		last20msFrequencyOffsets = new float[syncPulseCount];
 		double scanLineToleranceSeconds = 0.001;
 		scanLineToleranceSamples = (int) Math.round(scanLineToleranceSeconds * sampleRate);
 		rawMode = new RawDecoder();
@@ -95,6 +101,14 @@ public class Decoder {
 		return stdDev;
 	}
 
+	private double frequencyOffsetMean(float[] offsets) {
+		double mean = 0;
+		for (float diff : offsets)
+			mean += diff;
+		mean /= offsets.length;
+		return mean;
+	}
+
 	private Mode detectMode(ArrayList<Mode> modes, int line) {
 		Mode bestMode = rawMode;
 		int bestDist = Integer.MAX_VALUE;
@@ -121,18 +135,22 @@ public class Decoder {
 		}
 	}
 
-	private boolean processSyncPulse(ArrayList<Mode> modes, int[] pulses, int[] lines, int index) {
+	private boolean processSyncPulse(ArrayList<Mode> modes, float[] freqOffs, int[] pulses, int[] lines, int index) {
 		for (int i = 1; i < lines.length; ++i)
 			lines[i - 1] = lines[i];
 		lines[lines.length - 1] = index - pulses[pulses.length - 1];
 		for (int i = 1; i < pulses.length; ++i)
 			pulses[i - 1] = pulses[i];
 		pulses[pulses.length - 1] = index;
+		for (int i = 1; i < freqOffs.length; ++i)
+			freqOffs[i - 1] = freqOffs[i];
+		freqOffs[pulses.length - 1] = demodulator.frequencyOffset;
 		if (lines[0] == 0)
 			return false;
 		double mean = scanLineMean(lines);
 		if (scanLineStdDev(lines, mean) > scanLineToleranceSamples)
 			return false;
+		float frequencyOffset = (float) frequencyOffsetMean(freqOffs);
 		int meanSamples = (int) Math.round(mean);
 		Mode mode = detectMode(modes, meanSamples);
 		curMode = mode.getName();
@@ -141,10 +159,10 @@ public class Decoder {
 			int extrapolate = endPulse / meanSamples;
 			int firstPulse = endPulse - extrapolate * meanSamples;
 			for (int pulseIndex = firstPulse; pulseIndex < endPulse; pulseIndex += meanSamples)
-				copyLines(mode.decodeScanLine(evenBuffer, oddBuffer, scanLineBuffer, pulseIndex, meanSamples));
+				copyLines(mode.decodeScanLine(evenBuffer, oddBuffer, scanLineBuffer, pulseIndex, meanSamples, frequencyOffset));
 		}
 		for (int i = 0; i < lines.length; ++i)
-			copyLines(mode.decodeScanLine(evenBuffer, oddBuffer, scanLineBuffer, pulses[i], lines[i]));
+			copyLines(mode.decodeScanLine(evenBuffer, oddBuffer, scanLineBuffer, pulses[i], lines[i], frequencyOffset));
 		int reserve = (meanSamples * 3) / 4;
 		int shift = pulses[pulses.length - 1] - reserve;
 		if (shift > reserve) {
@@ -178,11 +196,11 @@ public class Decoder {
 		if (syncPulseDetected) {
 			switch (demodulator.syncPulseWidth) {
 				case FiveMilliSeconds:
-					return processSyncPulse(syncPulse5msModes, last5msSyncPulses, last5msScanLines, syncPulseIndex);
+					return processSyncPulse(syncPulse5msModes, last5msFrequencyOffsets, last5msSyncPulses, last5msScanLines, syncPulseIndex);
 				case NineMilliSeconds:
-					return processSyncPulse(syncPulse9msModes, last9msSyncPulses, last9msScanLines, syncPulseIndex);
+					return processSyncPulse(syncPulse9msModes, last9msFrequencyOffsets, last9msSyncPulses, last9msScanLines, syncPulseIndex);
 				case TwentyMilliSeconds:
-					return processSyncPulse(syncPulse20msModes, last20msSyncPulses, last20msScanLines, syncPulseIndex);
+					return processSyncPulse(syncPulse20msModes, last20msFrequencyOffsets, last20msSyncPulses, last20msScanLines, syncPulseIndex);
 			}
 		}
 		return false;

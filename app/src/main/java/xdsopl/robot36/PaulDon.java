@@ -40,6 +40,10 @@ public class PaulDon implements Mode {
 		lowPassFilter = new ExponentialMovingAverage();
 	}
 
+	private float freqToLevel(float frequency, float offset) {
+		return 0.5f * (frequency - offset + 1.f);
+	}
+
 	@Override
 	public String getName() {
 		return name;
@@ -51,7 +55,7 @@ public class PaulDon implements Mode {
 	}
 
 	@Override
-	public int decodeScanLine(int[] evenBuffer, int[] oddBuffer, float[] scanLineBuffer, int prevPulseIndex, int scanLineSamples) {
+	public int decodeScanLine(int[] evenBuffer, int[] oddBuffer, float[] scanLineBuffer, int prevPulseIndex, int scanLineSamples, float frequencyOffset) {
 		if (prevPulseIndex + beginSamples < 0 || prevPulseIndex + endSamples > scanLineBuffer.length)
 			return 0;
 		lowPassFilter.reset(evenBuffer.length / (float) channelSamples);
@@ -59,7 +63,7 @@ public class PaulDon implements Mode {
 			scanLineBuffer[i] = lowPassFilter.avg(scanLineBuffer[i]);
 		lowPassFilter.reset(evenBuffer.length / (float) channelSamples);
 		for (int i = prevPulseIndex + endSamples - 1; i >= prevPulseIndex + beginSamples; --i)
-			scanLineBuffer[i] = lowPassFilter.avg(scanLineBuffer[i]);
+			scanLineBuffer[i] = freqToLevel(lowPassFilter.avg(scanLineBuffer[i]), frequencyOffset);
 		for (int i = 0; i < evenBuffer.length; ++i) {
 			int position = (i * channelSamples) / evenBuffer.length + prevPulseIndex;
 			int yEvenPos = position + yEvenBeginSamples;

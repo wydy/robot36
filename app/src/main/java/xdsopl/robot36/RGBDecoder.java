@@ -33,6 +33,10 @@ public class RGBDecoder implements Mode {
 		lowPassFilter = new ExponentialMovingAverage();
 	}
 
+	private float freqToLevel(float frequency, float offset) {
+		return 0.5f * (frequency - offset + 1.f);
+	}
+
 	@Override
 	public String getName() {
 		return name;
@@ -44,7 +48,7 @@ public class RGBDecoder implements Mode {
 	}
 
 	@Override
-	public int decodeScanLine(int[] evenBuffer, int[] oddBuffer, float[] scanLineBuffer, int prevPulseIndex, int scanLineSamples) {
+	public int decodeScanLine(int[] evenBuffer, int[] oddBuffer, float[] scanLineBuffer, int prevPulseIndex, int scanLineSamples, float frequencyOffset) {
 		if (prevPulseIndex + beginSamples < 0 || prevPulseIndex + endSamples > scanLineBuffer.length)
 			return 0;
 		lowPassFilter.reset(evenBuffer.length / (float) greenSamples);
@@ -52,7 +56,7 @@ public class RGBDecoder implements Mode {
 			scanLineBuffer[i] = lowPassFilter.avg(scanLineBuffer[i]);
 		lowPassFilter.reset(evenBuffer.length / (float) greenSamples);
 		for (int i = prevPulseIndex + endSamples - 1; i >= prevPulseIndex + beginSamples; --i)
-			scanLineBuffer[i] = lowPassFilter.avg(scanLineBuffer[i]);
+			scanLineBuffer[i] = freqToLevel(lowPassFilter.avg(scanLineBuffer[i]), frequencyOffset);
 		for (int i = 0; i < evenBuffer.length; ++i) {
 			int redPos = redBeginSamples + (i * redSamples) / evenBuffer.length + prevPulseIndex;
 			int greenPos = greenBeginSamples + (i * greenSamples) / evenBuffer.length + prevPulseIndex;

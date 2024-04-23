@@ -13,6 +13,10 @@ public class RawDecoder implements Mode {
 		lowPassFilter = new ExponentialMovingAverage();
 	}
 
+	private float freqToLevel(float frequency, float offset) {
+		return 0.5f * (frequency - offset + 1.f);
+	}
+
 	@Override
 	public String getName() {
 		return "Raw";
@@ -24,7 +28,7 @@ public class RawDecoder implements Mode {
 	}
 
 	@Override
-	public int decodeScanLine(int[] evenBuffer, int[] oddBuffer, float[] scanLineBuffer, int prevPulseIndex, int scanLineSamples) {
+	public int decodeScanLine(int[] evenBuffer, int[] oddBuffer, float[] scanLineBuffer, int prevPulseIndex, int scanLineSamples, float frequencyOffset) {
 		if (prevPulseIndex < 0 || prevPulseIndex + scanLineSamples > scanLineBuffer.length)
 			return 0;
 		lowPassFilter.reset(evenBuffer.length / (float) scanLineSamples);
@@ -32,7 +36,7 @@ public class RawDecoder implements Mode {
 			scanLineBuffer[i] = lowPassFilter.avg(scanLineBuffer[i]);
 		lowPassFilter.reset(evenBuffer.length / (float) scanLineSamples);
 		for (int i = prevPulseIndex + scanLineSamples - 1; i >= prevPulseIndex; --i)
-			scanLineBuffer[i] = lowPassFilter.avg(scanLineBuffer[i]);
+			scanLineBuffer[i] = freqToLevel(lowPassFilter.avg(scanLineBuffer[i]), frequencyOffset);
 		for (int i = 0; i < evenBuffer.length; ++i) {
 			int position = (i * scanLineSamples) / evenBuffer.length + prevPulseIndex;
 			evenBuffer[i] = ColorConverter.GRAY(scanLineBuffer[position]);
