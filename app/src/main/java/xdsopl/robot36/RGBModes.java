@@ -6,6 +6,7 @@ Copyright 2024 Ahmet Inan <xdsopl@gmail.com>
 
 package xdsopl.robot36;
 
+@SuppressWarnings("UnnecessaryLocalVariable")
 public final class RGBModes {
 
 	public static RGBDecoder Martin(String name, double channelSeconds, int sampleRate) {

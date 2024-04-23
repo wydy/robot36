@@ -18,6 +18,7 @@ public class Robot_36_Color implements Mode {
 	private final int chrominanceBeginSamples;
 	private final int endSamples;
 
+	@SuppressWarnings("UnnecessaryLocalVariable")
 	Robot_36_Color(int sampleRate) {
 		double syncPulseSeconds = 0.009;
 		double syncPorchSeconds = 0.003;

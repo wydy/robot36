@@ -18,6 +18,7 @@ public class PaulDon implements Mode {
 	private final int endSamples;
 	private final String name;
 
+	@SuppressWarnings("UnnecessaryLocalVariable")
 	PaulDon(String name, double channelSeconds, int sampleRate) {
 		this.name = "PD " + name;
 		double syncPulseSeconds = 0.02;
