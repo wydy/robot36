@@ -11,10 +11,6 @@ public class SimpleMovingAverage extends SimpleMovingSum {
 		super(length);
 	}
 
-	public float avg() {
-		return sum() / length;
-	}
-
 	public float avg(float input) {
 		return sum(input) / length;
 	}

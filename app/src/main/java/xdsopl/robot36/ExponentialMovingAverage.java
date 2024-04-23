@@ -14,16 +14,8 @@ public class ExponentialMovingAverage {
 		this.alpha = 1;
 	}
 
-	ExponentialMovingAverage(float alpha) {
-		this.alpha = alpha;
-	}
-
 	public float avg(float input) {
 		return prev = prev * (1 - alpha) + alpha * input;
-	}
-
-	public void reset() {
-		prev = 0;
 	}
 
 	public void reset(float alpha) {
