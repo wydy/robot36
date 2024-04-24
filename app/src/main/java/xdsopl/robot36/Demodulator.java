@@ -34,9 +34,9 @@ public class Demodulator {
 	public float frequencyOffset;
 
 	Demodulator(int sampleRate) {
-		float blackFrequency = 1500;
-		float whiteFrequency = 2300;
-		float scanLineBandwidth = whiteFrequency - blackFrequency;
+		double blackFrequency = 1500;
+		double whiteFrequency = 2300;
+		double scanLineBandwidth = whiteFrequency - blackFrequency;
 		frequencyModulation = new FrequencyModulation(scanLineBandwidth, sampleRate);
 		double syncPulse5msSeconds = 0.005;
 		double syncPulse9msSeconds = 0.009;
@@ -54,26 +54,26 @@ public class Demodulator {
 		syncPulseFilterDelay = (syncPulseFilterSamples - 1) / 2;
 		syncPulseFilter = new SimpleMovingAverage(syncPulseFilterSamples);
 		syncPulseValueDelay = new Delay(syncPulseFilterSamples);
-		float lowestFrequency = 1000;
-		float highestFrequency = 2800;
-		float cutoffFrequency = (highestFrequency - lowestFrequency) / 2;
+		double lowestFrequency = 1000;
+		double highestFrequency = 2800;
+		double cutoffFrequency = (highestFrequency - lowestFrequency) / 2;
 		double baseBandLowPassSeconds = 0.002;
 		int baseBandLowPassSamples = (int) Math.round(baseBandLowPassSeconds * sampleRate) | 1;
 		baseBandLowPass = new ComplexConvolution(baseBandLowPassSamples);
 		Kaiser kaiser = new Kaiser();
 		for (int i = 0; i < baseBandLowPass.length; ++i)
 			baseBandLowPass.taps[i] = (float) (kaiser.window(2.0, i, baseBandLowPass.length) * Filter.lowPass(cutoffFrequency, sampleRate, i, baseBandLowPass.length));
-		float centerFrequency = (lowestFrequency + highestFrequency) / 2;
+		double centerFrequency = (lowestFrequency + highestFrequency) / 2;
 		baseBandOscillator = new Phasor(-centerFrequency, sampleRate);
-		float syncPulseFrequency = 1200;
-		syncPulseFrequencyValue = (syncPulseFrequency - centerFrequency) * 2 / scanLineBandwidth;
-		syncPulseFrequencyTolerance = 50 * 2 / scanLineBandwidth;
-		float syncPorchFrequency = 1500;
-		float syncHighFrequency = (syncPulseFrequency + syncPorchFrequency) / 2;
-		float syncLowFrequency = (syncPulseFrequency + syncHighFrequency) / 2;
-		float syncLowValue = (syncLowFrequency - centerFrequency) * 2 / scanLineBandwidth;
-		float syncHighValue = (syncHighFrequency - centerFrequency) * 2 / scanLineBandwidth;
-		syncPulseTrigger = new SchmittTrigger(syncLowValue, syncHighValue);
+		double syncPulseFrequency = 1200;
+		syncPulseFrequencyValue = (float) ((syncPulseFrequency - centerFrequency) * 2 / scanLineBandwidth);
+		syncPulseFrequencyTolerance = (float) (50 * 2 / scanLineBandwidth);
+		double syncPorchFrequency = 1500;
+		double syncHighFrequency = (syncPulseFrequency + syncPorchFrequency) / 2;
+		double syncLowFrequency = (syncPulseFrequency + syncHighFrequency) / 2;
+		double syncLowValue = (syncLowFrequency - centerFrequency) * 2 / scanLineBandwidth;
+		double syncHighValue = (syncHighFrequency - centerFrequency) * 2 / scanLineBandwidth;
+		syncPulseTrigger = new SchmittTrigger((float) syncLowValue, (float) syncHighValue);
 		baseBand = new Complex();
 	}
 

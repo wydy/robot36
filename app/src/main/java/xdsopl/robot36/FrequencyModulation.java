@@ -10,10 +10,10 @@ public class FrequencyModulation {
 	private float prev;
 	private final float scale;
 	private final float Pi, TwoPi;
-	FrequencyModulation(float bandwidth, float sampleRate) {
+	FrequencyModulation(double bandwidth, double sampleRate) {
 		this.Pi = (float) Math.PI;
 		this.TwoPi = 2 * this.Pi;
-		scale = sampleRate / (bandwidth * Pi);
+		this.scale = (float) (sampleRate / (bandwidth * Math.PI));
 	}
 	private float wrap(float value) {
 		if (value < -Pi)

@@ -6,6 +6,7 @@ Copyright 2024 Ahmet Inan <xdsopl@gmail.com>
 
 package xdsopl.robot36;
 
+@SuppressWarnings("unused")
 public class ExponentialMovingAverage {
 	private float alpha;
 	private float prev;
@@ -18,20 +19,20 @@ public class ExponentialMovingAverage {
 		return prev = prev * (1 - alpha) + alpha * input;
 	}
 
-	public void alpha(float alpha) {
-		this.alpha = alpha;
+	public void alpha(double alpha) {
+		this.alpha = (float) alpha;
 	}
 
-	public void alpha(float alpha, int order) {
-		alpha((float) Math.pow(alpha, 1.0 / order));
+	public void alpha(double alpha, int order) {
+		alpha(Math.pow(alpha, 1.0 / order));
 	}
 
-	public void cutoff(float freq, float rate, int order) {
+	public void cutoff(double freq, double rate, int order) {
 		double x = Math.cos(2 * Math.PI * freq / rate);
-		alpha((float) (x-1+Math.sqrt(x*(x-4)+3)), order);
+		alpha(x - 1 + Math.sqrt(x * (x - 4) + 3), order);
 	}
 
-	public void cutoff(float freq, float rate) {
+	public void cutoff(double freq, double rate) {
 		cutoff(freq, rate, 1);
 	}
 
