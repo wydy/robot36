@@ -67,10 +67,11 @@ public class Robot_36_Color implements Mode {
 			separator += scanLineBuffer[prevPulseIndex + separatorBeginSamples + i];
 		separator /= separatorSamples;
 		boolean even = separator < 0;
-		lowPassFilter.reset(evenBuffer.length / (float) luminanceSamples);
+		lowPassFilter.alpha(evenBuffer.length / (float) luminanceSamples, 2);
+		lowPassFilter.reset();
 		for (int i = prevPulseIndex + beginSamples; i < prevPulseIndex + endSamples; ++i)
 			scanLineBuffer[i] = lowPassFilter.avg(scanLineBuffer[i]);
-		lowPassFilter.reset(evenBuffer.length / (float) luminanceSamples);
+		lowPassFilter.reset();
 		for (int i = prevPulseIndex + endSamples - 1; i >= prevPulseIndex + beginSamples; --i)
 			scanLineBuffer[i] = freqToLevel(lowPassFilter.avg(scanLineBuffer[i]), frequencyOffset);
 		for (int i = 0; i < evenBuffer.length; ++i) {

@@ -58,10 +58,11 @@ public class PaulDon implements Mode {
 	public int decodeScanLine(int[] evenBuffer, int[] oddBuffer, float[] scanLineBuffer, int prevPulseIndex, int scanLineSamples, float frequencyOffset) {
 		if (prevPulseIndex + beginSamples < 0 || prevPulseIndex + endSamples > scanLineBuffer.length)
 			return 0;
-		lowPassFilter.reset(evenBuffer.length / (float) channelSamples);
+		lowPassFilter.alpha(evenBuffer.length / (float) channelSamples, 2);
+		lowPassFilter.reset();
 		for (int i = prevPulseIndex + beginSamples; i < prevPulseIndex + endSamples; ++i)
 			scanLineBuffer[i] = lowPassFilter.avg(scanLineBuffer[i]);
-		lowPassFilter.reset(evenBuffer.length / (float) channelSamples);
+		lowPassFilter.reset();
 		for (int i = prevPulseIndex + endSamples - 1; i >= prevPulseIndex + beginSamples; --i)
 			scanLineBuffer[i] = freqToLevel(lowPassFilter.avg(scanLineBuffer[i]), frequencyOffset);
 		for (int i = 0; i < evenBuffer.length; ++i) {
