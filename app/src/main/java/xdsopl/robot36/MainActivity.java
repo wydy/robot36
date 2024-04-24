@@ -30,7 +30,7 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-	private final int scopeWidth = 320, scopeHeight = 640;
+	private final int scopeWidth = 640, scopeHeight = 640;
 	private Bitmap scopeBitmap;
 	private int[] scopePixels;
 	private ImageView scopeView;
@@ -130,6 +130,7 @@ public class MainActivity extends AppCompatActivity {
 		scopeView = findViewById(R.id.scope);
 		scopeBitmap = Bitmap.createBitmap(scopeWidth, scopeHeight, Bitmap.Config.ARGB_8888);
 		scopeView.setImageBitmap(scopeBitmap);
+		scopeView.setScaleType(ImageView.ScaleType.FIT_XY);
 		scopePixels = new int[2 * scopeWidth * scopeHeight];
 		List<String> permissions = new ArrayList<>();
 		if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
