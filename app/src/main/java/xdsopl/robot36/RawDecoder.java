@@ -31,7 +31,7 @@ public class RawDecoder implements Mode {
 	public int decodeScanLine(int[] evenBuffer, int[] oddBuffer, float[] scanLineBuffer, int prevPulseIndex, int scanLineSamples, float frequencyOffset) {
 		if (prevPulseIndex < 0 || prevPulseIndex + scanLineSamples > scanLineBuffer.length)
 			return 0;
-		lowPassFilter.alpha(evenBuffer.length / (float) scanLineSamples, 2);
+		lowPassFilter.cutoff(evenBuffer.length, 2 * scanLineSamples, 2);
 		lowPassFilter.reset();
 		for (int i = prevPulseIndex; i < prevPulseIndex + scanLineSamples; ++i)
 			scanLineBuffer[i] = lowPassFilter.avg(scanLineBuffer[i]);

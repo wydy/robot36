@@ -26,6 +26,15 @@ public class ExponentialMovingAverage {
 		alpha((float) Math.pow(alpha, 1.0 / order));
 	}
 
+	public void cutoff(float freq, float rate, int order) {
+		double x = Math.cos(2 * Math.PI * freq / rate);
+		alpha((float) (x-1+Math.sqrt(x*(x-4)+3)), order);
+	}
+
+	public void cutoff(float freq, float rate) {
+		cutoff(freq, rate, 1);
+	}
+
 	public void reset() {
 		prev = 0;
 	}

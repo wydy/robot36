@@ -51,7 +51,7 @@ public class RGBDecoder implements Mode {
 	public int decodeScanLine(int[] evenBuffer, int[] oddBuffer, float[] scanLineBuffer, int prevPulseIndex, int scanLineSamples, float frequencyOffset) {
 		if (prevPulseIndex + beginSamples < 0 || prevPulseIndex + endSamples > scanLineBuffer.length)
 			return 0;
-		lowPassFilter.alpha(evenBuffer.length / (float) greenSamples, 2);
+		lowPassFilter.cutoff(evenBuffer.length, 2 * greenSamples, 2);
 		lowPassFilter.reset();
 		for (int i = prevPulseIndex + beginSamples; i < prevPulseIndex + endSamples; ++i)
 			scanLineBuffer[i] = lowPassFilter.avg(scanLineBuffer[i]);
