@@ -17,6 +17,7 @@ public class Robot_36_Color implements Mode {
 	private final int separatorBeginSamples;
 	private final int chrominanceBeginSamples;
 	private final int endSamples;
+	private boolean lastEven;
 
 	@SuppressWarnings("UnnecessaryLocalVariable")
 	Robot_36_Color(int sampleRate) {
@@ -66,7 +67,11 @@ public class Robot_36_Color implements Mode {
 		for (int i = 0; i < separatorSamples; ++i)
 			separator += scanLineBuffer[prevPulseIndex + separatorBeginSamples + i];
 		separator /= separatorSamples;
+		separator -= frequencyOffset;
 		boolean even = separator < 0;
+		if (separator < -1.1 || separator > -0.9 && separator < 0.9 || separator > 1.1)
+			even = !lastEven;
+		lastEven = even;
 		lowPassFilter.cutoff(evenBuffer.length, 2 * luminanceSamples, 2);
 		lowPassFilter.reset();
 		for (int i = prevPulseIndex + beginSamples; i < prevPulseIndex + endSamples; ++i)
