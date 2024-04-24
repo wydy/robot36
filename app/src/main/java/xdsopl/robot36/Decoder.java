@@ -12,6 +12,7 @@ public class Decoder {
 
 	private final Demodulator demodulator;
 	private final float[] scanLineBuffer;
+	private final float[] scratchBuffer;
 	private final int[] evenBuffer;
 	private final int[] oddBuffer;
 	private final int[] scopePixels;
@@ -51,6 +52,7 @@ public class Decoder {
 		double scanLineMaxSeconds = 7;
 		int scanLineMaxSamples = (int) Math.round(scanLineMaxSeconds * sampleRate);
 		scanLineBuffer = new float[scanLineMaxSamples];
+		scratchBuffer = new float[sampleRate];
 		int scanLineCount = 4;
 		last5msScanLines = new int[scanLineCount];
 		last9msScanLines = new int[scanLineCount];
@@ -171,10 +173,10 @@ public class Decoder {
 			int extrapolate = endPulse / scanLineSamples;
 			int firstPulse = endPulse - extrapolate * scanLineSamples;
 			for (int pulseIndex = firstPulse; pulseIndex < endPulse; pulseIndex += scanLineSamples)
-				copyLines(mode.decodeScanLine(evenBuffer, oddBuffer, scanLineBuffer, pulseIndex, scanLineSamples, frequencyOffset));
+				copyLines(mode.decodeScanLine(evenBuffer, oddBuffer, scratchBuffer, scanLineBuffer, pulseIndex, scanLineSamples, frequencyOffset));
 		}
 		for (int i = pictureChanged ? 0 : lines.length - 1; i < lines.length; ++i)
-			copyLines(mode.decodeScanLine(evenBuffer, oddBuffer, scanLineBuffer, pulses[i], lines[i], frequencyOffset));
+			copyLines(mode.decodeScanLine(evenBuffer, oddBuffer, scratchBuffer, scanLineBuffer, pulses[i], lines[i], frequencyOffset));
 		int shift = pulses[pulses.length - 1] - scanLineReserveSamples;
 		if (shift > scanLineReserveSamples) {
 			adjustSyncPulses(last5msSyncPulses, shift);
@@ -219,7 +221,7 @@ public class Decoder {
 					return processSyncPulse(syncPulse20msModes, last20msFrequencyOffsets, last20msSyncPulses, last20msScanLines, syncPulseIndex);
 			}
 		} else if (lastSyncPulseIndex >= scanLineReserveSamples && curSample > lastSyncPulseIndex + (lastScanLineSamples * 5) / 4) {
-			copyLines(lastMode.decodeScanLine(evenBuffer, oddBuffer, scanLineBuffer, lastSyncPulseIndex, lastScanLineSamples, lastFrequencyOffset));
+			copyLines(lastMode.decodeScanLine(evenBuffer, oddBuffer, scratchBuffer, scanLineBuffer, lastSyncPulseIndex, lastScanLineSamples, lastFrequencyOffset));
 			lastSyncPulseIndex += lastScanLineSamples;
 			return true;
 		}

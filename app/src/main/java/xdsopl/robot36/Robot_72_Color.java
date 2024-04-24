@@ -58,21 +58,21 @@ public class Robot_72_Color implements Mode {
 	}
 
 	@Override
-	public int decodeScanLine(int[] evenBuffer, int[] oddBuffer, float[] scanLineBuffer, int prevPulseIndex, int scanLineSamples, float frequencyOffset) {
-		if (prevPulseIndex + beginSamples < 0 || prevPulseIndex + endSamples > scanLineBuffer.length)
+	public int decodeScanLine(int[] evenBuffer, int[] oddBuffer, float[] scratchBuffer, float[] scanLineBuffer, int syncPulseIndex, int scanLineSamples, float frequencyOffset) {
+		if (syncPulseIndex + beginSamples < 0 || syncPulseIndex + endSamples > scanLineBuffer.length)
 			return 0;
 		lowPassFilter.cutoff(evenBuffer.length, 2 * luminanceSamples, 2);
 		lowPassFilter.reset();
-		for (int i = prevPulseIndex + beginSamples; i < prevPulseIndex + endSamples; ++i)
-			scanLineBuffer[i] = lowPassFilter.avg(scanLineBuffer[i]);
+		for (int i = beginSamples; i < endSamples; ++i)
+			scratchBuffer[i] = lowPassFilter.avg(scanLineBuffer[syncPulseIndex + i]);
 		lowPassFilter.reset();
-		for (int i = prevPulseIndex + endSamples - 1; i >= prevPulseIndex + beginSamples; --i)
-			scanLineBuffer[i] = freqToLevel(lowPassFilter.avg(scanLineBuffer[i]), frequencyOffset);
+		for (int i = endSamples - 1; i >= beginSamples; --i)
+			scratchBuffer[i] = freqToLevel(lowPassFilter.avg(scratchBuffer[i]), frequencyOffset);
 		for (int i = 0; i < evenBuffer.length; ++i) {
-			int yPos = yBeginSamples + (i * luminanceSamples) / evenBuffer.length + prevPulseIndex;
-			int uPos = uBeginSamples + (i * chrominanceSamples) / evenBuffer.length + prevPulseIndex;
-			int vPos = vBeginSamples + (i * chrominanceSamples) / evenBuffer.length + prevPulseIndex;
-			evenBuffer[i] = ColorConverter.YUV2RGB(scanLineBuffer[yPos], scanLineBuffer[uPos], scanLineBuffer[vPos]);
+			int yPos = yBeginSamples + (i * luminanceSamples) / evenBuffer.length;
+			int uPos = uBeginSamples + (i * chrominanceSamples) / evenBuffer.length;
+			int vPos = vBeginSamples + (i * chrominanceSamples) / evenBuffer.length;
+			evenBuffer[i] = ColorConverter.YUV2RGB(scratchBuffer[yPos], scratchBuffer[uPos], scratchBuffer[vPos]);
 		}
 		return 1;
 	}

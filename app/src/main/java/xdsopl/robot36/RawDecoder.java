@@ -28,19 +28,19 @@ public class RawDecoder implements Mode {
 	}
 
 	@Override
-	public int decodeScanLine(int[] evenBuffer, int[] oddBuffer, float[] scanLineBuffer, int prevPulseIndex, int scanLineSamples, float frequencyOffset) {
-		if (prevPulseIndex < 0 || prevPulseIndex + scanLineSamples > scanLineBuffer.length)
+	public int decodeScanLine(int[] evenBuffer, int[] oddBuffer, float[] scratchBuffer, float[] scanLineBuffer, int syncPulseIndex, int scanLineSamples, float frequencyOffset) {
+		if (syncPulseIndex < 0 || syncPulseIndex + scanLineSamples > scanLineBuffer.length)
 			return 0;
 		lowPassFilter.cutoff(evenBuffer.length, 2 * scanLineSamples, 2);
 		lowPassFilter.reset();
-		for (int i = prevPulseIndex; i < prevPulseIndex + scanLineSamples; ++i)
-			scanLineBuffer[i] = lowPassFilter.avg(scanLineBuffer[i]);
+		for (int i = 0; i < scanLineSamples; ++i)
+			scratchBuffer[i] = lowPassFilter.avg(scanLineBuffer[syncPulseIndex + i]);
 		lowPassFilter.reset();
-		for (int i = prevPulseIndex + scanLineSamples - 1; i >= prevPulseIndex; --i)
-			scanLineBuffer[i] = freqToLevel(lowPassFilter.avg(scanLineBuffer[i]), frequencyOffset);
+		for (int i = scanLineSamples - 1; i >= 0; --i)
+			scratchBuffer[i] = freqToLevel(lowPassFilter.avg(scratchBuffer[i]), frequencyOffset);
 		for (int i = 0; i < evenBuffer.length; ++i) {
-			int position = (i * scanLineSamples) / evenBuffer.length + prevPulseIndex;
-			evenBuffer[i] = ColorConverter.GRAY(scanLineBuffer[position]);
+			int position = (i * scanLineSamples) / evenBuffer.length;
+			evenBuffer[i] = ColorConverter.GRAY(scratchBuffer[position]);
 		}
 		return 1;
 	}

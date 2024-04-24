@@ -60,12 +60,12 @@ public class Robot_36_Color implements Mode {
 	}
 
 	@Override
-	public int decodeScanLine(int[] evenBuffer, int[] oddBuffer, float[] scanLineBuffer, int prevPulseIndex, int scanLineSamples, float frequencyOffset) {
-		if (prevPulseIndex + beginSamples < 0 || prevPulseIndex + endSamples > scanLineBuffer.length)
+	public int decodeScanLine(int[] evenBuffer, int[] oddBuffer, float[] scratchBuffer, float[] scanLineBuffer, int syncPulseIndex, int scanLineSamples, float frequencyOffset) {
+		if (syncPulseIndex + beginSamples < 0 || syncPulseIndex + endSamples > scanLineBuffer.length)
 			return 0;
 		float separator = 0;
 		for (int i = 0; i < separatorSamples; ++i)
-			separator += scanLineBuffer[prevPulseIndex + separatorBeginSamples + i];
+			separator += scanLineBuffer[syncPulseIndex + separatorBeginSamples + i];
 		separator /= separatorSamples;
 		separator -= frequencyOffset;
 		boolean even = separator < 0;
@@ -74,19 +74,19 @@ public class Robot_36_Color implements Mode {
 		lastEven = even;
 		lowPassFilter.cutoff(evenBuffer.length, 2 * luminanceSamples, 2);
 		lowPassFilter.reset();
-		for (int i = prevPulseIndex + beginSamples; i < prevPulseIndex + endSamples; ++i)
-			scanLineBuffer[i] = lowPassFilter.avg(scanLineBuffer[i]);
+		for (int i = beginSamples; i < endSamples; ++i)
+			scratchBuffer[i] = lowPassFilter.avg(scanLineBuffer[syncPulseIndex + i]);
 		lowPassFilter.reset();
-		for (int i = prevPulseIndex + endSamples - 1; i >= prevPulseIndex + beginSamples; --i)
-			scanLineBuffer[i] = freqToLevel(lowPassFilter.avg(scanLineBuffer[i]), frequencyOffset);
+		for (int i = endSamples - 1; i >= beginSamples; --i)
+			scratchBuffer[i] = freqToLevel(lowPassFilter.avg(scratchBuffer[i]), frequencyOffset);
 		for (int i = 0; i < evenBuffer.length; ++i) {
-			int luminancePos = luminanceBeginSamples + (i * luminanceSamples) / evenBuffer.length + prevPulseIndex;
-			int chrominancePos = chrominanceBeginSamples + (i * chrominanceSamples) / evenBuffer.length + prevPulseIndex;
+			int luminancePos = luminanceBeginSamples + (i * luminanceSamples) / evenBuffer.length;
+			int chrominancePos = chrominanceBeginSamples + (i * chrominanceSamples) / evenBuffer.length;
 			if (even) {
-				evenBuffer[i] = ColorConverter.RGB(scanLineBuffer[luminancePos], 0, scanLineBuffer[chrominancePos]);
+				evenBuffer[i] = ColorConverter.RGB(scratchBuffer[luminancePos], 0, scratchBuffer[chrominancePos]);
 			} else {
 				int evenYUV = evenBuffer[i];
-				int oddYUV = ColorConverter.RGB(scanLineBuffer[luminancePos], scanLineBuffer[chrominancePos], 0);
+				int oddYUV = ColorConverter.RGB(scratchBuffer[luminancePos], scratchBuffer[chrominancePos], 0);
 				evenBuffer[i] = ColorConverter.YUV2RGB((evenYUV & 0x00ff00ff) | (oddYUV & 0x0000ff00));
 				oddBuffer[i] = ColorConverter.YUV2RGB((oddYUV & 0x00ffff00) | (evenYUV & 0x000000ff));
 			}
