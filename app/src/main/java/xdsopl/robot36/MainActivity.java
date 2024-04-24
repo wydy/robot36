@@ -54,7 +54,7 @@ public class MainActivity extends AppCompatActivity {
 			if (decoder.process(recordBuffer)) {
 				scopeBitmap.setPixels(scopePixels, scopeWidth * decoder.curLine, scopeWidth, 0, 0, scopeWidth, scopeHeight);
 				scopeView.invalidate();
-				status.setText(decoder.curMode);
+				status.setText(decoder.lastMode.getName());
 			}
 		}
 	};
