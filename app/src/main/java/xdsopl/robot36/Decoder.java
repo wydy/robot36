@@ -149,7 +149,7 @@ public class Decoder {
 			Arrays.fill(scopeBuffer.pixels, line + pixelBuffer.width * scale, line + scopeBuffer.width, 0);
 			System.arraycopy(scopeBuffer.pixels, line, scopeBuffer.pixels, scopeBuffer.width * (scopeBuffer.line + scopeBuffer.height / 2), scopeBuffer.width);
 			scopeBuffer.line = (scopeBuffer.line + 1) % (scopeBuffer.height / 2);
-			for (int i = 0; i < scale; ++i) {
+			for (int i = 1; i < scale; ++i) {
 				System.arraycopy(scopeBuffer.pixels, line, scopeBuffer.pixels, scopeBuffer.width * scopeBuffer.line, scopeBuffer.width);
 				System.arraycopy(scopeBuffer.pixels, line, scopeBuffer.pixels, scopeBuffer.width * (scopeBuffer.line + scopeBuffer.height / 2), scopeBuffer.width);
 				scopeBuffer.line = (scopeBuffer.line + 1) % (scopeBuffer.height / 2);
