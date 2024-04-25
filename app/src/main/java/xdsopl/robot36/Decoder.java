@@ -66,7 +66,7 @@ public class Decoder {
 		double scanLineToleranceSeconds = 0.001;
 		scanLineToleranceSamples = (int) Math.round(scanLineToleranceSeconds * sampleRate);
 		scanLineReserveSamples = sampleRate;
-		rawMode = new RawDecoder();
+		rawMode = new RawDecoder(sampleRate);
 		lastMode = rawMode;
 		lastScanLineSamples = (int) Math.round(0.150 * sampleRate);
 		syncPulse5msModes = new ArrayList<>();
