@@ -57,9 +57,9 @@ public class PaulDon implements Mode {
 	}
 
 	@Override
-	public int decodeScanLine(int[] evenBuffer, int[] oddBuffer, float[] scratchBuffer, float[] scanLineBuffer, int syncPulseIndex, int scanLineSamples, float frequencyOffset) {
+	public boolean decodeScanLine(PixelBuffer pixelBuffer, float[] scratchBuffer, float[] scanLineBuffer, int syncPulseIndex, int scanLineSamples, float frequencyOffset) {
 		if (syncPulseIndex + beginSamples < 0 || syncPulseIndex + endSamples > scanLineBuffer.length)
-			return 0;
+			return false;
 		lowPassFilter.cutoff(horizontalPixels, 2 * channelSamples, 2);
 		lowPassFilter.reset();
 		for (int i = beginSamples; i < endSamples; ++i)
@@ -73,9 +73,13 @@ public class PaulDon implements Mode {
 			int vAvgPos = position + vAvgBeginSamples;
 			int uAvgPos = position + uAvgBeginSamples;
 			int yOddPos = position + yOddBeginSamples;
-			evenBuffer[i] = ColorConverter.YUV2RGB(scratchBuffer[yEvenPos], scratchBuffer[uAvgPos], scratchBuffer[vAvgPos]);
-			oddBuffer[i] = ColorConverter.YUV2RGB(scratchBuffer[yOddPos], scratchBuffer[uAvgPos], scratchBuffer[vAvgPos]);
+			pixelBuffer.pixels[i] =
+				ColorConverter.YUV2RGB(scratchBuffer[yEvenPos], scratchBuffer[uAvgPos], scratchBuffer[vAvgPos]);
+			pixelBuffer.pixels[i + horizontalPixels] =
+				ColorConverter.YUV2RGB(scratchBuffer[yOddPos], scratchBuffer[uAvgPos], scratchBuffer[vAvgPos]);
 		}
-		return 2;
+		pixelBuffer.width = horizontalPixels;
+		pixelBuffer.height = 2;
+		return true;
 	}
 }

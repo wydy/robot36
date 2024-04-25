@@ -7,14 +7,14 @@ Copyright 2024 Ahmet Inan <xdsopl@gmail.com>
 package xdsopl.robot36;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class Decoder {
 
 	private final Demodulator demodulator;
+	private final PixelBuffer pixelBuffer;
 	private final float[] scanLineBuffer;
 	private final float[] scratchBuffer;
-	private final int[] evenBuffer;
-	private final int[] oddBuffer;
 	private final int[] scopePixels;
 	private final int[] last5msSyncPulses;
 	private final int[] last9msSyncPulses;
@@ -46,8 +46,7 @@ public class Decoder {
 		this.scopePixels = scopePixels;
 		this.scopeWidth = scopeWidth;
 		this.scopeHeight = scopeHeight;
-		evenBuffer = new int[scopeWidth];
-		oddBuffer = new int[scopeWidth];
+		pixelBuffer = new PixelBuffer(scopeWidth, 2);
 		demodulator = new Demodulator(sampleRate);
 		double scanLineMaxSeconds = 7;
 		int scanLineMaxSamples = (int) Math.round(scanLineMaxSeconds * sampleRate);
@@ -136,15 +135,14 @@ public class Decoder {
 		return bestMode;
 	}
 
-	private void copyLines(int lines) {
-		if (lines > 0) {
-			System.arraycopy(evenBuffer, 0, scopePixels, scopeWidth * curLine, scopeWidth);
-			System.arraycopy(evenBuffer, 0, scopePixels, scopeWidth * (curLine + scopeHeight), scopeWidth);
-			curLine = (curLine + 1) % scopeHeight;
-		}
-		if (lines == 2) {
-			System.arraycopy(oddBuffer, 0, scopePixels, scopeWidth * curLine, scopeWidth);
-			System.arraycopy(oddBuffer, 0, scopePixels, scopeWidth * (curLine + scopeHeight), scopeWidth);
+	private void copyLines(boolean okay) {
+		if (!okay)
+			return;
+		for (int row = 0; row < pixelBuffer.height; ++row) {
+			System.arraycopy(pixelBuffer.pixels, row * pixelBuffer.width, scopePixels, scopeWidth * curLine, pixelBuffer.width);
+			Arrays.fill(scopePixels, scopeWidth * curLine + pixelBuffer.width, scopeWidth * curLine + scopeWidth, 0);
+			System.arraycopy(pixelBuffer.pixels, row * pixelBuffer.width, scopePixels, scopeWidth * (curLine + scopeHeight), pixelBuffer.width);
+			Arrays.fill(scopePixels, scopeWidth * (curLine + scopeHeight) + pixelBuffer.width, scopeWidth * (curLine + scopeHeight) + scopeWidth, 0);
 			curLine = (curLine + 1) % scopeHeight;
 		}
 	}
@@ -172,15 +170,16 @@ public class Decoder {
 		boolean pictureChanged = lastMode != mode
 			|| Math.abs(lastScanLineSamples - scanLineSamples) > scanLineToleranceSamples
 			|| Math.abs(lastSyncPulseIndex + scanLineSamples - pulses[pulses.length - 1]) > syncPulseToleranceSamples;
+		pixelBuffer.width = scopeWidth;
 		if (pulses[0] >= scanLineSamples && pictureChanged) {
 			int endPulse = pulses[0];
 			int extrapolate = endPulse / scanLineSamples;
 			int firstPulse = endPulse - extrapolate * scanLineSamples;
 			for (int pulseIndex = firstPulse; pulseIndex < endPulse; pulseIndex += scanLineSamples)
-				copyLines(mode.decodeScanLine(evenBuffer, oddBuffer, scratchBuffer, scanLineBuffer, pulseIndex, scanLineSamples, frequencyOffset));
+				copyLines(mode.decodeScanLine(pixelBuffer, scratchBuffer, scanLineBuffer, pulseIndex, scanLineSamples, frequencyOffset));
 		}
 		for (int i = pictureChanged ? 0 : lines.length - 1; i < lines.length; ++i)
-			copyLines(mode.decodeScanLine(evenBuffer, oddBuffer, scratchBuffer, scanLineBuffer, pulses[i], lines[i], frequencyOffset));
+			copyLines(mode.decodeScanLine(pixelBuffer, scratchBuffer, scanLineBuffer, pulses[i], lines[i], frequencyOffset));
 		int shift = pulses[pulses.length - 1] - scanLineReserveSamples;
 		if (shift > scanLineReserveSamples) {
 			adjustSyncPulses(last5msSyncPulses, shift);
@@ -225,7 +224,8 @@ public class Decoder {
 					return processSyncPulse(syncPulse20msModes, last20msFrequencyOffsets, last20msSyncPulses, last20msScanLines, syncPulseIndex);
 			}
 		} else if (lastSyncPulseIndex >= scanLineReserveSamples && curSample > lastSyncPulseIndex + (lastScanLineSamples * 5) / 4) {
-			copyLines(lastMode.decodeScanLine(evenBuffer, oddBuffer, scratchBuffer, scanLineBuffer, lastSyncPulseIndex, lastScanLineSamples, lastFrequencyOffset));
+			pixelBuffer.width = scopeWidth;
+			copyLines(lastMode.decodeScanLine(pixelBuffer, scratchBuffer, scanLineBuffer, lastSyncPulseIndex, lastScanLineSamples, lastFrequencyOffset));
 			lastSyncPulseIndex += lastScanLineSamples;
 			return true;
 		}

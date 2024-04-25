@@ -50,9 +50,9 @@ public class RGBDecoder implements Mode {
 	}
 
 	@Override
-	public int decodeScanLine(int[] evenBuffer, int[] oddBuffer, float[] scratchBuffer, float[] scanLineBuffer, int syncPulseIndex, int scanLineSamples, float frequencyOffset) {
+	public boolean decodeScanLine(PixelBuffer pixelBuffer, float[] scratchBuffer, float[] scanLineBuffer, int syncPulseIndex, int scanLineSamples, float frequencyOffset) {
 		if (syncPulseIndex + beginSamples < 0 || syncPulseIndex + endSamples > scanLineBuffer.length)
-			return 0;
+			return false;
 		lowPassFilter.cutoff(horizontalPixels, 2 * greenSamples, 2);
 		lowPassFilter.reset();
 		for (int i = 0; i < endSamples - beginSamples; ++i)
@@ -64,8 +64,10 @@ public class RGBDecoder implements Mode {
 			int redPos = redBeginSamples + (i * redSamples) / horizontalPixels;
 			int greenPos = greenBeginSamples + (i * greenSamples) / horizontalPixels;
 			int bluePos = blueBeginSamples + (i * blueSamples) / horizontalPixels;
-			evenBuffer[i] = ColorConverter.RGB(scratchBuffer[redPos], scratchBuffer[greenPos], scratchBuffer[bluePos]);
+			pixelBuffer.pixels[i] = ColorConverter.RGB(scratchBuffer[redPos], scratchBuffer[greenPos], scratchBuffer[bluePos]);
 		}
-		return 1;
+		pixelBuffer.width = horizontalPixels;
+		pixelBuffer.height = 1;
+		return true;
 	}
 }

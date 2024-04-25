@@ -60,9 +60,9 @@ public class Robot_72_Color implements Mode {
 	}
 
 	@Override
-	public int decodeScanLine(int[] evenBuffer, int[] oddBuffer, float[] scratchBuffer, float[] scanLineBuffer, int syncPulseIndex, int scanLineSamples, float frequencyOffset) {
+	public boolean decodeScanLine(PixelBuffer pixelBuffer, float[] scratchBuffer, float[] scanLineBuffer, int syncPulseIndex, int scanLineSamples, float frequencyOffset) {
 		if (syncPulseIndex + beginSamples < 0 || syncPulseIndex + endSamples > scanLineBuffer.length)
-			return 0;
+			return false;
 		lowPassFilter.cutoff(horizontalPixels, 2 * luminanceSamples, 2);
 		lowPassFilter.reset();
 		for (int i = beginSamples; i < endSamples; ++i)
@@ -74,8 +74,10 @@ public class Robot_72_Color implements Mode {
 			int yPos = yBeginSamples + (i * luminanceSamples) / horizontalPixels;
 			int uPos = uBeginSamples + (i * chrominanceSamples) / horizontalPixels;
 			int vPos = vBeginSamples + (i * chrominanceSamples) / horizontalPixels;
-			evenBuffer[i] = ColorConverter.YUV2RGB(scratchBuffer[yPos], scratchBuffer[uPos], scratchBuffer[vPos]);
+			pixelBuffer.pixels[i] = ColorConverter.YUV2RGB(scratchBuffer[yPos], scratchBuffer[uPos], scratchBuffer[vPos]);
 		}
-		return 1;
+		pixelBuffer.width = horizontalPixels;
+		pixelBuffer.height = 1;
+		return true;
 	}
 }

@@ -62,9 +62,9 @@ public class Robot_36_Color implements Mode {
 	}
 
 	@Override
-	public int decodeScanLine(int[] evenBuffer, int[] oddBuffer, float[] scratchBuffer, float[] scanLineBuffer, int syncPulseIndex, int scanLineSamples, float frequencyOffset) {
+	public boolean decodeScanLine(PixelBuffer pixelBuffer, float[] scratchBuffer, float[] scanLineBuffer, int syncPulseIndex, int scanLineSamples, float frequencyOffset) {
 		if (syncPulseIndex + beginSamples < 0 || syncPulseIndex + endSamples > scanLineBuffer.length)
-			return 0;
+			return false;
 		float separator = 0;
 		for (int i = 0; i < separatorSamples; ++i)
 			separator += scanLineBuffer[syncPulseIndex + separatorBeginSamples + i];
@@ -85,14 +85,18 @@ public class Robot_36_Color implements Mode {
 			int luminancePos = luminanceBeginSamples + (i * luminanceSamples) / horizontalPixels;
 			int chrominancePos = chrominanceBeginSamples + (i * chrominanceSamples) / horizontalPixels;
 			if (even) {
-				evenBuffer[i] = ColorConverter.RGB(scratchBuffer[luminancePos], 0, scratchBuffer[chrominancePos]);
+				pixelBuffer.pixels[i] = ColorConverter.RGB(scratchBuffer[luminancePos], 0, scratchBuffer[chrominancePos]);
 			} else {
-				int evenYUV = evenBuffer[i];
+				int evenYUV = pixelBuffer.pixels[i];
 				int oddYUV = ColorConverter.RGB(scratchBuffer[luminancePos], scratchBuffer[chrominancePos], 0);
-				evenBuffer[i] = ColorConverter.YUV2RGB((evenYUV & 0x00ff00ff) | (oddYUV & 0x0000ff00));
-				oddBuffer[i] = ColorConverter.YUV2RGB((oddYUV & 0x00ffff00) | (evenYUV & 0x000000ff));
+				pixelBuffer.pixels[i] =
+					ColorConverter.YUV2RGB((evenYUV & 0x00ff00ff) | (oddYUV & 0x0000ff00));
+				pixelBuffer.pixels[i + horizontalPixels] =
+					ColorConverter.YUV2RGB((oddYUV & 0x00ffff00) | (evenYUV & 0x000000ff));
 			}
 		}
-		return even ? 0 : 2;
+		pixelBuffer.width = horizontalPixels;
+		pixelBuffer.height = 2;
+		return !even;
 	}
 }

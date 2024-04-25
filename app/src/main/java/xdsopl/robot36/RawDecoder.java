@@ -28,10 +28,10 @@ public class RawDecoder implements Mode {
 	}
 
 	@Override
-	public int decodeScanLine(int[] evenBuffer, int[] oddBuffer, float[] scratchBuffer, float[] scanLineBuffer, int syncPulseIndex, int scanLineSamples, float frequencyOffset) {
+	public boolean decodeScanLine(PixelBuffer pixelBuffer, float[] scratchBuffer, float[] scanLineBuffer, int syncPulseIndex, int scanLineSamples, float frequencyOffset) {
 		if (syncPulseIndex < 0 || syncPulseIndex + scanLineSamples > scanLineBuffer.length)
-			return 0;
-		int horizontalPixels = evenBuffer.length;
+			return false;
+		int horizontalPixels = pixelBuffer.width;
 		lowPassFilter.cutoff(horizontalPixels, 2 * scanLineSamples, 2);
 		lowPassFilter.reset();
 		for (int i = 0; i < scanLineSamples; ++i)
@@ -41,8 +41,9 @@ public class RawDecoder implements Mode {
 			scratchBuffer[i] = freqToLevel(lowPassFilter.avg(scratchBuffer[i]), frequencyOffset);
 		for (int i = 0; i < horizontalPixels; ++i) {
 			int position = (i * scanLineSamples) / horizontalPixels;
-			evenBuffer[i] = ColorConverter.GRAY(scratchBuffer[position]);
+			pixelBuffer.pixels[i] = ColorConverter.GRAY(scratchBuffer[position]);
 		}
-		return 1;
+		pixelBuffer.height = 1;
+		return true;
 	}
 }
