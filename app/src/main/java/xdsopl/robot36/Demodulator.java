@@ -77,10 +77,27 @@ public class Demodulator {
 		baseBand = new Complex();
 	}
 
-	public boolean process(float[] buffer) {
+	public boolean process(float[] buffer, int channelSelect) {
 		boolean syncPulseDetected = false;
-		for (int i = 0; i < buffer.length; ++i) {
-			baseBand = baseBandLowPass.push(baseBand.set(buffer[i]).mul(baseBandOscillator.rotate()));
+		int channels = channelSelect > 0 ? 2 : 1;
+		for (int i = 0; i < buffer.length / channels; ++i) {
+			switch (channelSelect) {
+				case 1:
+					baseBand.set(buffer[2 * i]);
+					break;
+				case 2:
+					baseBand.set(buffer[2 * i + 1]);
+					break;
+				case 3:
+					baseBand.set(buffer[2 * i] + buffer[2 * i + 1]);
+					break;
+				case 4:
+					baseBand.set(buffer[2 * i], buffer[2 * i + 1]);
+					break;
+				default:
+					baseBand.set(buffer[i]);
+			}
+			baseBand = baseBandLowPass.push(baseBand.mul(baseBandOscillator.rotate()));
 			float frequencyValue = frequencyModulation.demod(baseBand);
 			float syncPulseValue = syncPulseFilter.avg(frequencyValue);
 			float syncPulseDelayedValue = syncPulseValueDelay.push(syncPulseValue);

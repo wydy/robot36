@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:tools="http://schemas.android.com/tools"
+	tools:context="xdsopl.robot36.MainActivity">
+	<item android:title="@string/audio_settings">
+		<menu>
+			<item android:title="@string/sample_rate">
+				<menu>
+					<group android:checkableBehavior="single">
+						<item
+							android:id="@+id/action_set_record_rate_8000"
+							android:title="@string/rate_8000" />
+						<item
+							android:id="@+id/action_set_record_rate_16000"
+							android:title="@string/rate_16000" />
+						<item
+							android:id="@+id/action_set_record_rate_32000"
+							android:title="@string/rate_32000" />
+						<item
+							android:id="@+id/action_set_record_rate_44100"
+							android:title="@string/rate_44100" />
+						<item
+							android:id="@+id/action_set_record_rate_48000"
+							android:title="@string/rate_48000" />
+					</group>
+				</menu>
+			</item>
+			<item android:title="@string/channel_select">
+				<menu>
+					<group android:checkableBehavior="single">
+						<item
+							android:id="@+id/action_set_record_channel_default"
+							android:title="@string/channel_default" />
+						<item
+							android:id="@+id/action_set_record_channel_first"
+							android:title="@string/channel_first" />
+						<item
+							android:id="@+id/action_set_record_channel_second"
+							android:title="@string/channel_second" />
+						<item
+							android:id="@+id/action_set_record_channel_summation"
+							android:title="@string/channel_summation" />
+						<item
+							android:id="@+id/action_set_record_channel_analytic"
+							android:title="@string/channel_analytic" />
+					</group>
+				</menu>
+			</item>
+			<item android:title="@string/audio_source">
+				<menu>
+					<group android:checkableBehavior="single">
+						<item
+							android:id="@+id/action_set_source_default"
+							android:title="@string/source_default" />
+						<item
+							android:id="@+id/action_set_source_microphone"
+							android:title="@string/source_microphone" />
+						<item
+							android:id="@+id/action_set_source_camcorder"
+							android:title="@string/source_camcorder" />
+						<item
+							android:id="@+id/action_set_source_voice_recognition"
+							android:title="@string/source_voice_recognition" />
+						<item
+							android:id="@+id/action_set_source_unprocessed"
+							android:title="@string/source_unprocessed" />
+					</group>
+				</menu>
+			</item>
+		</menu>
+	</item>
+	<item android:title="@string/night_mode">
+		<menu>
+			<item
+				android:id="@+id/action_enable_night_mode"
+				android:title="@string/enable" />
+			<item
+				android:id="@+id/action_disable_night_mode"
+				android:title="@string/disable" />
+		</menu>
+	</item>
+</menu>

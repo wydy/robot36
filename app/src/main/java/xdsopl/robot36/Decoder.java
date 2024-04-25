@@ -193,11 +193,12 @@ public class Decoder {
 		return true;
 	}
 
-	public boolean process(float[] recordBuffer) {
-		boolean syncPulseDetected = demodulator.process(recordBuffer);
+	public boolean process(float[] recordBuffer, int channelSelect) {
+		boolean syncPulseDetected = demodulator.process(recordBuffer, channelSelect);
 		int syncPulseIndex = curSample + demodulator.syncPulseOffset;
-		for (float v : recordBuffer) {
-			scanLineBuffer[curSample++] = v;
+		int channels = channelSelect > 0 ? 2 : 1;
+		for (int j = 0; j < recordBuffer.length / channels; ++j) {
+			scanLineBuffer[curSample++] = recordBuffer[j];
 			if (curSample >= scanLineBuffer.length) {
 				int shift = scanLineReserveSamples;
 				syncPulseIndex -= shift;
