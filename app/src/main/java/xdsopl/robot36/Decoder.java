@@ -130,16 +130,41 @@ public class Decoder {
 		return bestMode;
 	}
 
-	private void copyLines(boolean okay) {
-		if (!okay)
-			return;
+	private void copyUnscaled() {
 		for (int row = 0; row < pixelBuffer.height; ++row) {
-			System.arraycopy(pixelBuffer.pixels, row * pixelBuffer.width, scopeBuffer.pixels, scopeBuffer.width * scopeBuffer.line, pixelBuffer.width);
-			Arrays.fill(scopeBuffer.pixels, scopeBuffer.width * scopeBuffer.line + pixelBuffer.width, scopeBuffer.width * scopeBuffer.line + scopeBuffer.width, 0);
-			System.arraycopy(pixelBuffer.pixels, row * pixelBuffer.width, scopeBuffer.pixels, scopeBuffer.width * (scopeBuffer.line + scopeBuffer.height / 2), pixelBuffer.width);
-			Arrays.fill(scopeBuffer.pixels, scopeBuffer.width * (scopeBuffer.line + scopeBuffer.height / 2) + pixelBuffer.width, scopeBuffer.width * (scopeBuffer.line + scopeBuffer.height / 2) + scopeBuffer.width, 0);
+			int line = scopeBuffer.width * scopeBuffer.line;
+			System.arraycopy(pixelBuffer.pixels, row * pixelBuffer.width, scopeBuffer.pixels, line, pixelBuffer.width);
+			Arrays.fill(scopeBuffer.pixels, line + pixelBuffer.width, line + scopeBuffer.width, 0);
+			System.arraycopy(scopeBuffer.pixels, line, scopeBuffer.pixels, scopeBuffer.width * (scopeBuffer.line + scopeBuffer.height / 2), scopeBuffer.width);
 			scopeBuffer.line = (scopeBuffer.line + 1) % (scopeBuffer.height / 2);
 		}
+	}
+
+	private void copyScaled(int scale) {
+		for (int row = 0; row < pixelBuffer.height; ++row) {
+			int line = scopeBuffer.width * scopeBuffer.line;
+			for (int col = 0; col < pixelBuffer.width; ++col)
+				for (int i = 0; i < scale; ++i)
+					scopeBuffer.pixels[line + col * scale + i] = pixelBuffer.pixels[pixelBuffer.width * row + col];
+			Arrays.fill(scopeBuffer.pixels, line + pixelBuffer.width * scale, line + scopeBuffer.width, 0);
+			System.arraycopy(scopeBuffer.pixels, line, scopeBuffer.pixels, scopeBuffer.width * (scopeBuffer.line + scopeBuffer.height / 2), scopeBuffer.width);
+			scopeBuffer.line = (scopeBuffer.line + 1) % (scopeBuffer.height / 2);
+			for (int i = 0; i < scale; ++i) {
+				System.arraycopy(scopeBuffer.pixels, line, scopeBuffer.pixels, scopeBuffer.width * scopeBuffer.line, scopeBuffer.width);
+				System.arraycopy(scopeBuffer.pixels, line, scopeBuffer.pixels, scopeBuffer.width * (scopeBuffer.line + scopeBuffer.height / 2), scopeBuffer.width);
+				scopeBuffer.line = (scopeBuffer.line + 1) % (scopeBuffer.height / 2);
+			}
+		}
+	}
+
+	private void copyLines(boolean okay) {
+		if (!okay || pixelBuffer.width <= 0)
+			return;
+		int scale = scopeBuffer.width / pixelBuffer.width;
+		if (scale == 1)
+			copyUnscaled();
+		else
+			copyScaled(scale);
 	}
 
 	private boolean processSyncPulse(ArrayList<Mode> modes, float[] freqOffs, int[] pulses, int[] lines, int index) {
