@@ -34,7 +34,6 @@ public class Decoder {
 	private final ArrayList<Mode> syncPulse20msModes;
 
 	public Mode lastMode;
-	public int curLine;
 	private int curSample;
 	private int lastSyncPulseIndex;
 	private int lastScanLineSamples;
@@ -135,11 +134,11 @@ public class Decoder {
 		if (!okay)
 			return;
 		for (int row = 0; row < pixelBuffer.height; ++row) {
-			System.arraycopy(pixelBuffer.pixels, row * pixelBuffer.width, scopeBuffer.pixels, scopeBuffer.width * curLine, pixelBuffer.width);
-			Arrays.fill(scopeBuffer.pixels, scopeBuffer.width * curLine + pixelBuffer.width, scopeBuffer.width * curLine + scopeBuffer.width, 0);
-			System.arraycopy(pixelBuffer.pixels, row * pixelBuffer.width, scopeBuffer.pixels, scopeBuffer.width * (curLine + scopeBuffer.height / 2), pixelBuffer.width);
-			Arrays.fill(scopeBuffer.pixels, scopeBuffer.width * (curLine + scopeBuffer.height / 2) + pixelBuffer.width, scopeBuffer.width * (curLine + scopeBuffer.height / 2) + scopeBuffer.width, 0);
-			curLine = (curLine + 1) % (scopeBuffer.height / 2);
+			System.arraycopy(pixelBuffer.pixels, row * pixelBuffer.width, scopeBuffer.pixels, scopeBuffer.width * scopeBuffer.line, pixelBuffer.width);
+			Arrays.fill(scopeBuffer.pixels, scopeBuffer.width * scopeBuffer.line + pixelBuffer.width, scopeBuffer.width * scopeBuffer.line + scopeBuffer.width, 0);
+			System.arraycopy(pixelBuffer.pixels, row * pixelBuffer.width, scopeBuffer.pixels, scopeBuffer.width * (scopeBuffer.line + scopeBuffer.height / 2), pixelBuffer.width);
+			Arrays.fill(scopeBuffer.pixels, scopeBuffer.width * (scopeBuffer.line + scopeBuffer.height / 2) + pixelBuffer.width, scopeBuffer.width * (scopeBuffer.line + scopeBuffer.height / 2) + scopeBuffer.width, 0);
+			scopeBuffer.line = (scopeBuffer.line + 1) % (scopeBuffer.height / 2);
 		}
 	}
 

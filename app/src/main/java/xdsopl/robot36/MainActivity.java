@@ -62,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
 		public void onPeriodicNotification(AudioRecord audioRecord) {
 			audioRecord.read(recordBuffer, 0, recordBuffer.length, AudioRecord.READ_BLOCKING);
 			if (decoder.process(recordBuffer, recordChannel)) {
-				scopeBitmap.setPixels(scopeBuffer.pixels, scopeBuffer.width * decoder.curLine, scopeBuffer.width, 0, 0, scopeBuffer.width, scopeBuffer.height / 2);
+				scopeBitmap.setPixels(scopeBuffer.pixels, scopeBuffer.width * scopeBuffer.line, scopeBuffer.width, 0, 0, scopeBuffer.width, scopeBuffer.height / 2);
 				scopeView.invalidate();
 				setStatus(decoder.lastMode.getName());
 			}
