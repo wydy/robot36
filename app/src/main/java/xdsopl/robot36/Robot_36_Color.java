@@ -8,6 +8,7 @@ package xdsopl.robot36;
 
 public class Robot_36_Color implements Mode {
 	private final ExponentialMovingAverage lowPassFilter;
+	private final int horizontalPixels;
 	private final int scanLineSamples;
 	private final int luminanceSamples;
 	private final int separatorSamples;
@@ -21,6 +22,7 @@ public class Robot_36_Color implements Mode {
 
 	@SuppressWarnings("UnnecessaryLocalVariable")
 	Robot_36_Color(int sampleRate) {
+		horizontalPixels = 320;
 		double syncPulseSeconds = 0.009;
 		double syncPorchSeconds = 0.003;
 		double luminanceSeconds = 0.088;
@@ -72,16 +74,16 @@ public class Robot_36_Color implements Mode {
 		if (separator < -1.1 || separator > -0.9 && separator < 0.9 || separator > 1.1)
 			even = !lastEven;
 		lastEven = even;
-		lowPassFilter.cutoff(evenBuffer.length, 2 * luminanceSamples, 2);
+		lowPassFilter.cutoff(horizontalPixels, 2 * luminanceSamples, 2);
 		lowPassFilter.reset();
 		for (int i = beginSamples; i < endSamples; ++i)
 			scratchBuffer[i] = lowPassFilter.avg(scanLineBuffer[syncPulseIndex + i]);
 		lowPassFilter.reset();
 		for (int i = endSamples - 1; i >= beginSamples; --i)
 			scratchBuffer[i] = freqToLevel(lowPassFilter.avg(scratchBuffer[i]), frequencyOffset);
-		for (int i = 0; i < evenBuffer.length; ++i) {
-			int luminancePos = luminanceBeginSamples + (i * luminanceSamples) / evenBuffer.length;
-			int chrominancePos = chrominanceBeginSamples + (i * chrominanceSamples) / evenBuffer.length;
+		for (int i = 0; i < horizontalPixels; ++i) {
+			int luminancePos = luminanceBeginSamples + (i * luminanceSamples) / horizontalPixels;
+			int chrominancePos = chrominanceBeginSamples + (i * chrominanceSamples) / horizontalPixels;
 			if (even) {
 				evenBuffer[i] = ColorConverter.RGB(scratchBuffer[luminancePos], 0, scratchBuffer[chrominancePos]);
 			} else {

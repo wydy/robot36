@@ -8,6 +8,7 @@ package xdsopl.robot36;
 
 public class PaulDon implements Mode {
 	private final ExponentialMovingAverage lowPassFilter;
+	private final int horizontalPixels;
 	private final int scanLineSamples;
 	private final int channelSamples;
 	private final int beginSamples;
@@ -19,8 +20,9 @@ public class PaulDon implements Mode {
 	private final String name;
 
 	@SuppressWarnings("UnnecessaryLocalVariable")
-	PaulDon(String name, double channelSeconds, int sampleRate) {
+	PaulDon(String name, int horizontalPixels, double channelSeconds, int sampleRate) {
 		this.name = "PD " + name;
+		this.horizontalPixels = horizontalPixels;
 		double syncPulseSeconds = 0.02;
 		double syncPorchSeconds = 0.00208;
 		double scanLineSeconds = syncPulseSeconds + syncPorchSeconds + 4 * (channelSeconds);
@@ -58,15 +60,15 @@ public class PaulDon implements Mode {
 	public int decodeScanLine(int[] evenBuffer, int[] oddBuffer, float[] scratchBuffer, float[] scanLineBuffer, int syncPulseIndex, int scanLineSamples, float frequencyOffset) {
 		if (syncPulseIndex + beginSamples < 0 || syncPulseIndex + endSamples > scanLineBuffer.length)
 			return 0;
-		lowPassFilter.cutoff(evenBuffer.length, 2 * channelSamples, 2);
+		lowPassFilter.cutoff(horizontalPixels, 2 * channelSamples, 2);
 		lowPassFilter.reset();
 		for (int i = beginSamples; i < endSamples; ++i)
 			scratchBuffer[i] = lowPassFilter.avg(scanLineBuffer[syncPulseIndex + i]);
 		lowPassFilter.reset();
 		for (int i = endSamples - 1; i >= beginSamples; --i)
 			scratchBuffer[i] = freqToLevel(lowPassFilter.avg(scratchBuffer[i]), frequencyOffset);
-		for (int i = 0; i < evenBuffer.length; ++i) {
-			int position = (i * channelSamples) / evenBuffer.length;
+		for (int i = 0; i < horizontalPixels; ++i) {
+			int position = (i * channelSamples) / horizontalPixels;
 			int yEvenPos = position + yEvenBeginSamples;
 			int vAvgPos = position + vAvgBeginSamples;
 			int uAvgPos = position + uAvgBeginSamples;

@@ -8,6 +8,7 @@ package xdsopl.robot36;
 
 public class RGBDecoder implements Mode {
 	private final ExponentialMovingAverage lowPassFilter;
+	private final int horizontalPixels;
 	private final int scanLineSamples;
 	private final int beginSamples;
 	private final int redBeginSamples;
@@ -19,8 +20,9 @@ public class RGBDecoder implements Mode {
 	private final int endSamples;
 	private final String name;
 
-	RGBDecoder(String name, double scanLineSeconds, double beginSeconds, double redBeginSeconds, double redEndSeconds, double greenBeginSeconds, double greenEndSeconds, double blueBeginSeconds, double blueEndSeconds, double endSeconds, int sampleRate) {
+	RGBDecoder(String name, int horizontalPixels, double scanLineSeconds, double beginSeconds, double redBeginSeconds, double redEndSeconds, double greenBeginSeconds, double greenEndSeconds, double blueBeginSeconds, double blueEndSeconds, double endSeconds, int sampleRate) {
 		this.name = name;
+		this.horizontalPixels = horizontalPixels;
 		scanLineSamples = (int) Math.round(scanLineSeconds * sampleRate);
 		beginSamples = (int) Math.round(beginSeconds * sampleRate);
 		redBeginSamples = (int) Math.round(redBeginSeconds * sampleRate) - beginSamples;
@@ -51,17 +53,17 @@ public class RGBDecoder implements Mode {
 	public int decodeScanLine(int[] evenBuffer, int[] oddBuffer, float[] scratchBuffer, float[] scanLineBuffer, int syncPulseIndex, int scanLineSamples, float frequencyOffset) {
 		if (syncPulseIndex + beginSamples < 0 || syncPulseIndex + endSamples > scanLineBuffer.length)
 			return 0;
-		lowPassFilter.cutoff(evenBuffer.length, 2 * greenSamples, 2);
+		lowPassFilter.cutoff(horizontalPixels, 2 * greenSamples, 2);
 		lowPassFilter.reset();
 		for (int i = 0; i < endSamples - beginSamples; ++i)
 			scratchBuffer[i] = lowPassFilter.avg(scanLineBuffer[syncPulseIndex + beginSamples + i]);
 		lowPassFilter.reset();
 		for (int i = endSamples - beginSamples - 1; i >= 0; --i)
 			scratchBuffer[i] = freqToLevel(lowPassFilter.avg(scratchBuffer[i]), frequencyOffset);
-		for (int i = 0; i < evenBuffer.length; ++i) {
-			int redPos = redBeginSamples + (i * redSamples) / evenBuffer.length;
-			int greenPos = greenBeginSamples + (i * greenSamples) / evenBuffer.length;
-			int bluePos = blueBeginSamples + (i * blueSamples) / evenBuffer.length;
+		for (int i = 0; i < horizontalPixels; ++i) {
+			int redPos = redBeginSamples + (i * redSamples) / horizontalPixels;
+			int greenPos = greenBeginSamples + (i * greenSamples) / horizontalPixels;
+			int bluePos = blueBeginSamples + (i * blueSamples) / horizontalPixels;
 			evenBuffer[i] = ColorConverter.RGB(scratchBuffer[redPos], scratchBuffer[greenPos], scratchBuffer[bluePos]);
 		}
 		return 1;

@@ -8,6 +8,7 @@ package xdsopl.robot36;
 
 public class Robot_72_Color implements Mode {
 	private final ExponentialMovingAverage lowPassFilter;
+	private final int horizontalPixels;
 	private final int scanLineSamples;
 	private final int luminanceSamples;
 	private final int chrominanceSamples;
@@ -19,6 +20,7 @@ public class Robot_72_Color implements Mode {
 
 	@SuppressWarnings("UnnecessaryLocalVariable")
 	Robot_72_Color(int sampleRate) {
+		horizontalPixels = 320;
 		double syncPulseSeconds = 0.009;
 		double syncPorchSeconds = 0.003;
 		double luminanceSeconds = 0.138;
@@ -61,17 +63,17 @@ public class Robot_72_Color implements Mode {
 	public int decodeScanLine(int[] evenBuffer, int[] oddBuffer, float[] scratchBuffer, float[] scanLineBuffer, int syncPulseIndex, int scanLineSamples, float frequencyOffset) {
 		if (syncPulseIndex + beginSamples < 0 || syncPulseIndex + endSamples > scanLineBuffer.length)
 			return 0;
-		lowPassFilter.cutoff(evenBuffer.length, 2 * luminanceSamples, 2);
+		lowPassFilter.cutoff(horizontalPixels, 2 * luminanceSamples, 2);
 		lowPassFilter.reset();
 		for (int i = beginSamples; i < endSamples; ++i)
 			scratchBuffer[i] = lowPassFilter.avg(scanLineBuffer[syncPulseIndex + i]);
 		lowPassFilter.reset();
 		for (int i = endSamples - 1; i >= beginSamples; --i)
 			scratchBuffer[i] = freqToLevel(lowPassFilter.avg(scratchBuffer[i]), frequencyOffset);
-		for (int i = 0; i < evenBuffer.length; ++i) {
-			int yPos = yBeginSamples + (i * luminanceSamples) / evenBuffer.length;
-			int uPos = uBeginSamples + (i * chrominanceSamples) / evenBuffer.length;
-			int vPos = vBeginSamples + (i * chrominanceSamples) / evenBuffer.length;
+		for (int i = 0; i < horizontalPixels; ++i) {
+			int yPos = yBeginSamples + (i * luminanceSamples) / horizontalPixels;
+			int uPos = uBeginSamples + (i * chrominanceSamples) / horizontalPixels;
+			int vPos = vBeginSamples + (i * chrominanceSamples) / horizontalPixels;
 			evenBuffer[i] = ColorConverter.YUV2RGB(scratchBuffer[yPos], scratchBuffer[uPos], scratchBuffer[vPos]);
 		}
 		return 1;

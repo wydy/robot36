@@ -31,15 +31,16 @@ public class RawDecoder implements Mode {
 	public int decodeScanLine(int[] evenBuffer, int[] oddBuffer, float[] scratchBuffer, float[] scanLineBuffer, int syncPulseIndex, int scanLineSamples, float frequencyOffset) {
 		if (syncPulseIndex < 0 || syncPulseIndex + scanLineSamples > scanLineBuffer.length)
 			return 0;
-		lowPassFilter.cutoff(evenBuffer.length, 2 * scanLineSamples, 2);
+		int horizontalPixels = evenBuffer.length;
+		lowPassFilter.cutoff(horizontalPixels, 2 * scanLineSamples, 2);
 		lowPassFilter.reset();
 		for (int i = 0; i < scanLineSamples; ++i)
 			scratchBuffer[i] = lowPassFilter.avg(scanLineBuffer[syncPulseIndex + i]);
 		lowPassFilter.reset();
 		for (int i = scanLineSamples - 1; i >= 0; --i)
 			scratchBuffer[i] = freqToLevel(lowPassFilter.avg(scratchBuffer[i]), frequencyOffset);
-		for (int i = 0; i < evenBuffer.length; ++i) {
-			int position = (i * scanLineSamples) / evenBuffer.length;
+		for (int i = 0; i < horizontalPixels; ++i) {
+			int position = (i * scanLineSamples) / horizontalPixels;
 			evenBuffer[i] = ColorConverter.GRAY(scratchBuffer[position]);
 		}
 		return 1;

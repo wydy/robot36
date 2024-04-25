@@ -85,13 +85,13 @@ public class Decoder {
 		syncPulse9msModes.add(RGBModes.Scottie("2", 0.088064, sampleRate));
 		syncPulse9msModes.add(RGBModes.Scottie("DX", 0.3456, sampleRate));
 		syncPulse20msModes = new ArrayList<>();
-		syncPulse20msModes.add(new PaulDon("50", 0.09152, sampleRate));
-		syncPulse20msModes.add(new PaulDon("90", 0.17024, sampleRate));
-		syncPulse20msModes.add(new PaulDon("120", 0.1216, sampleRate));
-		syncPulse20msModes.add(new PaulDon("160", 0.195584, sampleRate));
-		syncPulse20msModes.add(new PaulDon("180", 0.18304, sampleRate));
-		syncPulse20msModes.add(new PaulDon("240", 0.24448, sampleRate));
-		syncPulse20msModes.add(new PaulDon("290", 0.2288, sampleRate));
+		syncPulse20msModes.add(new PaulDon("50", 320, 0.09152, sampleRate));
+		syncPulse20msModes.add(new PaulDon("90", 320, 0.17024, sampleRate));
+		syncPulse20msModes.add(new PaulDon("120", 640, 0.1216, sampleRate));
+		syncPulse20msModes.add(new PaulDon("160", 512, 0.195584, sampleRate));
+		syncPulse20msModes.add(new PaulDon("180", 640, 0.18304, sampleRate));
+		syncPulse20msModes.add(new PaulDon("240", 640, 0.24448, sampleRate));
+		syncPulse20msModes.add(new PaulDon("290", 640, 0.2288, sampleRate));
 	}
 
 	private void adjustSyncPulses(int[] pulses, int shift) {
