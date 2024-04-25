@@ -21,6 +21,7 @@ import android.widget.ImageView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.app.ActivityCompat;
@@ -367,7 +368,19 @@ public class MainActivity extends AppCompatActivity {
 			AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
 			return true;
 		}
+		if (id == R.id.action_privacy_policy) {
+			showTextPage(getString(R.string.privacy_policy), getString(R.string.privacy_policy_text));
+			return true;
+		}
 		return super.onOptionsItemSelected(item);
+	}
+
+	private void showTextPage(String title, String message) {
+		AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.Theme_AlertDialog);
+		builder.setNeutralButton(R.string.close, null);
+		builder.setTitle(title);
+		builder.setMessage(message);
+		builder.show();
 	}
 
 	@Override
