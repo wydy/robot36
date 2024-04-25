@@ -23,11 +23,11 @@ public class RGBDecoder implements Mode {
 		this.name = name;
 		scanLineSamples = (int) Math.round(scanLineSeconds * sampleRate);
 		beginSamples = (int) Math.round(beginSeconds * sampleRate);
-		redBeginSamples = (int) Math.round(redBeginSeconds * sampleRate);
+		redBeginSamples = (int) Math.round(redBeginSeconds * sampleRate) - beginSamples;
 		redSamples = (int) Math.round((redEndSeconds - redBeginSeconds) * sampleRate);
-		greenBeginSamples = (int) Math.round(greenBeginSeconds * sampleRate);
+		greenBeginSamples = (int) Math.round(greenBeginSeconds * sampleRate) - beginSamples;
 		greenSamples = (int) Math.round((greenEndSeconds - greenBeginSeconds) * sampleRate);
-		blueBeginSamples = (int) Math.round(blueBeginSeconds * sampleRate);
+		blueBeginSamples = (int) Math.round(blueBeginSeconds * sampleRate) - beginSamples;
 		blueSamples = (int) Math.round((blueEndSeconds - blueBeginSeconds) * sampleRate);
 		endSamples = (int) Math.round(endSeconds * sampleRate);
 		lowPassFilter = new ExponentialMovingAverage();
@@ -53,10 +53,10 @@ public class RGBDecoder implements Mode {
 			return 0;
 		lowPassFilter.cutoff(evenBuffer.length, 2 * greenSamples, 2);
 		lowPassFilter.reset();
-		for (int i = beginSamples; i < endSamples; ++i)
-			scratchBuffer[i] = lowPassFilter.avg(scanLineBuffer[syncPulseIndex + i]);
+		for (int i = 0; i < endSamples - beginSamples; ++i)
+			scratchBuffer[i] = lowPassFilter.avg(scanLineBuffer[syncPulseIndex + beginSamples + i]);
 		lowPassFilter.reset();
-		for (int i = endSamples - 1; i >= beginSamples; --i)
+		for (int i = endSamples - beginSamples - 1; i >= 0; --i)
 			scratchBuffer[i] = freqToLevel(lowPassFilter.avg(scratchBuffer[i]), frequencyOffset);
 		for (int i = 0; i < evenBuffer.length; ++i) {
 			int redPos = redBeginSamples + (i * redSamples) / evenBuffer.length;

@@ -52,7 +52,9 @@ public class Decoder {
 		double scanLineMaxSeconds = 7;
 		int scanLineMaxSamples = (int) Math.round(scanLineMaxSeconds * sampleRate);
 		scanLineBuffer = new float[scanLineMaxSamples];
-		scratchBuffer = new float[sampleRate];
+		double scratchBufferSeconds = 1.1;
+		int scratchBufferSamples = (int) Math.round(scratchBufferSeconds * sampleRate);
+		scratchBuffer = new float[scratchBufferSamples];
 		int scanLineCount = 4;
 		last5msScanLines = new int[scanLineCount];
 		last9msScanLines = new int[scanLineCount];
@@ -160,10 +162,12 @@ public class Decoder {
 		if (lines[0] == 0)
 			return false;
 		double mean = scanLineMean(lines);
+		int scanLineSamples = (int) Math.round(mean);
+		if (scanLineSamples > scratchBuffer.length)
+			return false;
 		if (scanLineStdDev(lines, mean) > scanLineToleranceSamples)
 			return false;
 		float frequencyOffset = (float) frequencyOffsetMean(freqOffs);
-		int scanLineSamples = (int) Math.round(mean);
 		Mode mode = detectMode(modes, scanLineSamples);
 		boolean pictureChanged = lastMode != mode
 			|| Math.abs(lastScanLineSamples - scanLineSamples) > scanLineToleranceSamples
