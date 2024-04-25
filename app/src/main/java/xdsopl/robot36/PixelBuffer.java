@@ -12,6 +12,8 @@ public class PixelBuffer {
 	public int height;
 
 	PixelBuffer(int width, int height) {
-		pixels = new int[width * height];
+		this.width = width;
+		this.height = height;
+		this.pixels = new int[width * height];
 	}
 }

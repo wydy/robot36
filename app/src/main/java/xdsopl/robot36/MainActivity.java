@@ -30,9 +30,8 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-	private final int scopeWidth = 640, scopeHeight = 1280;
 	private Bitmap scopeBitmap;
-	private int[] scopePixels;
+	private PixelBuffer scopeBuffer;
 	private ImageView scopeView;
 	private float[] recordBuffer;
 	private AudioRecord audioRecord;
@@ -52,7 +51,7 @@ public class MainActivity extends AppCompatActivity {
 		public void onPeriodicNotification(AudioRecord audioRecord) {
 			audioRecord.read(recordBuffer, 0, recordBuffer.length, AudioRecord.READ_BLOCKING);
 			if (decoder.process(recordBuffer)) {
-				scopeBitmap.setPixels(scopePixels, scopeWidth * decoder.curLine, scopeWidth, 0, 0, scopeWidth, scopeHeight);
+				scopeBitmap.setPixels(scopeBuffer.pixels, scopeBuffer.width * decoder.curLine, scopeBuffer.width, 0, 0, scopeBuffer.width, scopeBuffer.height / 2);
 				scopeView.invalidate();
 				status.setText(decoder.lastMode.getName());
 			}
@@ -75,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
 			if (audioRecord.getState() == AudioRecord.STATE_INITIALIZED) {
 				audioRecord.setRecordPositionUpdateListener(recordListener);
 				audioRecord.setPositionNotificationPeriod(recordBuffer.length);
-				decoder = new Decoder(scopePixels, scopeWidth, scopeHeight, sampleRate);
+				decoder = new Decoder(scopeBuffer, sampleRate);
 				startListening();
 			} else {
 				setStatus(R.string.audio_init_failed);
@@ -128,9 +127,11 @@ public class MainActivity extends AppCompatActivity {
 		});
 		status = findViewById(R.id.status);
 		scopeView = findViewById(R.id.scope);
+		int scopeWidth = 640;
+		int scopeHeight = 1280;
 		scopeBitmap = Bitmap.createBitmap(scopeWidth, scopeHeight, Bitmap.Config.ARGB_8888);
 		scopeView.setImageBitmap(scopeBitmap);
-		scopePixels = new int[2 * scopeWidth * scopeHeight];
+		scopeBuffer = new PixelBuffer(scopeWidth, 2 * scopeHeight);
 		List<String> permissions = new ArrayList<>();
 		if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
 			permissions.add(Manifest.permission.RECORD_AUDIO);
