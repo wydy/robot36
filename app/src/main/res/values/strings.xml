@@ -35,4 +35,11 @@ Having access to the microphone is considered to be a sensitive permission and y
 The data recorded from the microphone is only used to fed the SSTV decoder, VU meter and the spectrum analyzer for visualization of its frequency content.
 The app uses a very small temporary buffer in volatile memory and constantly overwrites this buffer with new data from the microphone.
 The resulting images from the SSTV decoder is the only data that gets stored in persistent storage on your Android device.</string>
+	<string name="about">About Robot36</string>
+	<string name="about_text">Robot36 %1$s\nCopyright 2024 Ahmet Inan
+\n\nPlease read DISCLAIMER at the bottom of this page.
+\n\nRobot36 decodes SSTV encoded audio signals to images.
+\n\nImplementation:\nhttps://github.com/xdsopl/robot36\nBSD Zero Clause License
+\n\nMode specifications:\nhttp://www.barberdsp.com/downloads/Dayton%%20Paper.pdf\nby JL Barber - 2000
+\n\nDISCLAIMER:\nTHE SOFTWARE IS PROVIDED \"AS IS\" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.</string>
 </resources>

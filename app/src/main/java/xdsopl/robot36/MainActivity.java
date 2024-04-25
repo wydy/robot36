@@ -372,6 +372,10 @@ public class MainActivity extends AppCompatActivity {
 			showTextPage(getString(R.string.privacy_policy), getString(R.string.privacy_policy_text));
 			return true;
 		}
+		if (id == R.id.action_about) {
+			showTextPage(getString(R.string.about), getString(R.string.about_text, BuildConfig.VERSION_NAME));
+			return true;
+		}
 		return super.onOptionsItemSelected(item);
 	}
 
