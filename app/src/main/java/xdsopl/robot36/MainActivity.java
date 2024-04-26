@@ -68,9 +68,10 @@ public class MainActivity extends AppCompatActivity {
 		@Override
 		public void onPeriodicNotification(AudioRecord audioRecord) {
 			audioRecord.read(recordBuffer, 0, recordBuffer.length, AudioRecord.READ_BLOCKING);
-			if (decoder.process(recordBuffer, recordChannel)) {
+			boolean newLines = decoder.process(recordBuffer, recordChannel);
+			processFreqPlot();
+			if (newLines) {
 				processScope();
-				processFreqPlot();
 				setStatus(decoder.lastMode.getName());
 			}
 		}
@@ -296,21 +297,15 @@ public class MainActivity extends AppCompatActivity {
 			audioSource = state.getInt("audioSource", defaultAudioSource);
 		}
 		super.onCreate(state);
+		Configuration config = getResources().getConfiguration();
 		EdgeToEdge.enable(this);
-		setContentView(R.layout.activity_main);
-		ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-			Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-			v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-			return insets;
-		});
+		setContentView(config.orientation == Configuration.ORIENTATION_LANDSCAPE ? R.layout.activity_main_land : R.layout.activity_main);
+		handleInsets();
 		tint = getColor(R.color.tint);
-		scopeView = findViewById(R.id.scope);
 		scopeBuffer = new PixelBuffer(640, 2 * 1280);
-		createScope(getResources().getConfiguration());
-		freqPlotView = findViewById(R.id.freq_plot);
+		createScope(config);
 		freqPlotBuffer = new PixelBuffer(640, 2 * 640);
-		freqPlotBitmap = Bitmap.createBitmap(freqPlotBuffer.width, freqPlotBuffer.height / 2, Bitmap.Config.ARGB_8888);
-		freqPlotView.setImageBitmap(freqPlotBitmap);
+		createFreqPlot(config);
 		List<String> permissions = new ArrayList<>();
 		if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
 			permissions.add(Manifest.permission.RECORD_AUDIO);
@@ -320,6 +315,14 @@ public class MainActivity extends AppCompatActivity {
 		}
 		if (!permissions.isEmpty())
 			ActivityCompat.requestPermissions(this, permissions.toArray(new String[0]), permissionID);
+	}
+
+	private void handleInsets() {
+		ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+			Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+			v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+			return insets;
+		});
 	}
 
 	@Override
@@ -423,13 +426,30 @@ public class MainActivity extends AppCompatActivity {
 		int stride = scopeBuffer.width;
 		int offset = stride * (scopeBuffer.line + scopeBuffer.height / 2 - height);
 		scopeBitmap.setPixels(scopeBuffer.pixels, offset, stride, 0, 0, width, height);
+		scopeView = findViewById(R.id.scope);
 		scopeView.setImageBitmap(scopeBitmap);
+	}
+
+	private void createFreqPlot(Configuration config) {
+		int width = freqPlotBuffer.width;
+		int height = freqPlotBuffer.height / 2;
+		if (config.orientation != Configuration.ORIENTATION_LANDSCAPE)
+			height /= 4;
+		freqPlotBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+		int stride = freqPlotBuffer.width;
+		int offset = stride * (freqPlotBuffer.line + freqPlotBuffer.height / 2 - height);
+		freqPlotBitmap.setPixels(freqPlotBuffer.pixels, offset, stride, 0, 0, width, height);
+		freqPlotView = findViewById(R.id.freq_plot);
+		freqPlotView.setImageBitmap(freqPlotBitmap);
 	}
 
 	@Override
 	public void onConfigurationChanged(@NonNull Configuration config) {
 		super.onConfigurationChanged(config);
+		setContentView(config.orientation == Configuration.ORIENTATION_LANDSCAPE ? R.layout.activity_main_land : R.layout.activity_main);
+		handleInsets();
 		createScope(config);
+		createFreqPlot(config);
 	}
 
 	private void showTextPage(String title, String message) {
