@@ -10,6 +10,7 @@ import android.Manifest;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
@@ -63,7 +64,11 @@ public class MainActivity extends AppCompatActivity {
 		public void onPeriodicNotification(AudioRecord audioRecord) {
 			audioRecord.read(recordBuffer, 0, recordBuffer.length, AudioRecord.READ_BLOCKING);
 			if (decoder.process(recordBuffer, recordChannel)) {
-				scopeBitmap.setPixels(scopeBuffer.pixels, scopeBuffer.width * scopeBuffer.line, scopeBuffer.width, 0, 0, scopeBuffer.width, scopeBuffer.height / 2);
+				int width = scopeBitmap.getWidth();
+				int height = scopeBitmap.getHeight();
+				int stride = scopeBuffer.width;
+				int offset = stride * (scopeBuffer.line + scopeBuffer.height / 2 - height);
+				scopeBitmap.setPixels(scopeBuffer.pixels, offset, stride, 0, 0, width, height);
 				scopeView.invalidate();
 				setStatus(decoder.lastMode.getName());
 			}
@@ -271,11 +276,8 @@ public class MainActivity extends AppCompatActivity {
 			return insets;
 		});
 		scopeView = findViewById(R.id.scope);
-		int scopeWidth = 640;
-		int scopeHeight = 1280;
-		scopeBitmap = Bitmap.createBitmap(scopeWidth, scopeHeight, Bitmap.Config.ARGB_8888);
-		scopeView.setImageBitmap(scopeBitmap);
-		scopeBuffer = new PixelBuffer(scopeWidth, 2 * scopeHeight);
+		scopeBuffer = new PixelBuffer(640, 2 * 1280);
+		createScope(getResources().getConfiguration());
 		List<String> permissions = new ArrayList<>();
 		if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
 			permissions.add(Manifest.permission.RECORD_AUDIO);
@@ -377,6 +379,21 @@ public class MainActivity extends AppCompatActivity {
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
+	}
+
+	private void createScope(Configuration config) {
+		int scopeWidth = scopeBuffer.width;
+		int scopeHeight = scopeBuffer.height / 2;
+		if (config.orientation == Configuration.ORIENTATION_LANDSCAPE)
+			scopeHeight /= 2;
+		scopeBitmap = Bitmap.createBitmap(scopeWidth, scopeHeight, Bitmap.Config.ARGB_8888);
+		scopeView.setImageBitmap(scopeBitmap);
+	}
+
+	@Override
+	public void onConfigurationChanged(@NonNull Configuration config) {
+		super.onConfigurationChanged(config);
+		createScope(config);
 	}
 
 	private void showTextPage(String title, String message) {
