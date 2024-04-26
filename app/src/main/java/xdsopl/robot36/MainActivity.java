@@ -43,6 +43,9 @@ public class MainActivity extends AppCompatActivity {
 	private Bitmap freqPlotBitmap;
 	private PixelBuffer freqPlotBuffer;
 	private ImageView freqPlotView;
+	private Bitmap peakMeterBitmap;
+	private PixelBuffer peakMeterBuffer;
+	private ImageView peakMeterView;
 	private float[] recordBuffer;
 	private AudioRecord audioRecord;
 	private Decoder decoder;
@@ -51,6 +54,7 @@ public class MainActivity extends AppCompatActivity {
 	private int recordChannel;
 	private int audioSource;
 	private int tint;
+	private int thin;
 
 	private void setStatus(int id) {
 		setTitle(id);
@@ -68,6 +72,7 @@ public class MainActivity extends AppCompatActivity {
 		@Override
 		public void onPeriodicNotification(AudioRecord audioRecord) {
 			audioRecord.read(recordBuffer, 0, recordBuffer.length, AudioRecord.READ_BLOCKING);
+			processPeakMeter();
 			boolean newLines = decoder.process(recordBuffer, recordChannel);
 			processFreqPlot();
 			if (newLines) {
@@ -76,6 +81,18 @@ public class MainActivity extends AppCompatActivity {
 			}
 		}
 	};
+
+	private void processPeakMeter() {
+		float max = 0;
+		for (float v : recordBuffer)
+			max = Math.max(max, Math.abs(v));
+		int pixels = peakMeterBuffer.height;
+		int peak = Math.min(Math.max(Math.round(max * pixels), 0), pixels);
+		Arrays.fill(peakMeterBuffer.pixels, 0, pixels - peak, thin);
+		Arrays.fill(peakMeterBuffer.pixels, pixels - peak, pixels, tint);
+		peakMeterBitmap.setPixels(peakMeterBuffer.pixels, 0, peakMeterBuffer.width, 0, 0, peakMeterBuffer.width, peakMeterBuffer.height);
+		peakMeterView.invalidate();
+	}
 
 	private void processFreqPlot() {
 		int width = freqPlotBitmap.getWidth();
@@ -302,10 +319,13 @@ public class MainActivity extends AppCompatActivity {
 		setContentView(config.orientation == Configuration.ORIENTATION_LANDSCAPE ? R.layout.activity_main_land : R.layout.activity_main);
 		handleInsets();
 		tint = getColor(R.color.tint);
+		thin = getColor(R.color.thin);
 		scopeBuffer = new PixelBuffer(640, 2 * 1280);
 		createScope(config);
 		freqPlotBuffer = new PixelBuffer(640, 2 * 640);
 		createFreqPlot(config);
+		peakMeterBuffer = new PixelBuffer(1, 16);
+		createPeakMeter();
 		List<String> permissions = new ArrayList<>();
 		if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
 			permissions.add(Manifest.permission.RECORD_AUDIO);
@@ -427,6 +447,7 @@ public class MainActivity extends AppCompatActivity {
 		int offset = stride * (scopeBuffer.line + scopeBuffer.height / 2 - height);
 		scopeBitmap.setPixels(scopeBuffer.pixels, offset, stride, 0, 0, width, height);
 		scopeView = findViewById(R.id.scope);
+		scopeView.setScaleType(ImageView.ScaleType.FIT_CENTER);
 		scopeView.setImageBitmap(scopeBitmap);
 	}
 
@@ -440,7 +461,16 @@ public class MainActivity extends AppCompatActivity {
 		int offset = stride * (freqPlotBuffer.line + freqPlotBuffer.height / 2 - height);
 		freqPlotBitmap.setPixels(freqPlotBuffer.pixels, offset, stride, 0, 0, width, height);
 		freqPlotView = findViewById(R.id.freq_plot);
+		freqPlotView.setScaleType(ImageView.ScaleType.FIT_CENTER);
 		freqPlotView.setImageBitmap(freqPlotBitmap);
+	}
+
+	private void createPeakMeter() {
+		peakMeterBitmap = Bitmap.createBitmap(peakMeterBuffer.width, peakMeterBuffer.height, Bitmap.Config.ARGB_8888);
+		peakMeterBitmap.setPixels(peakMeterBuffer.pixels, 0, peakMeterBuffer.width, 0, 0, peakMeterBuffer.width, peakMeterBuffer.height);
+		peakMeterView = findViewById(R.id.peak_meter);
+		peakMeterView.setScaleType(ImageView.ScaleType.FIT_XY);
+		peakMeterView.setImageBitmap(peakMeterBitmap);
 	}
 
 	@Override
@@ -450,6 +480,7 @@ public class MainActivity extends AppCompatActivity {
 		handleInsets();
 		createScope(config);
 		createFreqPlot(config);
+		createPeakMeter();
 	}
 
 	private void showTextPage(String title, String message) {
