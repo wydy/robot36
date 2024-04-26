@@ -382,11 +382,14 @@ public class MainActivity extends AppCompatActivity {
 	}
 
 	private void createScope(Configuration config) {
-		int scopeWidth = scopeBuffer.width;
-		int scopeHeight = scopeBuffer.height / 2;
+		int width = scopeBuffer.width;
+		int height = scopeBuffer.height / 2;
 		if (config.orientation == Configuration.ORIENTATION_LANDSCAPE)
-			scopeHeight /= 2;
-		scopeBitmap = Bitmap.createBitmap(scopeWidth, scopeHeight, Bitmap.Config.ARGB_8888);
+			height /= 2;
+		scopeBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+		int stride = scopeBuffer.width;
+		int offset = stride * (scopeBuffer.line + scopeBuffer.height / 2 - height);
+		scopeBitmap.setPixels(scopeBuffer.pixels, offset, stride, 0, 0, width, height);
 		scopeView.setImageBitmap(scopeBitmap);
 	}
 
