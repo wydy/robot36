@@ -87,9 +87,11 @@ public class MainActivity extends AppCompatActivity {
 		for (float v : recordBuffer)
 			max = Math.max(max, Math.abs(v));
 		int pixels = peakMeterBuffer.height;
-		int peak = Math.min(Math.max(Math.round(max * pixels), 0), pixels);
-		Arrays.fill(peakMeterBuffer.pixels, 0, pixels - peak, thin);
-		Arrays.fill(peakMeterBuffer.pixels, pixels - peak, pixels, tint);
+		int peak = pixels;
+		if (max > 0)
+			peak = (int) Math.round(Math.min(Math.max(-Math.PI*Math.log(max), 0), pixels));
+		Arrays.fill(peakMeterBuffer.pixels, 0, peak, thin);
+		Arrays.fill(peakMeterBuffer.pixels, peak, pixels, tint);
 		peakMeterBitmap.setPixels(peakMeterBuffer.pixels, 0, peakMeterBuffer.width, 0, 0, peakMeterBuffer.width, peakMeterBuffer.height);
 		peakMeterView.invalidate();
 	}
