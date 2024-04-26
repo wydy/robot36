@@ -3,9 +3,9 @@
 	xmlns:app="http://schemas.android.com/apk/res-auto"
 	xmlns:tools="http://schemas.android.com/tools"
 	android:id="@+id/main"
-	android:keepScreenOn="true"
 	android:layout_width="match_parent"
 	android:layout_height="match_parent"
+	android:keepScreenOn="true"
 	tools:context=".MainActivity">
 
 	<ImageView
@@ -14,9 +14,17 @@
 		android:layout_height="0dp"
 		android:contentDescription="@string/scope_description"
 		app:layout_constraintBottom_toBottomOf="parent"
-		app:layout_constraintEnd_toEndOf="parent"
+		app:layout_constraintEnd_toStartOf="@+id/freq_plot"
 		app:layout_constraintStart_toStartOf="parent"
 		app:layout_constraintTop_toTopOf="parent" />
 
-
+	<ImageView
+		android:id="@+id/freq_plot"
+		android:layout_width="0dp"
+		android:layout_height="0dp"
+		android:contentDescription="@string/freq_plot_description"
+		app:layout_constraintBottom_toBottomOf="parent"
+		app:layout_constraintEnd_toEndOf="parent"
+		app:layout_constraintStart_toEndOf="@+id/scope"
+		app:layout_constraintTop_toTopOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -24,7 +24,8 @@
 	<string name="audio_setup_failed">Audio setup failed</string>
 	<string name="audio_permission_denied">Audio permission denied</string>
 	<string name="audio_recording_error">Audio recording error</string>
-	<string name="scope_description">Visualization of audio signal</string>
+	<string name="scope_description">Decoded SSTV picture</string>
+	<string name="freq_plot_description">Frequency plot</string>
 	<string name="night_mode">Night Mode</string>
 	<string name="enable">Enable</string>
 	<string name="disable">Disable</string>

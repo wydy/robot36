@@ -32,6 +32,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
@@ -39,6 +40,9 @@ public class MainActivity extends AppCompatActivity {
 	private Bitmap scopeBitmap;
 	private PixelBuffer scopeBuffer;
 	private ImageView scopeView;
+	private Bitmap freqPlotBitmap;
+	private PixelBuffer freqPlotBuffer;
+	private ImageView freqPlotView;
 	private float[] recordBuffer;
 	private AudioRecord audioRecord;
 	private Decoder decoder;
@@ -65,16 +69,39 @@ public class MainActivity extends AppCompatActivity {
 		public void onPeriodicNotification(AudioRecord audioRecord) {
 			audioRecord.read(recordBuffer, 0, recordBuffer.length, AudioRecord.READ_BLOCKING);
 			if (decoder.process(recordBuffer, recordChannel)) {
-				int width = scopeBitmap.getWidth();
-				int height = scopeBitmap.getHeight();
-				int stride = scopeBuffer.width;
-				int offset = stride * (scopeBuffer.line + scopeBuffer.height / 2 - height);
-				scopeBitmap.setPixels(scopeBuffer.pixels, offset, stride, 0, 0, width, height);
-				scopeView.invalidate();
+				processScope();
+				processFreqPlot();
 				setStatus(decoder.lastMode.getName());
 			}
 		}
 	};
+
+	private void processFreqPlot() {
+		int width = freqPlotBitmap.getWidth();
+		int height = freqPlotBitmap.getHeight();
+		int stride = freqPlotBuffer.width;
+		int line = stride * freqPlotBuffer.line;
+		int channels = recordChannel > 0 ? 2 : 1;
+		Arrays.fill(freqPlotBuffer.pixels, line, line + stride, 0);
+		for (int i = 0; i < recordBuffer.length / channels; ++i) {
+			int x = Math.min(Math.max(Math.round((recordBuffer[i] + 3) * stride / 6), 0), stride - 1);
+			freqPlotBuffer.pixels[line + x] = tint;
+		}
+		System.arraycopy(freqPlotBuffer.pixels, line, freqPlotBuffer.pixels, line + stride * (freqPlotBuffer.height / 2), stride);
+		freqPlotBuffer.line = (freqPlotBuffer.line + 1) % (freqPlotBuffer.height / 2);
+		int offset = stride * (freqPlotBuffer.line + freqPlotBuffer.height / 2 - height);
+		freqPlotBitmap.setPixels(freqPlotBuffer.pixels, offset, stride, 0, 0, width, height);
+		freqPlotView.invalidate();
+	}
+
+	private void processScope() {
+		int width = scopeBitmap.getWidth();
+		int height = scopeBitmap.getHeight();
+		int stride = scopeBuffer.width;
+		int offset = stride * (scopeBuffer.line + scopeBuffer.height / 2 - height);
+		scopeBitmap.setPixels(scopeBuffer.pixels, offset, stride, 0, 0, width, height);
+		scopeView.invalidate();
+	}
 
 	private void initAudioRecord() {
 		boolean rateChanged = true;
@@ -280,6 +307,10 @@ public class MainActivity extends AppCompatActivity {
 		scopeView = findViewById(R.id.scope);
 		scopeBuffer = new PixelBuffer(640, 2 * 1280);
 		createScope(getResources().getConfiguration());
+		freqPlotView = findViewById(R.id.freq_plot);
+		freqPlotBuffer = new PixelBuffer(640, 2 * 640);
+		freqPlotBitmap = Bitmap.createBitmap(freqPlotBuffer.width, freqPlotBuffer.height / 2, Bitmap.Config.ARGB_8888);
+		freqPlotView.setImageBitmap(freqPlotBitmap);
 		List<String> permissions = new ArrayList<>();
 		if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
 			permissions.add(Manifest.permission.RECORD_AUDIO);
