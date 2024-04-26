@@ -46,6 +46,7 @@ public class MainActivity extends AppCompatActivity {
 	private int recordRate;
 	private int recordChannel;
 	private int audioSource;
+	private int tint;
 
 	private void setStatus(int id) {
 		setTitle(id);
@@ -275,6 +276,7 @@ public class MainActivity extends AppCompatActivity {
 			v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
 			return insets;
 		});
+		tint = getColor(R.color.tint);
 		scopeView = findViewById(R.id.scope);
 		scopeBuffer = new PixelBuffer(640, 2 * 1280);
 		createScope(getResources().getConfiguration());
