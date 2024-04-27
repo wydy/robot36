@@ -7,7 +7,10 @@ Copyright 2024 Ahmet Inan <xdsopl@gmail.com>
 package xdsopl.robot36;
 
 import android.Manifest;
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
@@ -15,25 +18,40 @@ import android.graphics.Bitmap;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
+import android.os.ParcelFileDescriptor;
+import android.provider.MediaStore;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
+import androidx.appcompat.widget.ShareActionProvider;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
+import androidx.core.view.MenuItemCompat;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -336,6 +354,8 @@ public class MainActivity extends AppCompatActivity {
 		} else {
 			initAudioRecord();
 		}
+		if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P && ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
+			permissions.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
 		if (!permissions.isEmpty())
 			ActivityCompat.requestPermissions(this, permissions.toArray(new String[0]), permissionID);
 	}
@@ -361,6 +381,10 @@ public class MainActivity extends AppCompatActivity {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		int id = item.getItemId();
+		if (id == R.id.action_store_scope) {
+			storeBitmap(scopeBitmap);
+			return true;
+		}
 		if (id == R.id.action_set_record_rate_8000) {
 			setRecordRate(8000);
 			return true;
@@ -492,6 +516,81 @@ public class MainActivity extends AppCompatActivity {
 		builder.setTitle(title);
 		builder.setMessage(message);
 		builder.show();
+	}
+
+	void storeBitmap(Bitmap bitmap) {
+		Date date = new Date();
+		String name = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(date);
+		name += ".png";
+		String title = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US).format(date);
+		ContentValues values = new ContentValues();
+		File dir;
+		if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
+			dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+			if (!dir.exists() && !dir.mkdirs()) {
+				showToast(R.string.creating_picture_directory_failed);
+				return;
+			}
+			File file;
+			try {
+				file = new File(dir, name);
+				FileOutputStream stream = new FileOutputStream(file);
+				bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
+				stream.close();
+			} catch (IOException e) {
+				showToast(R.string.creating_picture_file_failed);
+				return;
+			}
+			values.put(MediaStore.Images.ImageColumns.DATA, file.toString());
+		} else {
+			values.put(MediaStore.Images.Media.DISPLAY_NAME, name);
+			values.put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/");
+			values.put(MediaStore.Images.Media.IS_PENDING, 1);
+		}
+		values.put(MediaStore.Images.ImageColumns.TITLE, title);
+		values.put(MediaStore.Images.ImageColumns.MIME_TYPE, "image/png");
+		ContentResolver resolver = getContentResolver();
+		Uri uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+		if (uri == null) {
+			showToast(R.string.storing_picture_failed);
+			return;
+		}
+		if (Build.VERSION.SDK_INT > Build.VERSION_CODES.P) {
+			try {
+				ParcelFileDescriptor descriptor = getContentResolver().openFileDescriptor(uri, "w");
+				if (descriptor == null) {
+					showToast(R.string.storing_picture_failed);
+					return;
+				}
+				FileOutputStream stream = new FileOutputStream(descriptor.getFileDescriptor());
+				bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
+				stream.close();
+				descriptor.close();
+			} catch (IOException e) {
+				showToast(R.string.storing_picture_failed);
+				return;
+			}
+			values.clear();
+			values.put(MediaStore.Images.Media.IS_PENDING, 0);
+			resolver.update(uri, values, null, null);
+		}
+		Intent intent = new Intent(Intent.ACTION_SEND);
+		intent.putExtra(Intent.EXTRA_STREAM, uri);
+		intent.setType("image/png");
+		ShareActionProvider share = (ShareActionProvider) MenuItemCompat.getActionProvider(menu.findItem(R.id.menu_item_share));
+		if (share != null)
+			share.setShareIntent(intent);
+		showToast(name);
+	}
+
+	private void showToast(String message) {
+		Toast toast = Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT);
+		toast.setGravity(Gravity.CENTER_HORIZONTAL | Gravity.CENTER_VERTICAL, 0, 0);
+		toast.show();
+	}
+
+	private void showToast(int id) {
+		showToast(getString(id));
 	}
 
 	@Override

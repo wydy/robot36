@@ -1,5 +1,7 @@
 <resources>
 	<string name="app_name">Robot36</string>
+	<string name="action_share">Share</string>
+	<string name="store_scope">Store Scope</string>
 	<string name="listening">Listening</string>
 	<string name="audio_settings">Audio Settings</string>
 	<string name="sample_rate">Sample Rate</string>
@@ -24,6 +26,9 @@
 	<string name="audio_setup_failed">Audio setup failed</string>
 	<string name="audio_permission_denied">Audio permission denied</string>
 	<string name="audio_recording_error">Audio recording error</string>
+	<string name="creating_picture_directory_failed">Creating picture directory failed</string>
+	<string name="creating_picture_file_failed">Creating picture file failed</string>
+	<string name="storing_picture_failed">Storing picture failed</string>
 	<string name="scope_description">Decoded SSTV picture</string>
 	<string name="freq_plot_description">Frequency plot</string>
 	<string name="peak_meter_description">Peak audio signal level</string>
