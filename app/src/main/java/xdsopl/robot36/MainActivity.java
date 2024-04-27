@@ -104,7 +104,7 @@ public class MainActivity extends AppCompatActivity {
 		int channels = recordChannel > 0 ? 2 : 1;
 		Arrays.fill(freqPlotBuffer.pixels, line, line + stride, 0);
 		for (int i = 0; i < recordBuffer.length / channels; ++i) {
-			int x = Math.round((recordBuffer[i] + 3) * stride / 6);
+			int x = Math.round((recordBuffer[i] + 2.5f) * 0.25f * stride);
 			if (x >= 0 && x < stride)
 				freqPlotBuffer.pixels[line + x] = tint;
 		}
