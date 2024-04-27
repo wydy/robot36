@@ -325,7 +325,7 @@ public class MainActivity extends AppCompatActivity {
 		thin = getColor(R.color.thin);
 		scopeBuffer = new PixelBuffer(640, 2 * 1280);
 		createScope(config);
-		freqPlotBuffer = new PixelBuffer(640, 2 * 640);
+		freqPlotBuffer = new PixelBuffer(256, 2 * 256);
 		createFreqPlot(config);
 		peakMeterBuffer = new PixelBuffer(1, 16);
 		createPeakMeter();
@@ -464,7 +464,7 @@ public class MainActivity extends AppCompatActivity {
 		int offset = stride * (freqPlotBuffer.line + freqPlotBuffer.height / 2 - height);
 		freqPlotBitmap.setPixels(freqPlotBuffer.pixels, offset, stride, 0, 0, width, height);
 		freqPlotView = findViewById(R.id.freq_plot);
-		freqPlotView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+		freqPlotView.setScaleType(ImageView.ScaleType.FIT_XY);
 		freqPlotView.setImageBitmap(freqPlotBitmap);
 	}
 
