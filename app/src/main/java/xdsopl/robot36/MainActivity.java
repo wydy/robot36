@@ -89,7 +89,7 @@ public class MainActivity extends AppCompatActivity {
 		int pixels = peakMeterBuffer.height;
 		int peak = pixels;
 		if (max > 0)
-			peak = (int) Math.round(Math.min(Math.max(-Math.PI*Math.log(max), 0), pixels));
+			peak = (int) Math.round(Math.min(Math.max(-Math.PI * Math.log(max), 0), pixels));
 		Arrays.fill(peakMeterBuffer.pixels, 0, peak, thin);
 		Arrays.fill(peakMeterBuffer.pixels, peak, pixels, tint);
 		peakMeterBitmap.setPixels(peakMeterBuffer.pixels, 0, peakMeterBuffer.width, 0, 0, peakMeterBuffer.width, peakMeterBuffer.height);
@@ -104,8 +104,9 @@ public class MainActivity extends AppCompatActivity {
 		int channels = recordChannel > 0 ? 2 : 1;
 		Arrays.fill(freqPlotBuffer.pixels, line, line + stride, 0);
 		for (int i = 0; i < recordBuffer.length / channels; ++i) {
-			int x = Math.min(Math.max(Math.round((recordBuffer[i] + 3) * stride / 6), 0), stride - 1);
-			freqPlotBuffer.pixels[line + x] = tint;
+			int x = Math.round((recordBuffer[i] + 3) * stride / 6);
+			if (x >= 0 && x < stride)
+				freqPlotBuffer.pixels[line + x] = tint;
 		}
 		System.arraycopy(freqPlotBuffer.pixels, line, freqPlotBuffer.pixels, line + stride * (freqPlotBuffer.height / 2), stride);
 		freqPlotBuffer.line = (freqPlotBuffer.line + 1) % (freqPlotBuffer.height / 2);
