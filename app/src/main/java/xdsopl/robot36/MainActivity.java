@@ -120,12 +120,18 @@ public class MainActivity extends AppCompatActivity {
 		int stride = freqPlotBuffer.width;
 		int line = stride * freqPlotBuffer.line;
 		int channels = recordChannel > 0 ? 2 : 1;
+		int samples = recordBuffer.length / channels;
+		int spread = 2;
 		Arrays.fill(freqPlotBuffer.pixels, line, line + stride, 0);
-		for (int i = 0; i < recordBuffer.length / channels; ++i) {
+		for (int i = 0; i < samples; ++i) {
 			int x = Math.round((recordBuffer[i] + 2.5f) * 0.25f * stride);
-			if (x >= 0 && x < stride)
-				freqPlotBuffer.pixels[line + x] = tint;
+			if (x >= spread && x < stride - spread)
+				for (int j = - spread; j <= spread; ++j)
+					freqPlotBuffer.pixels[line + x + j] += 1 + spread * spread - j * j;
 		}
+		int factor = 960 / samples;
+		for (int i = 0; i < stride; ++i)
+			freqPlotBuffer.pixels[line + i] = 0xff000000 | 0x00010101 * Math.min(factor * freqPlotBuffer.pixels[line + i], 255);
 		System.arraycopy(freqPlotBuffer.pixels, line, freqPlotBuffer.pixels, line + stride * (freqPlotBuffer.height / 2), stride);
 		freqPlotBuffer.line = (freqPlotBuffer.line + 1) % (freqPlotBuffer.height / 2);
 		int offset = stride * (freqPlotBuffer.line + freqPlotBuffer.height / 2 - height);
