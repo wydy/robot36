@@ -6,6 +6,8 @@ Copyright 2024 Ahmet Inan <xdsopl@gmail.com>
 
 package xdsopl.robot36;
 
+import android.util.Log;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -25,15 +27,22 @@ public class Decoder {
 	private final float[] last5msFrequencyOffsets;
 	private final float[] last9msFrequencyOffsets;
 	private final float[] last20msFrequencyOffsets;
+	private final float[] visCodeBitFreqs;
 	private final int scanLineReserveSamples;
 	private final int syncPulseToleranceSamples;
 	private final int scanLineToleranceSamples;
+	private final int leaderToneSamples;
+	private final int leaderBreakSamples;
+	private final int visCodeBitSamples;
+	private final int visCodeSamples;
 	private final Mode rawMode;
 	private final ArrayList<Mode> syncPulse5msModes;
 	private final ArrayList<Mode> syncPulse9msModes;
 	private final ArrayList<Mode> syncPulse20msModes;
 
 	public Mode lastMode;
+	private boolean checkHeader;
+	private int visCode;
 	private int curSample;
 	private int lastSyncPulseIndex;
 	private int lastScanLineSamples;
@@ -49,6 +58,15 @@ public class Decoder {
 		double scratchBufferSeconds = 1.1;
 		int scratchBufferSamples = (int) Math.round(scratchBufferSeconds * sampleRate);
 		scratchBuffer = new float[scratchBufferSamples];
+		double leaderToneSeconds = 0.3;
+		leaderToneSamples = (int) Math.round(leaderToneSeconds * sampleRate);
+		double leaderBreakSeconds = 0.01;
+		leaderBreakSamples = (int) Math.round(leaderBreakSeconds * sampleRate);
+		double visCodeBitSeconds = 0.03;
+		visCodeBitSamples = (int) Math.round(visCodeBitSeconds * sampleRate);
+		double visCodeSeconds = 0.3;
+		visCodeSamples = (int) Math.round(visCodeSeconds * sampleRate);
+		visCodeBitFreqs = new float[10];
 		int scanLineCount = 4;
 		last5msScanLines = new int[scanLineCount];
 		last9msScanLines = new int[scanLineCount];
@@ -170,6 +188,47 @@ public class Decoder {
 			copyScaled(scale);
 	}
 
+	private boolean detectHeader(int syncPulseIndex) {
+		if (!checkHeader)
+			return false;
+		if (syncPulseIndex < 2 * leaderBreakSamples || curSample < syncPulseIndex + leaderToneSamples + visCodeSamples)
+			return false;
+		checkHeader = false;
+		float preBreakFreq = 0;
+		for (int i = 0; i < leaderBreakSamples; ++i)
+			preBreakFreq += scanLineBuffer[syncPulseIndex - 2 * leaderBreakSamples + i];
+		float centerFreq = 1900;
+		float halfBandWidth = 400;
+		preBreakFreq = preBreakFreq * halfBandWidth / leaderBreakSamples + centerFreq;
+		if (preBreakFreq < 1850 || preBreakFreq > 1950)
+			return false;
+		float postBreakFreq = 0;
+		for (int i = 0; i < leaderToneSamples; ++i)
+			postBreakFreq += scanLineBuffer[syncPulseIndex + i];
+		postBreakFreq = postBreakFreq * halfBandWidth / leaderToneSamples + centerFreq;
+		if (postBreakFreq < 1850 || postBreakFreq > 1950)
+			return false;
+		Arrays.fill(visCodeBitFreqs, 0);
+		for (int j = 0; j < 10; ++j)
+			for (int i = 0; i < visCodeBitSamples; ++i)
+				visCodeBitFreqs[j] += scanLineBuffer[syncPulseIndex + leaderToneSamples + visCodeBitSamples * j + i];
+		for (int i = 0; i < 10; ++i)
+			visCodeBitFreqs[i] = visCodeBitFreqs[i] * halfBandWidth / visCodeBitSamples + centerFreq;
+		if (visCodeBitFreqs[0] < 1150 || visCodeBitFreqs[0] > 1250 || visCodeBitFreqs[9] < 1150 || visCodeBitFreqs[9] > 1250)
+			return false;
+		for (int i = 1; i < 9; ++i)
+			if (visCodeBitFreqs[i] < 1050 || visCodeBitFreqs[i] > 1150 && visCodeBitFreqs[i] < 1250 || visCodeBitFreqs[i] > 1350)
+				return false;
+		visCode = 0;
+		for (int i = 0; i < 8; ++i)
+			visCode |= (visCodeBitFreqs[i + 1] < 1200 ? 1 : 0) << i;
+		boolean check = true;
+		for (int i = 0; i < 8; ++i)
+			check ^= (visCode & 1 << i) != 0;
+		visCode &= 127;
+		return check;
+	}
+
 	private boolean processSyncPulse(ArrayList<Mode> modes, float[] freqOffs, int[] pulses, int[] lines, int index) {
 		for (int i = 1; i < lines.length; ++i)
 			lines[i - 1] = lines[i];
@@ -242,11 +301,17 @@ public class Decoder {
 				case FiveMilliSeconds:
 					return processSyncPulse(syncPulse5msModes, last5msFrequencyOffsets, last5msSyncPulses, last5msScanLines, syncPulseIndex);
 				case NineMilliSeconds:
+					checkHeader = true;
 					return processSyncPulse(syncPulse9msModes, last9msFrequencyOffsets, last9msSyncPulses, last9msScanLines, syncPulseIndex);
 				case TwentyMilliSeconds:
 					return processSyncPulse(syncPulse20msModes, last20msFrequencyOffsets, last20msSyncPulses, last20msScanLines, syncPulseIndex);
+				default:
+					return false;
 			}
-		} else if (lastSyncPulseIndex >= scanLineReserveSamples && curSample > lastSyncPulseIndex + (lastScanLineSamples * 5) / 4) {
+		}
+		if (detectHeader(last9msSyncPulses[last9msSyncPulses.length - 1]))
+			Log.d("Robot36", "VIS code: " + visCode);
+		if (lastSyncPulseIndex >= scanLineReserveSamples && curSample > lastSyncPulseIndex + (lastScanLineSamples * 5) / 4) {
 			copyLines(lastMode.decodeScanLine(pixelBuffer, scratchBuffer, scanLineBuffer, scopeBuffer.width, lastSyncPulseIndex, lastScanLineSamples, lastFrequencyOffset));
 			lastSyncPulseIndex += lastScanLineSamples;
 			return true;
