@@ -111,7 +111,6 @@ public class Decoder {
 		syncPulse20msModes.add(new PaulDon("160", 98, 512, 0.195584, sampleRate));
 		syncPulse20msModes.add(new PaulDon("180", 96, 640, 0.18304, sampleRate));
 		syncPulse20msModes.add(new PaulDon("240", 97, 640, 0.24448, sampleRate));
-		syncPulse20msModes.add(new PaulDon("290", 94, 640, 0.2288, sampleRate));
 	}
 
 	private void adjustSyncPulses(int[] pulses, int shift) {
