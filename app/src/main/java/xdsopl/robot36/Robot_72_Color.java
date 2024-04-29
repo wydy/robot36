@@ -55,6 +55,11 @@ public class Robot_72_Color implements Mode {
 	}
 
 	@Override
+	public int getCode() {
+		return 12;
+	}
+
+	@Override
 	public int getScanLineSamples() {
 		return scanLineSamples;
 	}

@@ -18,10 +18,12 @@ public class PaulDon implements Mode {
 	private final int yOddBeginSamples;
 	private final int endSamples;
 	private final String name;
+	private final int code;
 
 	@SuppressWarnings("UnnecessaryLocalVariable")
-	PaulDon(String name, int horizontalPixels, double channelSeconds, int sampleRate) {
+	PaulDon(String name, int code, int horizontalPixels, double channelSeconds, int sampleRate) {
 		this.name = "PD " + name;
+		this.code = code;
 		this.horizontalPixels = horizontalPixels;
 		double syncPulseSeconds = 0.02;
 		double syncPorchSeconds = 0.00208;
@@ -49,6 +51,11 @@ public class PaulDon implements Mode {
 	@Override
 	public String getName() {
 		return name;
+	}
+
+	@Override
+	public int getCode() {
+		return code;
 	}
 
 	@Override

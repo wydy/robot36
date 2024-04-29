@@ -9,7 +9,7 @@ package xdsopl.robot36;
 @SuppressWarnings("UnnecessaryLocalVariable")
 public final class RGBModes {
 
-	public static RGBDecoder Martin(String name, double channelSeconds, int sampleRate) {
+	public static RGBDecoder Martin(String name, int code, double channelSeconds, int sampleRate) {
 		double syncPulseSeconds = 0.004862;
 		double separatorSeconds = 0.000572;
 		double scanLineSeconds = syncPulseSeconds + separatorSeconds + 3 * (channelSeconds + separatorSeconds);
@@ -19,10 +19,10 @@ public final class RGBModes {
 		double blueEndSeconds = blueBeginSeconds + channelSeconds;
 		double redBeginSeconds = blueEndSeconds + separatorSeconds;
 		double redEndSeconds = redBeginSeconds + channelSeconds;
-		return new RGBDecoder("Martin " + name, 320, scanLineSeconds, greenBeginSeconds, redBeginSeconds, redEndSeconds, greenBeginSeconds, greenEndSeconds, blueBeginSeconds, blueEndSeconds, redEndSeconds, sampleRate);
+		return new RGBDecoder("Martin " + name, code, 320, scanLineSeconds, greenBeginSeconds, redBeginSeconds, redEndSeconds, greenBeginSeconds, greenEndSeconds, blueBeginSeconds, blueEndSeconds, redEndSeconds, sampleRate);
 	}
 
-	public static RGBDecoder Scottie(String name, double channelSeconds, int sampleRate) {
+	public static RGBDecoder Scottie(String name, int code, double channelSeconds, int sampleRate) {
 		double syncPulseSeconds = 0.009;
 		double separatorSeconds = 0.0015;
 		double scanLineSeconds = syncPulseSeconds + 3 * (channelSeconds + separatorSeconds);
@@ -32,7 +32,7 @@ public final class RGBModes {
 		double greenBeginSeconds = greenEndSeconds - channelSeconds;
 		double redBeginSeconds = separatorSeconds;
 		double redEndSeconds = redBeginSeconds + channelSeconds;
-		return new RGBDecoder("Scottie " + name, 320, scanLineSeconds, greenBeginSeconds, redBeginSeconds, redEndSeconds, greenBeginSeconds, greenEndSeconds, blueBeginSeconds, blueEndSeconds, redEndSeconds, sampleRate);
+		return new RGBDecoder("Scottie " + name, code, 320, scanLineSeconds, greenBeginSeconds, redBeginSeconds, redEndSeconds, greenBeginSeconds, greenEndSeconds, blueBeginSeconds, blueEndSeconds, redEndSeconds, sampleRate);
 	}
 
 	public static RGBDecoder Wraase_SC2_180(int sampleRate) {
@@ -46,6 +46,6 @@ public final class RGBModes {
 		double greenEndSeconds = greenBeginSeconds + channelSeconds;
 		double blueBeginSeconds = greenEndSeconds;
 		double blueEndSeconds = blueBeginSeconds + channelSeconds;
-		return new RGBDecoder("Wraase SC2-180", 320, scanLineSeconds, redBeginSeconds, redBeginSeconds, redEndSeconds, greenBeginSeconds, greenEndSeconds, blueBeginSeconds, blueEndSeconds, blueEndSeconds, sampleRate);
+		return new RGBDecoder("Wraase SC2-180", 55, 320, scanLineSeconds, redBeginSeconds, redBeginSeconds, redEndSeconds, greenBeginSeconds, greenEndSeconds, blueBeginSeconds, blueEndSeconds, blueEndSeconds, sampleRate);
 	}
 }

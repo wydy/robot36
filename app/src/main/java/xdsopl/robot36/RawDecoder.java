@@ -27,6 +27,11 @@ public class RawDecoder implements Mode {
 	}
 
 	@Override
+	public int getCode() {
+		return -1;
+	}
+
+	@Override
 	public int getScanLineSamples() {
 		return -1;
 	}

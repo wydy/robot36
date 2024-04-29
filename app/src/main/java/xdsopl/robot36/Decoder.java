@@ -94,22 +94,22 @@ public class Decoder {
 		lastSyncPulseIndex = curSample;
 		syncPulse5msModes = new ArrayList<>();
 		syncPulse5msModes.add(RGBModes.Wraase_SC2_180(sampleRate));
-		syncPulse5msModes.add(RGBModes.Martin("1", 0.146432, sampleRate));
-		syncPulse5msModes.add(RGBModes.Martin("2", 0.073216, sampleRate));
+		syncPulse5msModes.add(RGBModes.Martin("1", 44, 0.146432, sampleRate));
+		syncPulse5msModes.add(RGBModes.Martin("2", 40, 0.073216, sampleRate));
 		syncPulse9msModes = new ArrayList<>();
 		syncPulse9msModes.add(robot36);
 		syncPulse9msModes.add(new Robot_72_Color(sampleRate));
-		syncPulse9msModes.add(RGBModes.Scottie("1", 0.138240, sampleRate));
-		syncPulse9msModes.add(RGBModes.Scottie("2", 0.088064, sampleRate));
-		syncPulse9msModes.add(RGBModes.Scottie("DX", 0.3456, sampleRate));
+		syncPulse9msModes.add(RGBModes.Scottie("1", 60, 0.138240, sampleRate));
+		syncPulse9msModes.add(RGBModes.Scottie("2", 56, 0.088064, sampleRate));
+		syncPulse9msModes.add(RGBModes.Scottie("DX", 76, 0.3456, sampleRate));
 		syncPulse20msModes = new ArrayList<>();
-		syncPulse20msModes.add(new PaulDon("50", 320, 0.09152, sampleRate));
-		syncPulse20msModes.add(new PaulDon("90", 320, 0.17024, sampleRate));
-		syncPulse20msModes.add(new PaulDon("120", 640, 0.1216, sampleRate));
-		syncPulse20msModes.add(new PaulDon("160", 512, 0.195584, sampleRate));
-		syncPulse20msModes.add(new PaulDon("180", 640, 0.18304, sampleRate));
-		syncPulse20msModes.add(new PaulDon("240", 640, 0.24448, sampleRate));
-		syncPulse20msModes.add(new PaulDon("290", 640, 0.2288, sampleRate));
+		syncPulse20msModes.add(new PaulDon("50", 93, 320, 0.09152, sampleRate));
+		syncPulse20msModes.add(new PaulDon("90", 99, 320, 0.17024, sampleRate));
+		syncPulse20msModes.add(new PaulDon("120", 95, 640, 0.1216, sampleRate));
+		syncPulse20msModes.add(new PaulDon("160", 98, 512, 0.195584, sampleRate));
+		syncPulse20msModes.add(new PaulDon("180", 96, 640, 0.18304, sampleRate));
+		syncPulse20msModes.add(new PaulDon("240", 97, 640, 0.24448, sampleRate));
+		syncPulse20msModes.add(new PaulDon("290", 94, 640, 0.2288, sampleRate));
 	}
 
 	private void adjustSyncPulses(int[] pulses, int shift) {
@@ -152,6 +152,19 @@ public class Decoder {
 			}
 		}
 		return bestMode;
+	}
+
+	private Mode findMode(int code) {
+		for (Mode mode : syncPulse5msModes)
+			if (mode.getCode() == code)
+				return mode;
+		for (Mode mode : syncPulse9msModes)
+			if (mode.getCode() == code)
+				return mode;
+		for (Mode mode : syncPulse20msModes)
+			if (mode.getCode() == code)
+				return mode;
+		return rawMode;
 	}
 
 	private void copyUnscaled() {
@@ -314,7 +327,7 @@ public class Decoder {
 			}
 		}
 		if (detectHeader(last9msSyncPulses[last9msSyncPulses.length - 1]))
-			Log.d("Robot36", "VIS code: " + visCode);
+			Log.d("Robot36", "VIS mode: " + findMode(visCode).getName());
 		if (lastSyncPulseIndex >= scanLineReserveSamples && curSample > lastSyncPulseIndex + (lastScanLineSamples * 5) / 4) {
 			copyLines(lastMode.decodeScanLine(pixelBuffer, scratchBuffer, scanLineBuffer, scopeBuffer.width, lastSyncPulseIndex, lastScanLineSamples, lastFrequencyOffset));
 			lastSyncPulseIndex += lastScanLineSamples;

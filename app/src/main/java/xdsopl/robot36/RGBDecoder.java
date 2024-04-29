@@ -19,9 +19,11 @@ public class RGBDecoder implements Mode {
 	private final int blueSamples;
 	private final int endSamples;
 	private final String name;
+	private final int code;
 
-	RGBDecoder(String name, int horizontalPixels, double scanLineSeconds, double beginSeconds, double redBeginSeconds, double redEndSeconds, double greenBeginSeconds, double greenEndSeconds, double blueBeginSeconds, double blueEndSeconds, double endSeconds, int sampleRate) {
+	RGBDecoder(String name, int code, int horizontalPixels, double scanLineSeconds, double beginSeconds, double redBeginSeconds, double redEndSeconds, double greenBeginSeconds, double greenEndSeconds, double blueBeginSeconds, double blueEndSeconds, double endSeconds, int sampleRate) {
 		this.name = name;
+		this.code = code;
 		this.horizontalPixels = horizontalPixels;
 		scanLineSamples = (int) Math.round(scanLineSeconds * sampleRate);
 		beginSamples = (int) Math.round(beginSeconds * sampleRate);
@@ -42,6 +44,11 @@ public class RGBDecoder implements Mode {
 	@Override
 	public String getName() {
 		return name;
+	}
+
+	@Override
+	public int getCode() {
+		return code;
 	}
 
 	@Override
