@@ -200,6 +200,14 @@ public class Decoder {
 			copyScaled(scale);
 	}
 
+	private void drawLines(int color, int count) {
+		for (int i = 0; i < count; ++i) {
+			Arrays.fill(scopeBuffer.pixels, scopeBuffer.line * scopeBuffer.width, (scopeBuffer.line + 1) * scopeBuffer.width, color);
+			Arrays.fill(scopeBuffer.pixels, (scopeBuffer.line + scopeBuffer.height / 2) * scopeBuffer.width, (scopeBuffer.line + 1 + scopeBuffer.height / 2) * scopeBuffer.width, color);
+			scopeBuffer.line = (scopeBuffer.line + 1) % (scopeBuffer.height / 2);
+		}
+	}
+
 	private boolean detectHeader(int syncPulseIndex) {
 		if (!checkHeader)
 			return false;
@@ -324,7 +332,8 @@ public class Decoder {
 					return false;
 			}
 		}
-		if (detectHeader(last9msSyncPulses[last9msSyncPulses.length - 1])) {
+		int leaderBreakIndex = last9msSyncPulses[last9msSyncPulses.length - 1];
+		if (detectHeader(leaderBreakIndex)) {
 			Mode mode;
 			int[] pulses = null;
 			int[] lines = null;
@@ -340,24 +349,25 @@ public class Decoder {
 			}
 			if (mode != null && pulses != null && lines != null) {
 				lastMode = mode;
-				lastSyncPulseIndex = pulses[pulses.length - 1] + leaderToneSamples + visCodeSamples + mode.getFirstSyncPulseIndex();
+				lastSyncPulseIndex = mode.getFirstSyncPulseIndex();
 				lastScanLineSamples = mode.getScanLineSamples();
 				lastFrequencyOffset = leaderFreqOffset;
 				for (int i = 0; i < pulses.length; ++i)
 					pulses[i] = lastSyncPulseIndex + (i - pulses.length + 1) * lastScanLineSamples;
 				Arrays.fill(lines, lastScanLineSamples);
-				int shift = lastSyncPulseIndex - scanLineReserveSamples;
-				if (shift > scanLineReserveSamples) {
-					lastSyncPulseIndex -= shift;
-					adjustSyncPulses(last5msSyncPulses, shift);
-					adjustSyncPulses(last9msSyncPulses, shift);
-					adjustSyncPulses(last20msSyncPulses, shift);
-					int endSample = curSample;
-					curSample = 0;
-					for (int i = shift; i < endSample; ++i)
-						scanLineBuffer[curSample++] = scanLineBuffer[i];
-				}
+				int shift = leaderBreakIndex + leaderToneSamples + visCodeSamples;
+				adjustSyncPulses(last5msSyncPulses, shift);
+				adjustSyncPulses(last9msSyncPulses, shift);
+				adjustSyncPulses(last20msSyncPulses, shift);
+				int endSample = curSample;
+				curSample = 0;
+				for (int i = shift; i < endSample; ++i)
+					scanLineBuffer[curSample++] = scanLineBuffer[i];
+				drawLines(0xff00ff00, 8);
+			} else {
+				drawLines(0xffff0000, 8);
 			}
+			drawLines(0xff000000, 10);
 		}
 		if (lastSyncPulseIndex >= scanLineReserveSamples && curSample > lastSyncPulseIndex + (lastScanLineSamples * 5) / 4) {
 			copyLines(lastMode.decodeScanLine(pixelBuffer, scratchBuffer, scanLineBuffer, scopeBuffer.width, lastSyncPulseIndex, lastScanLineSamples, lastFrequencyOffset));
