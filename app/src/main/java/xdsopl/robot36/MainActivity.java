@@ -64,6 +64,7 @@ public class MainActivity extends AppCompatActivity {
 	private Bitmap peakMeterBitmap;
 	private PixelBuffer peakMeterBuffer;
 	private ImageView peakMeterView;
+	private PixelBuffer imageBuffer;
 	private float[] recordBuffer;
 	private AudioRecord audioRecord;
 	private Decoder decoder;
@@ -95,6 +96,7 @@ public class MainActivity extends AppCompatActivity {
 			processFreqPlot();
 			if (newLines) {
 				processScope();
+				processImage();
 				setStatus(decoder.lastMode.getName());
 			}
 		}
@@ -148,6 +150,13 @@ public class MainActivity extends AppCompatActivity {
 		scopeView.invalidate();
 	}
 
+	private void processImage() {
+		if (imageBuffer.line < imageBuffer.height)
+			return;
+		imageBuffer.line = -1;
+		storeBitmap(Bitmap.createBitmap(imageBuffer.pixels, imageBuffer.width, imageBuffer.height, Bitmap.Config.ARGB_8888));
+	}
+
 	private void initAudioRecord() {
 		boolean rateChanged = true;
 		if (audioRecord != null) {
@@ -179,7 +188,7 @@ public class MainActivity extends AppCompatActivity {
 				audioRecord.setRecordPositionUpdateListener(recordListener);
 				audioRecord.setPositionNotificationPeriod(frameCount);
 				if (rateChanged)
-					decoder = new Decoder(scopeBuffer, recordRate);
+					decoder = new Decoder(scopeBuffer, imageBuffer, recordRate);
 				startListening();
 			} else {
 				setStatus(R.string.audio_init_failed);
@@ -353,6 +362,8 @@ public class MainActivity extends AppCompatActivity {
 		createFreqPlot(config);
 		peakMeterBuffer = new PixelBuffer(1, 16);
 		createPeakMeter();
+		imageBuffer = new PixelBuffer(640, 496);
+		imageBuffer.line = -1;
 		List<String> permissions = new ArrayList<>();
 		if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
 			permissions.add(Manifest.permission.RECORD_AUDIO);

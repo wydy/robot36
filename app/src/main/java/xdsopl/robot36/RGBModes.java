@@ -19,7 +19,7 @@ public final class RGBModes {
 		double blueEndSeconds = blueBeginSeconds + channelSeconds;
 		double redBeginSeconds = blueEndSeconds + separatorSeconds;
 		double redEndSeconds = redBeginSeconds + channelSeconds;
-		return new RGBDecoder("Martin " + name, code, 320, syncPulseSeconds, scanLineSeconds, greenBeginSeconds, redBeginSeconds, redEndSeconds, greenBeginSeconds, greenEndSeconds, blueBeginSeconds, blueEndSeconds, redEndSeconds, sampleRate);
+		return new RGBDecoder("Martin " + name, code, 320, 256, syncPulseSeconds, scanLineSeconds, greenBeginSeconds, redBeginSeconds, redEndSeconds, greenBeginSeconds, greenEndSeconds, blueBeginSeconds, blueEndSeconds, redEndSeconds, sampleRate);
 	}
 
 	public static RGBDecoder Scottie(String name, int code, double channelSeconds, int sampleRate) {
@@ -33,7 +33,7 @@ public final class RGBModes {
 		double greenBeginSeconds = greenEndSeconds - channelSeconds;
 		double redBeginSeconds = separatorSeconds;
 		double redEndSeconds = redBeginSeconds + channelSeconds;
-		return new RGBDecoder("Scottie " + name, code, 320, firstSyncPulseSeconds, scanLineSeconds, greenBeginSeconds, redBeginSeconds, redEndSeconds, greenBeginSeconds, greenEndSeconds, blueBeginSeconds, blueEndSeconds, redEndSeconds, sampleRate);
+		return new RGBDecoder("Scottie " + name, code, 320, 256, firstSyncPulseSeconds, scanLineSeconds, greenBeginSeconds, redBeginSeconds, redEndSeconds, greenBeginSeconds, greenEndSeconds, blueBeginSeconds, blueEndSeconds, redEndSeconds, sampleRate);
 	}
 
 	public static RGBDecoder Wraase_SC2_180(int sampleRate) {
@@ -47,6 +47,6 @@ public final class RGBModes {
 		double greenEndSeconds = greenBeginSeconds + channelSeconds;
 		double blueBeginSeconds = greenEndSeconds;
 		double blueEndSeconds = blueBeginSeconds + channelSeconds;
-		return new RGBDecoder("Wraase SC2-180", 55, 320, syncPulseSeconds, scanLineSeconds, redBeginSeconds, redBeginSeconds, redEndSeconds, greenBeginSeconds, greenEndSeconds, blueBeginSeconds, blueEndSeconds, blueEndSeconds, sampleRate);
+		return new RGBDecoder("Wraase SC2-180", 55, 320, 256, syncPulseSeconds, scanLineSeconds, redBeginSeconds, redBeginSeconds, redEndSeconds, greenBeginSeconds, greenEndSeconds, blueBeginSeconds, blueEndSeconds, blueEndSeconds, sampleRate);
 	}
 }

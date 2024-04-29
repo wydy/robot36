@@ -14,6 +14,7 @@ public class Decoder {
 	private final Demodulator demodulator;
 	private final PixelBuffer pixelBuffer;
 	private final PixelBuffer scopeBuffer;
+	private final PixelBuffer imageBuffer;
 	private final float[] scanLineBuffer;
 	private final float[] scratchBuffer;
 	private final int[] last5msSyncPulses;
@@ -49,8 +50,9 @@ public class Decoder {
 	private float lastFrequencyOffset;
 	private float leaderFreqOffset;
 
-	Decoder(PixelBuffer scopeBuffer, int sampleRate) {
+	Decoder(PixelBuffer scopeBuffer, PixelBuffer imageBuffer, int sampleRate) {
 		this.scopeBuffer = scopeBuffer;
+		this.imageBuffer = imageBuffer;
 		pixelBuffer = new PixelBuffer(scopeBuffer.width, 2);
 		demodulator = new Demodulator(sampleRate);
 		double scanLineMaxSeconds = 7;
@@ -105,12 +107,12 @@ public class Decoder {
 		syncPulse9msModes.add(RGBModes.Scottie("2", 56, 0.088064, sampleRate));
 		syncPulse9msModes.add(RGBModes.Scottie("DX", 76, 0.3456, sampleRate));
 		syncPulse20msModes = new ArrayList<>();
-		syncPulse20msModes.add(new PaulDon("50", 93, 320, 0.09152, sampleRate));
-		syncPulse20msModes.add(new PaulDon("90", 99, 320, 0.17024, sampleRate));
-		syncPulse20msModes.add(new PaulDon("120", 95, 640, 0.1216, sampleRate));
-		syncPulse20msModes.add(new PaulDon("160", 98, 512, 0.195584, sampleRate));
-		syncPulse20msModes.add(new PaulDon("180", 96, 640, 0.18304, sampleRate));
-		syncPulse20msModes.add(new PaulDon("240", 97, 640, 0.24448, sampleRate));
+		syncPulse20msModes.add(new PaulDon("50", 93, 320, 256, 0.09152, sampleRate));
+		syncPulse20msModes.add(new PaulDon("90", 99, 320, 256, 0.17024, sampleRate));
+		syncPulse20msModes.add(new PaulDon("120", 95, 640, 496, 0.1216, sampleRate));
+		syncPulse20msModes.add(new PaulDon("160", 98, 512, 400, 0.195584, sampleRate));
+		syncPulse20msModes.add(new PaulDon("180", 96, 640, 496, 0.18304, sampleRate));
+		syncPulse20msModes.add(new PaulDon("240", 97, 640, 496, 0.24448, sampleRate));
 	}
 
 	private void adjustSyncPulses(int[] pulses, int shift) {
@@ -192,11 +194,20 @@ public class Decoder {
 	private void copyLines(boolean okay) {
 		if (!okay)
 			return;
+		boolean finish = false;
+		if (imageBuffer.line >= 0 && imageBuffer.line < imageBuffer.height && imageBuffer.width == pixelBuffer.width) {
+			int width = imageBuffer.width;
+			for (int row = 0; row < pixelBuffer.height && imageBuffer.line < imageBuffer.height; ++row, ++imageBuffer.line)
+				System.arraycopy(pixelBuffer.pixels, row * width, imageBuffer.pixels, imageBuffer.line * width, width);
+			finish = imageBuffer.line == imageBuffer.height;
+		}
 		int scale = scopeBuffer.width / pixelBuffer.width;
 		if (scale == 1)
 			copyUnscaled();
 		else
 			copyScaled(scale);
+		if (finish)
+			drawLines(0xff000000, 10);
 	}
 
 	private void drawLines(int color, int count) {
@@ -348,6 +359,9 @@ public class Decoder {
 			}
 			if (mode != null && pulses != null && lines != null) {
 				mode.reset();
+				imageBuffer.width = mode.getWidth();
+				imageBuffer.height = mode.getHeight();
+				imageBuffer.line = 0;
 				lastMode = mode;
 				lastSyncPulseIndex = mode.getFirstSyncPulseIndex();
 				lastScanLineSamples = mode.getScanLineSamples();

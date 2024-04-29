@@ -11,6 +11,10 @@ public interface Mode {
 
 	int getCode();
 
+	int getWidth();
+
+	int getHeight();
+
 	int getFirstSyncPulseIndex();
 
 	int getScanLineSamples();

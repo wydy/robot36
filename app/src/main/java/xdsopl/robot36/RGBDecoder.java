@@ -9,6 +9,7 @@ package xdsopl.robot36;
 public class RGBDecoder implements Mode {
 	private final ExponentialMovingAverage lowPassFilter;
 	private final int horizontalPixels;
+	private final int verticalPixels;
 	private final int firstSyncPulseIndex;
 	private final int scanLineSamples;
 	private final int beginSamples;
@@ -22,10 +23,11 @@ public class RGBDecoder implements Mode {
 	private final String name;
 	private final int code;
 
-	RGBDecoder(String name, int code, int horizontalPixels, double firstSyncPulseSeconds, double scanLineSeconds, double beginSeconds, double redBeginSeconds, double redEndSeconds, double greenBeginSeconds, double greenEndSeconds, double blueBeginSeconds, double blueEndSeconds, double endSeconds, int sampleRate) {
+	RGBDecoder(String name, int code, int horizontalPixels, int verticalPixels, double firstSyncPulseSeconds, double scanLineSeconds, double beginSeconds, double redBeginSeconds, double redEndSeconds, double greenBeginSeconds, double greenEndSeconds, double blueBeginSeconds, double blueEndSeconds, double endSeconds, int sampleRate) {
 		this.name = name;
 		this.code = code;
 		this.horizontalPixels = horizontalPixels;
+		this.verticalPixels = verticalPixels;
 		firstSyncPulseIndex = (int) Math.round(firstSyncPulseSeconds * sampleRate);
 		scanLineSamples = (int) Math.round(scanLineSeconds * sampleRate);
 		beginSamples = (int) Math.round(beginSeconds * sampleRate);
@@ -51,6 +53,16 @@ public class RGBDecoder implements Mode {
 	@Override
 	public int getCode() {
 		return code;
+	}
+
+	@Override
+	public int getWidth() {
+		return horizontalPixels;
+	}
+
+	@Override
+	public int getHeight() {
+		return verticalPixels;
 	}
 
 	@Override

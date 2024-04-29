@@ -9,6 +9,7 @@ package xdsopl.robot36;
 public class PaulDon implements Mode {
 	private final ExponentialMovingAverage lowPassFilter;
 	private final int horizontalPixels;
+	private final int verticalPixels;
 	private final int firstSyncPulseIndex;
 	private final int scanLineSamples;
 	private final int channelSamples;
@@ -22,10 +23,11 @@ public class PaulDon implements Mode {
 	private final int code;
 
 	@SuppressWarnings("UnnecessaryLocalVariable")
-	PaulDon(String name, int code, int horizontalPixels, double channelSeconds, int sampleRate) {
+	PaulDon(String name, int code, int horizontalPixels, int verticalPixels, double channelSeconds, int sampleRate) {
 		this.name = "PD " + name;
 		this.code = code;
 		this.horizontalPixels = horizontalPixels;
+		this.verticalPixels = verticalPixels;
 		double syncPulseSeconds = 0.02;
 		double syncPorchSeconds = 0.00208;
 		firstSyncPulseIndex = (int) Math.round(syncPulseSeconds * sampleRate);
@@ -58,6 +60,16 @@ public class PaulDon implements Mode {
 	@Override
 	public int getCode() {
 		return code;
+	}
+
+	@Override
+	public int getWidth() {
+		return horizontalPixels;
+	}
+
+	@Override
+	public int getHeight() {
+		return verticalPixels;
 	}
 
 	@Override

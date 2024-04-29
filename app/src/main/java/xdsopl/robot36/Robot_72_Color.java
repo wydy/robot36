@@ -9,6 +9,7 @@ package xdsopl.robot36;
 public class Robot_72_Color implements Mode {
 	private final ExponentialMovingAverage lowPassFilter;
 	private final int horizontalPixels;
+	private final int verticalPixels;
 	private final int firstSyncPulseIndex;
 	private final int scanLineSamples;
 	private final int luminanceSamples;
@@ -22,6 +23,7 @@ public class Robot_72_Color implements Mode {
 	@SuppressWarnings("UnnecessaryLocalVariable")
 	Robot_72_Color(int sampleRate) {
 		horizontalPixels = 320;
+		verticalPixels = 240;
 		double syncPulseSeconds = 0.009;
 		double syncPorchSeconds = 0.003;
 		double luminanceSeconds = 0.138;
@@ -59,6 +61,16 @@ public class Robot_72_Color implements Mode {
 	@Override
 	public int getCode() {
 		return 12;
+	}
+
+	@Override
+	public int getWidth() {
+		return horizontalPixels;
+	}
+
+	@Override
+	public int getHeight() {
+		return verticalPixels;
 	}
 
 	@Override
