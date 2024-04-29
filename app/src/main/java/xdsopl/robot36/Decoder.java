@@ -243,11 +243,13 @@ public class Decoder {
 	}
 
 	private boolean processSyncPulse(ArrayList<Mode> modes, float[] freqOffs, int[] pulses, int[] lines, int index) {
-		for (int i = 1; i < lines.length; ++i)
-			lines[i - 1] = lines[i];
-		lines[lines.length - 1] = index - pulses[pulses.length - 1];
-		for (int i = 1; i < pulses.length; ++i)
-			pulses[i - 1] = pulses[i];
+		if (Math.abs(index - pulses[pulses.length - 1]) > scanLineToleranceSamples) {
+			for (int i = 1; i < lines.length; ++i)
+				lines[i - 1] = lines[i];
+			for (int i = 1; i < pulses.length; ++i)
+				pulses[i - 1] = pulses[i];
+		}
+		lines[lines.length - 1] = index - pulses[pulses.length - 2];
 		pulses[pulses.length - 1] = index;
 		for (int i = 1; i < freqOffs.length; ++i)
 			freqOffs[i - 1] = freqOffs[i];
