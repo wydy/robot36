@@ -153,17 +153,11 @@ public class Decoder {
 		return bestMode;
 	}
 
-	private Mode findMode(int code) {
-		for (Mode mode : syncPulse5msModes)
+	private Mode findMode(ArrayList<Mode> modes, int code) {
+		for (Mode mode : modes)
 			if (mode.getCode() == code)
 				return mode;
-		for (Mode mode : syncPulse9msModes)
-			if (mode.getCode() == code)
-				return mode;
-		for (Mode mode : syncPulse20msModes)
-			if (mode.getCode() == code)
-				return mode;
-		return rawMode;
+		return null;
 	}
 
 	private void copyUnscaled() {
@@ -326,12 +320,27 @@ public class Decoder {
 			}
 		}
 		if (detectHeader(last9msSyncPulses[last9msSyncPulses.length - 1])) {
-			Mode visMode = findMode(visCode);
-			if (visMode != rawMode) {
-				lastMode = visMode;
-				lastSyncPulseIndex = last9msSyncPulses[last9msSyncPulses.length - 1] + leaderToneSamples + visCodeSamples + visMode.getFirstSyncPulseIndex();
-				lastScanLineSamples = visMode.getScanLineSamples();
+			Mode mode;
+			int[] pulses = null;
+			int[] lines = null;
+			if ((mode = findMode(syncPulse5msModes, visCode)) != null) {
+				pulses = last5msSyncPulses;
+				lines = last5msScanLines;
+			} else if ((mode = findMode(syncPulse9msModes, visCode)) != null) {
+				pulses = last9msSyncPulses;
+				lines = last9msScanLines;
+			} else if ((mode = findMode(syncPulse20msModes, visCode)) != null) {
+				pulses = last20msSyncPulses;
+				lines = last20msScanLines;
+			}
+			if (mode != null && pulses != null && lines != null) {
+				lastMode = mode;
+				lastSyncPulseIndex = pulses[pulses.length - 1] + leaderToneSamples + visCodeSamples + mode.getFirstSyncPulseIndex();
+				lastScanLineSamples = mode.getScanLineSamples();
 				lastFrequencyOffset = leaderFreqOffset;
+				for (int i = 0; i < pulses.length; ++i)
+					pulses[i] = lastSyncPulseIndex + (i - pulses.length + 1) * lastScanLineSamples;
+				Arrays.fill(lines, lastScanLineSamples);
 				int shift = lastSyncPulseIndex - scanLineReserveSamples;
 				if (shift > scanLineReserveSamples) {
 					lastSyncPulseIndex -= shift;
