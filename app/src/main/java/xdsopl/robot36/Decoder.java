@@ -26,6 +26,7 @@ public class Decoder {
 	private final float[] last9msFrequencyOffsets;
 	private final float[] last20msFrequencyOffsets;
 	private final float[] visCodeBitFrequencies;
+	private final int scanLineMinSamples;
 	private final int scanLineReserveSamples;
 	private final int syncPulseToleranceSamples;
 	private final int scanLineToleranceSamples;
@@ -80,6 +81,8 @@ public class Decoder {
 		last5msFrequencyOffsets = new float[syncPulseCount];
 		last9msFrequencyOffsets = new float[syncPulseCount];
 		last20msFrequencyOffsets = new float[syncPulseCount];
+		double scanLineMinSeconds = 0.05;
+		scanLineMinSamples = (int) Math.round(scanLineMinSeconds * sampleRate);
 		double syncPulseToleranceSeconds = 0.03;
 		syncPulseToleranceSamples = (int) Math.round(syncPulseToleranceSeconds * sampleRate);
 		double scanLineToleranceSeconds = 0.001;
@@ -253,7 +256,7 @@ public class Decoder {
 			return false;
 		double mean = scanLineMean(lines);
 		int scanLineSamples = (int) Math.round(mean);
-		if (scanLineSamples > scratchBuffer.length)
+		if (scanLineSamples < scanLineMinSamples || scanLineSamples > scratchBuffer.length)
 			return false;
 		if (scanLineStdDev(lines, mean) > scanLineToleranceSamples)
 			return false;
