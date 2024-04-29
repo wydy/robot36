@@ -33,6 +33,7 @@ public class Decoder {
 	private final int scanLineToleranceSamples;
 	private final int leaderToneSamples;
 	private final int leaderBreakSamples;
+	private final int transitionSamples;
 	private final int visCodeBitSamples;
 	private final int visCodeSamples;
 	private final Mode rawMode;
@@ -62,6 +63,8 @@ public class Decoder {
 		leaderToneSamples = (int) Math.round(leaderToneSeconds * sampleRate);
 		double leaderBreakSeconds = 0.01;
 		leaderBreakSamples = (int) Math.round(leaderBreakSeconds * sampleRate);
+		double transitionSeconds = 0.0005;
+		transitionSamples = (int) Math.round(transitionSeconds * sampleRate);
 		double visCodeBitSeconds = 0.03;
 		visCodeBitSamples = (int) Math.round(visCodeBitSeconds * sampleRate);
 		double visCodeSeconds = 0.3;
@@ -203,17 +206,17 @@ public class Decoder {
 		if (preBreakFreq < 1850 || preBreakFreq > 1950)
 			return false;
 		float postBreakFreq = 0;
-		for (int i = 0; i < leaderToneSamples; ++i)
+		for (int i = transitionSamples; i < leaderToneSamples - transitionSamples; ++i)
 			postBreakFreq += scanLineBuffer[syncPulseIndex + i];
-		postBreakFreq = postBreakFreq * halfBandWidth / leaderToneSamples + centerFreq;
+		postBreakFreq = postBreakFreq * halfBandWidth / (leaderToneSamples - 2 * transitionSamples) + centerFreq;
 		if (postBreakFreq < 1850 || postBreakFreq > 1950)
 			return false;
 		Arrays.fill(visCodeBitFreqs, 0);
 		for (int j = 0; j < 10; ++j)
-			for (int i = 0; i < visCodeBitSamples; ++i)
+			for (int i = transitionSamples; i < visCodeBitSamples - transitionSamples; ++i)
 				visCodeBitFreqs[j] += scanLineBuffer[syncPulseIndex + leaderToneSamples + visCodeBitSamples * j + i];
 		for (int i = 0; i < 10; ++i)
-			visCodeBitFreqs[i] = visCodeBitFreqs[i] * halfBandWidth / visCodeBitSamples + centerFreq;
+			visCodeBitFreqs[i] = visCodeBitFreqs[i] * halfBandWidth / (visCodeBitSamples - 2 * transitionSamples) + centerFreq;
 		if (visCodeBitFreqs[0] < 1150 || visCodeBitFreqs[0] > 1250 || visCodeBitFreqs[9] < 1150 || visCodeBitFreqs[9] > 1250)
 			return false;
 		for (int i = 1; i < 9; ++i)
