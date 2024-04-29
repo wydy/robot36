@@ -208,13 +208,14 @@ public class Decoder {
 		float postBreakFreq = 0;
 		for (int i = transitionSamples; i < leaderToneSamples - transitionSamples; ++i)
 			postBreakFreq += scanLineBuffer[syncPulseIndex + i];
+		float freqOffset = postBreakFreq / (leaderToneSamples - 2 * transitionSamples);
 		postBreakFreq = postBreakFreq * halfBandWidth / (leaderToneSamples - 2 * transitionSamples) + centerFreq;
 		if (postBreakFreq < 1850 || postBreakFreq > 1950)
 			return false;
 		Arrays.fill(visCodeBitFreqs, 0);
 		for (int j = 0; j < 10; ++j)
 			for (int i = transitionSamples; i < visCodeBitSamples - transitionSamples; ++i)
-				visCodeBitFreqs[j] += scanLineBuffer[syncPulseIndex + leaderToneSamples + visCodeBitSamples * j + i];
+				visCodeBitFreqs[j] += scanLineBuffer[syncPulseIndex + leaderToneSamples + visCodeBitSamples * j + i] - freqOffset;
 		for (int i = 0; i < 10; ++i)
 			visCodeBitFreqs[i] = visCodeBitFreqs[i] * halfBandWidth / (visCodeBitSamples - 2 * transitionSamples) + centerFreq;
 		if (visCodeBitFreqs[0] < 1150 || visCodeBitFreqs[0] > 1250 || visCodeBitFreqs[9] < 1150 || visCodeBitFreqs[9] > 1250)
