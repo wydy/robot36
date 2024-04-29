@@ -64,6 +64,10 @@ public class RGBDecoder implements Mode {
 	}
 
 	@Override
+	public void reset() {
+	}
+
+	@Override
 	public boolean decodeScanLine(PixelBuffer pixelBuffer, float[] scratchBuffer, float[] scanLineBuffer, int scopeBufferWidth, int syncPulseIndex, int scanLineSamples, float frequencyOffset) {
 		if (syncPulseIndex + beginSamples < 0 || syncPulseIndex + endSamples > scanLineBuffer.length)
 			return false;

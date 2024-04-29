@@ -15,5 +15,7 @@ public interface Mode {
 
 	int getScanLineSamples();
 
+	void reset();
+
 	boolean decodeScanLine(PixelBuffer pixelBuffer, float[] scratchBuffer, float[] scanLineBuffer, int scopeBufferWidth, int syncPulseIndex, int scanLineSamples, float frequencyOffset);
 }

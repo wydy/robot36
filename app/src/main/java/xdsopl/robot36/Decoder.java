@@ -348,6 +348,7 @@ public class Decoder {
 				lines = last20msScanLines;
 			}
 			if (mode != null && pulses != null && lines != null) {
+				mode.reset();
 				lastMode = mode;
 				lastSyncPulseIndex = mode.getFirstSyncPulseIndex();
 				lastScanLineSamples = mode.getScanLineSamples();

@@ -42,6 +42,10 @@ public class RawDecoder implements Mode {
 	}
 
 	@Override
+	public void reset() {
+	}
+
+	@Override
 	public boolean decodeScanLine(PixelBuffer pixelBuffer, float[] scratchBuffer, float[] scanLineBuffer, int scopeBufferWidth, int syncPulseIndex, int scanLineSamples, float frequencyOffset) {
 		if (syncPulseIndex < 0 || syncPulseIndex + scanLineSamples > scanLineBuffer.length)
 			return false;
