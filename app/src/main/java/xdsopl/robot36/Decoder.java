@@ -6,8 +6,6 @@ Copyright 2024 Ahmet Inan <xdsopl@gmail.com>
 
 package xdsopl.robot36;
 
-import android.util.Log;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -27,7 +25,7 @@ public class Decoder {
 	private final float[] last5msFrequencyOffsets;
 	private final float[] last9msFrequencyOffsets;
 	private final float[] last20msFrequencyOffsets;
-	private final float[] visCodeBitFreqs;
+	private final float[] visCodeBitFrequencies;
 	private final int scanLineReserveSamples;
 	private final int syncPulseToleranceSamples;
 	private final int scanLineToleranceSamples;
@@ -48,6 +46,7 @@ public class Decoder {
 	private int lastSyncPulseIndex;
 	private int lastScanLineSamples;
 	private float lastFrequencyOffset;
+	private float leaderFreqOffset;
 
 	Decoder(PixelBuffer scopeBuffer, int sampleRate) {
 		this.scopeBuffer = scopeBuffer;
@@ -69,7 +68,7 @@ public class Decoder {
 		visCodeBitSamples = (int) Math.round(visCodeBitSeconds * sampleRate);
 		double visCodeSeconds = 0.3;
 		visCodeSamples = (int) Math.round(visCodeSeconds * sampleRate);
-		visCodeBitFreqs = new float[10];
+		visCodeBitFrequencies = new float[10];
 		int scanLineCount = 4;
 		last5msScanLines = new int[scanLineCount];
 		last9msScanLines = new int[scanLineCount];
@@ -218,27 +217,27 @@ public class Decoder {
 		preBreakFreq = preBreakFreq * halfBandWidth / leaderBreakSamples + centerFreq;
 		if (preBreakFreq < 1850 || preBreakFreq > 1950)
 			return false;
-		float postBreakFreq = 0;
+		float leaderFreq = 0;
 		for (int i = transitionSamples; i < leaderToneSamples - transitionSamples; ++i)
-			postBreakFreq += scanLineBuffer[syncPulseIndex + i];
-		float freqOffset = postBreakFreq / (leaderToneSamples - 2 * transitionSamples);
-		postBreakFreq = postBreakFreq * halfBandWidth / (leaderToneSamples - 2 * transitionSamples) + centerFreq;
-		if (postBreakFreq < 1850 || postBreakFreq > 1950)
+			leaderFreq += scanLineBuffer[syncPulseIndex + i];
+		leaderFreqOffset = leaderFreq / (leaderToneSamples - 2 * transitionSamples);
+		leaderFreq = leaderFreq * halfBandWidth / (leaderToneSamples - 2 * transitionSamples) + centerFreq;
+		if (leaderFreq < 1850 || leaderFreq > 1950)
 			return false;
-		Arrays.fill(visCodeBitFreqs, 0);
+		Arrays.fill(visCodeBitFrequencies, 0);
 		for (int j = 0; j < 10; ++j)
 			for (int i = transitionSamples; i < visCodeBitSamples - transitionSamples; ++i)
-				visCodeBitFreqs[j] += scanLineBuffer[syncPulseIndex + leaderToneSamples + visCodeBitSamples * j + i] - freqOffset;
+				visCodeBitFrequencies[j] += scanLineBuffer[syncPulseIndex + leaderToneSamples + visCodeBitSamples * j + i] - leaderFreqOffset;
 		for (int i = 0; i < 10; ++i)
-			visCodeBitFreqs[i] = visCodeBitFreqs[i] * halfBandWidth / (visCodeBitSamples - 2 * transitionSamples) + centerFreq;
-		if (visCodeBitFreqs[0] < 1150 || visCodeBitFreqs[0] > 1250 || visCodeBitFreqs[9] < 1150 || visCodeBitFreqs[9] > 1250)
+			visCodeBitFrequencies[i] = visCodeBitFrequencies[i] * halfBandWidth / (visCodeBitSamples - 2 * transitionSamples) + centerFreq;
+		if (visCodeBitFrequencies[0] < 1150 || visCodeBitFrequencies[0] > 1250 || visCodeBitFrequencies[9] < 1150 || visCodeBitFrequencies[9] > 1250)
 			return false;
 		for (int i = 1; i < 9; ++i)
-			if (visCodeBitFreqs[i] < 1050 || visCodeBitFreqs[i] > 1150 && visCodeBitFreqs[i] < 1250 || visCodeBitFreqs[i] > 1350)
+			if (visCodeBitFrequencies[i] < 1050 || visCodeBitFrequencies[i] > 1150 && visCodeBitFrequencies[i] < 1250 || visCodeBitFrequencies[i] > 1350)
 				return false;
 		visCode = 0;
 		for (int i = 0; i < 8; ++i)
-			visCode |= (visCodeBitFreqs[i + 1] < 1200 ? 1 : 0) << i;
+			visCode |= (visCodeBitFrequencies[i + 1] < 1200 ? 1 : 0) << i;
 		boolean check = true;
 		for (int i = 0; i < 8; ++i)
 			check ^= (visCode & 1 << i) != 0;
@@ -326,8 +325,26 @@ public class Decoder {
 					return false;
 			}
 		}
-		if (detectHeader(last9msSyncPulses[last9msSyncPulses.length - 1]))
-			Log.d("Robot36", "VIS mode: " + findMode(visCode).getName());
+		if (detectHeader(last9msSyncPulses[last9msSyncPulses.length - 1])) {
+			Mode visMode = findMode(visCode);
+			if (visMode != rawMode) {
+				lastMode = visMode;
+				lastSyncPulseIndex = last9msSyncPulses[last9msSyncPulses.length - 1] + leaderToneSamples + visCodeSamples + visMode.getFirstSyncPulseIndex();
+				lastScanLineSamples = visMode.getScanLineSamples();
+				lastFrequencyOffset = leaderFreqOffset;
+				int shift = lastSyncPulseIndex - scanLineReserveSamples;
+				if (shift > scanLineReserveSamples) {
+					lastSyncPulseIndex -= shift;
+					adjustSyncPulses(last5msSyncPulses, shift);
+					adjustSyncPulses(last9msSyncPulses, shift);
+					adjustSyncPulses(last20msSyncPulses, shift);
+					int endSample = curSample;
+					curSample = 0;
+					for (int i = shift; i < endSample; ++i)
+						scanLineBuffer[curSample++] = scanLineBuffer[i];
+				}
+			}
+		}
 		if (lastSyncPulseIndex >= scanLineReserveSamples && curSample > lastSyncPulseIndex + (lastScanLineSamples * 5) / 4) {
 			copyLines(lastMode.decodeScanLine(pixelBuffer, scratchBuffer, scanLineBuffer, scopeBuffer.width, lastSyncPulseIndex, lastScanLineSamples, lastFrequencyOffset));
 			lastSyncPulseIndex += lastScanLineSamples;

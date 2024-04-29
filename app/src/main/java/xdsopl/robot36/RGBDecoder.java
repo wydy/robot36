@@ -9,6 +9,7 @@ package xdsopl.robot36;
 public class RGBDecoder implements Mode {
 	private final ExponentialMovingAverage lowPassFilter;
 	private final int horizontalPixels;
+	private final int firstSyncPulseIndex;
 	private final int scanLineSamples;
 	private final int beginSamples;
 	private final int redBeginSamples;
@@ -21,10 +22,11 @@ public class RGBDecoder implements Mode {
 	private final String name;
 	private final int code;
 
-	RGBDecoder(String name, int code, int horizontalPixels, double scanLineSeconds, double beginSeconds, double redBeginSeconds, double redEndSeconds, double greenBeginSeconds, double greenEndSeconds, double blueBeginSeconds, double blueEndSeconds, double endSeconds, int sampleRate) {
+	RGBDecoder(String name, int code, int horizontalPixels, double firstSyncPulseSeconds, double scanLineSeconds, double beginSeconds, double redBeginSeconds, double redEndSeconds, double greenBeginSeconds, double greenEndSeconds, double blueBeginSeconds, double blueEndSeconds, double endSeconds, int sampleRate) {
 		this.name = name;
 		this.code = code;
 		this.horizontalPixels = horizontalPixels;
+		firstSyncPulseIndex = (int) Math.round(firstSyncPulseSeconds * sampleRate);
 		scanLineSamples = (int) Math.round(scanLineSeconds * sampleRate);
 		beginSamples = (int) Math.round(beginSeconds * sampleRate);
 		redBeginSamples = (int) Math.round(redBeginSeconds * sampleRate) - beginSamples;
@@ -49,6 +51,11 @@ public class RGBDecoder implements Mode {
 	@Override
 	public int getCode() {
 		return code;
+	}
+
+	@Override
+	public int getFirstSyncPulseIndex() {
+		return firstSyncPulseIndex;
 	}
 
 	@Override

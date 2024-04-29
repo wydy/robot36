@@ -9,6 +9,7 @@ package xdsopl.robot36;
 public class PaulDon implements Mode {
 	private final ExponentialMovingAverage lowPassFilter;
 	private final int horizontalPixels;
+	private final int firstSyncPulseIndex;
 	private final int scanLineSamples;
 	private final int channelSamples;
 	private final int beginSamples;
@@ -27,6 +28,7 @@ public class PaulDon implements Mode {
 		this.horizontalPixels = horizontalPixels;
 		double syncPulseSeconds = 0.02;
 		double syncPorchSeconds = 0.00208;
+		firstSyncPulseIndex = (int) Math.round(syncPulseSeconds * sampleRate);
 		double scanLineSeconds = syncPulseSeconds + syncPorchSeconds + 4 * (channelSeconds);
 		scanLineSamples = (int) Math.round(scanLineSeconds * sampleRate);
 		channelSamples = (int) Math.round(channelSeconds * sampleRate);
@@ -56,6 +58,11 @@ public class PaulDon implements Mode {
 	@Override
 	public int getCode() {
 		return code;
+	}
+
+	@Override
+	public int getFirstSyncPulseIndex() {
+		return firstSyncPulseIndex;
 	}
 
 	@Override

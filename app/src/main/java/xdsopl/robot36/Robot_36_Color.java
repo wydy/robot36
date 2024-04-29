@@ -9,6 +9,7 @@ package xdsopl.robot36;
 public class Robot_36_Color implements Mode {
 	private final ExponentialMovingAverage lowPassFilter;
 	private final int horizontalPixels;
+	private final int firstSyncPulseIndex;
 	private final int scanLineSamples;
 	private final int luminanceSamples;
 	private final int separatorSamples;
@@ -29,6 +30,7 @@ public class Robot_36_Color implements Mode {
 		double separatorSeconds = 0.0045;
 		double porchSeconds = 0.0015;
 		double chrominanceSeconds = 0.044;
+		firstSyncPulseIndex = (int) Math.round(syncPulseSeconds * sampleRate);
 		double scanLineSeconds = syncPulseSeconds + syncPorchSeconds + luminanceSeconds + separatorSeconds + porchSeconds + chrominanceSeconds;
 		scanLineSamples = (int) Math.round(scanLineSeconds * sampleRate);
 		luminanceSamples = (int) Math.round(luminanceSeconds * sampleRate);
@@ -59,6 +61,11 @@ public class Robot_36_Color implements Mode {
 	@Override
 	public int getCode() {
 		return 8;
+	}
+
+	@Override
+	public int getFirstSyncPulseIndex() {
+		return firstSyncPulseIndex;
 	}
 
 	@Override

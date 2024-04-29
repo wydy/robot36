@@ -11,6 +11,8 @@ public interface Mode {
 
 	int getCode();
 
+	int getFirstSyncPulseIndex();
+
 	int getScanLineSamples();
 
 	boolean decodeScanLine(PixelBuffer pixelBuffer, float[] scratchBuffer, float[] scanLineBuffer, int scopeBufferWidth, int syncPulseIndex, int scanLineSamples, float frequencyOffset);
