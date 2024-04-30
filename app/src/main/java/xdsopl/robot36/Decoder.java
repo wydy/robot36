@@ -28,7 +28,6 @@ public class Decoder {
 	private final float[] last20msFrequencyOffsets;
 	private final float[] visCodeBitFrequencies;
 	private final int scanLineMinSamples;
-	private final int scanLineReserveSamples;
 	private final int syncPulseToleranceSamples;
 	private final int scanLineToleranceSamples;
 	private final int leaderToneSamples;
@@ -89,12 +88,10 @@ public class Decoder {
 		syncPulseToleranceSamples = (int) Math.round(syncPulseToleranceSeconds * sampleRate);
 		double scanLineToleranceSeconds = 0.001;
 		scanLineToleranceSamples = (int) Math.round(scanLineToleranceSeconds * sampleRate);
-		scanLineReserveSamples = sampleRate;
 		rawMode = new RawDecoder(sampleRate);
 		Mode robot36 = new Robot_36_Color(sampleRate);
 		lastMode = robot36;
 		lastScanLineSamples = robot36.getScanLineSamples();
-		curSample = scanLineReserveSamples;
 		lastSyncPulseIndex = curSample;
 		syncPulse5msModes = new ArrayList<>();
 		syncPulse5msModes.add(RGBModes.Wraase_SC2_180(sampleRate));
@@ -294,8 +291,9 @@ public class Decoder {
 		}
 		for (int i = pictureChanged ? 0 : lines.length - 1; i < lines.length; ++i)
 			copyLines(mode.decodeScanLine(pixelBuffer, scratchBuffer, scanLineBuffer, scopeBuffer.width, pulses[i], lines[i], frequencyOffset));
-		int shift = pulses[pulses.length - 1] - scanLineReserveSamples;
-		if (shift > scanLineReserveSamples) {
+		int reserve = (scanLineSamples * 3) / 4;
+		int shift = pulses[pulses.length - 1] - reserve;
+		if (shift > reserve) {
 			adjustSyncPulses(last5msSyncPulses, shift);
 			adjustSyncPulses(last9msSyncPulses, shift);
 			adjustSyncPulses(last20msSyncPulses, shift);
@@ -318,7 +316,7 @@ public class Decoder {
 		for (int j = 0; j < recordBuffer.length / channels; ++j) {
 			scanLineBuffer[curSample++] = recordBuffer[j];
 			if (curSample >= scanLineBuffer.length) {
-				int shift = scanLineReserveSamples;
+				int shift = lastScanLineSamples;
 				syncPulseIndex -= shift;
 				lastSyncPulseIndex -= shift;
 				adjustSyncPulses(last5msSyncPulses, shift);
@@ -382,8 +380,9 @@ public class Decoder {
 				drawLines(0xffff0000, 8);
 			}
 			drawLines(0xff000000, 10);
+			return true;
 		}
-		if (lastSyncPulseIndex >= scanLineReserveSamples && curSample > lastSyncPulseIndex + (lastScanLineSamples * 5) / 4) {
+		if (curSample > lastSyncPulseIndex + (lastScanLineSamples * 5) / 4) {
 			copyLines(lastMode.decodeScanLine(pixelBuffer, scratchBuffer, scanLineBuffer, scopeBuffer.width, lastSyncPulseIndex, lastScanLineSamples, lastFrequencyOffset));
 			lastSyncPulseIndex += lastScanLineSamples;
 			return true;
