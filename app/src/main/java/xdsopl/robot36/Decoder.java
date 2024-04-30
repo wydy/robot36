@@ -216,7 +216,7 @@ public class Decoder {
 	}
 
 	private void shiftSamples(int shift) {
-		if (shift <= 0)
+		if (shift <= 0 || shift > curSample)
 			return;
 		lastSyncPulseIndex -= shift;
 		adjustSyncPulses(last5msSyncPulses, shift);
