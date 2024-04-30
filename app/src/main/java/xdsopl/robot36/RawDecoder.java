@@ -42,6 +42,11 @@ public class RawDecoder implements Mode {
 	}
 
 	@Override
+	public int getBegin() {
+		return 0;
+	}
+
+	@Override
 	public int getFirstSyncPulseIndex() {
 		return -1;
 	}

@@ -66,6 +66,11 @@ public class RGBDecoder implements Mode {
 	}
 
 	@Override
+	public int getBegin() {
+		return beginSamples;
+	}
+
+	@Override
 	public int getFirstSyncPulseIndex() {
 		return firstSyncPulseIndex;
 	}

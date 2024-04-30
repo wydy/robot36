@@ -73,6 +73,11 @@ public class PaulDon implements Mode {
 	}
 
 	@Override
+	public int getBegin() {
+		return beginSamples;
+	}
+
+	@Override
 	public int getFirstSyncPulseIndex() {
 		return firstSyncPulseIndex;
 	}

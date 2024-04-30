@@ -15,6 +15,8 @@ public interface Mode {
 
 	int getHeight();
 
+	int getBegin();
+
 	int getFirstSyncPulseIndex();
 
 	int getScanLineSamples();

@@ -281,20 +281,23 @@ public class Decoder {
 		imageBuffer.height = mode.getHeight();
 		imageBuffer.line = 0;
 		lastMode = mode;
-		lastSyncPulseIndex = mode.getFirstSyncPulseIndex();
+		lastSyncPulseIndex = leaderBreakIndex + leaderToneSamples + visCodeSamples + mode.getFirstSyncPulseIndex();
 		lastScanLineSamples = mode.getScanLineSamples();
 		lastFrequencyOffset = leaderFreqOffset;
 		for (int i = 0; i < pulses.length; ++i)
 			pulses[i] = lastSyncPulseIndex + (i - pulses.length + 1) * lastScanLineSamples;
 		Arrays.fill(lines, lastScanLineSamples);
-		int shift = leaderBreakIndex + leaderToneSamples + visCodeSamples;
-		adjustSyncPulses(last5msSyncPulses, shift);
-		adjustSyncPulses(last9msSyncPulses, shift);
-		adjustSyncPulses(last20msSyncPulses, shift);
-		int endSample = curSample;
-		curSample = 0;
-		for (int i = shift; i < endSample; ++i)
-			scanLineBuffer[curSample++] = scanLineBuffer[i];
+		int shift = lastSyncPulseIndex + mode.getBegin();
+		if (shift > 0) {
+			lastSyncPulseIndex -= shift;
+			adjustSyncPulses(last5msSyncPulses, shift);
+			adjustSyncPulses(last9msSyncPulses, shift);
+			adjustSyncPulses(last20msSyncPulses, shift);
+			int endSample = curSample;
+			curSample = 0;
+			for (int i = shift; i < endSample; ++i)
+				scanLineBuffer[curSample++] = scanLineBuffer[i];
+		}
 		drawLines(0xff00ff00, 8);
 		drawLines(0xff000000, 10);
 		return true;
@@ -334,9 +337,8 @@ public class Decoder {
 		}
 		for (int i = pictureChanged ? 0 : lines.length - 1; i < lines.length; ++i)
 			copyLines(mode.decodeScanLine(pixelBuffer, scratchBuffer, scanLineBuffer, scopeBuffer.width, pulses[i], lines[i], frequencyOffset));
-		int reserve = (scanLineSamples * 3) / 4;
-		int shift = pulses[pulses.length - 1] - reserve;
-		if (shift > reserve) {
+		int shift = pulses[pulses.length - 1] + mode.getBegin();
+		if (shift > 0) {
 			adjustSyncPulses(last5msSyncPulses, shift);
 			adjustSyncPulses(last9msSyncPulses, shift);
 			adjustSyncPulses(last20msSyncPulses, shift);

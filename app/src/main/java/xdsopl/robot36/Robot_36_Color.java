@@ -76,6 +76,11 @@ public class Robot_36_Color implements Mode {
 	}
 
 	@Override
+	public int getBegin() {
+		return beginSamples;
+	}
+
+	@Override
 	public int getFirstSyncPulseIndex() {
 		return firstSyncPulseIndex;
 	}
