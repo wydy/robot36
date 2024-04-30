@@ -215,6 +215,19 @@ public class Decoder {
 		}
 	}
 
+	private void shiftSamples(int shift) {
+		if (shift <= 0)
+			return;
+		lastSyncPulseIndex -= shift;
+		adjustSyncPulses(last5msSyncPulses, shift);
+		adjustSyncPulses(last9msSyncPulses, shift);
+		adjustSyncPulses(last20msSyncPulses, shift);
+		int endSample = curSample;
+		curSample = 0;
+		for (int i = shift; i < endSample; ++i)
+			scanLineBuffer[curSample++] = scanLineBuffer[i];
+	}
+
 	private boolean detectHeader(int syncPulseIndex) {
 		if (!checkHeader)
 			return false;
@@ -287,17 +300,7 @@ public class Decoder {
 		for (int i = 0; i < pulses.length; ++i)
 			pulses[i] = lastSyncPulseIndex + (i - pulses.length + 1) * lastScanLineSamples;
 		Arrays.fill(lines, lastScanLineSamples);
-		int shift = lastSyncPulseIndex + mode.getBegin();
-		if (shift > 0) {
-			lastSyncPulseIndex -= shift;
-			adjustSyncPulses(last5msSyncPulses, shift);
-			adjustSyncPulses(last9msSyncPulses, shift);
-			adjustSyncPulses(last20msSyncPulses, shift);
-			int endSample = curSample;
-			curSample = 0;
-			for (int i = shift; i < endSample; ++i)
-				scanLineBuffer[curSample++] = scanLineBuffer[i];
-		}
+		shiftSamples(lastSyncPulseIndex + mode.getBegin());
 		drawLines(0xff00ff00, 8);
 		drawLines(0xff000000, 10);
 		return true;
@@ -337,20 +340,11 @@ public class Decoder {
 		}
 		for (int i = pictureChanged ? 0 : lines.length - 1; i < lines.length; ++i)
 			copyLines(mode.decodeScanLine(pixelBuffer, scratchBuffer, scanLineBuffer, scopeBuffer.width, pulses[i], lines[i], frequencyOffset));
-		int shift = pulses[pulses.length - 1] + mode.getBegin();
-		if (shift > 0) {
-			adjustSyncPulses(last5msSyncPulses, shift);
-			adjustSyncPulses(last9msSyncPulses, shift);
-			adjustSyncPulses(last20msSyncPulses, shift);
-			int endSample = curSample;
-			curSample = 0;
-			for (int i = shift; i < endSample; ++i)
-				scanLineBuffer[curSample++] = scanLineBuffer[i];
-		}
 		lastMode = mode;
 		lastSyncPulseIndex = pulses[pulses.length - 1];
 		lastScanLineSamples = scanLineSamples;
 		lastFrequencyOffset = frequencyOffset;
+		shiftSamples(lastSyncPulseIndex + mode.getBegin());
 		return true;
 	}
 
@@ -361,15 +355,8 @@ public class Decoder {
 		for (int j = 0; j < recordBuffer.length / channels; ++j) {
 			scanLineBuffer[curSample++] = recordBuffer[j];
 			if (curSample >= scanLineBuffer.length) {
-				int shift = lastScanLineSamples;
-				syncPulseIndex -= shift;
-				lastSyncPulseIndex -= shift;
-				adjustSyncPulses(last5msSyncPulses, shift);
-				adjustSyncPulses(last9msSyncPulses, shift);
-				adjustSyncPulses(last20msSyncPulses, shift);
-				curSample = 0;
-				for (int i = shift; i < scanLineBuffer.length; ++i)
-					scanLineBuffer[curSample++] = scanLineBuffer[i];
+				shiftSamples(lastScanLineSamples);
+				syncPulseIndex -= lastScanLineSamples;
 			}
 		}
 		if (syncPulseDetected) {
