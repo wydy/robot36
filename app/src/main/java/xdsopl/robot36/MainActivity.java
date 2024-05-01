@@ -363,7 +363,6 @@ public class MainActivity extends AppCompatActivity {
 		peakMeterBuffer = new PixelBuffer(1, 16);
 		createPeakMeter();
 		imageBuffer = new PixelBuffer(640, 496);
-		imageBuffer.line = -1;
 		List<String> permissions = new ArrayList<>();
 		if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
 			permissions.add(Manifest.permission.RECORD_AUDIO);
