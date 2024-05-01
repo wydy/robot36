@@ -331,8 +331,11 @@ public class Decoder {
 		boolean pictureChanged = lastMode != mode
 			|| Math.abs(lastScanLineSamples - scanLineSamples) > scanLineToleranceSamples
 			|| Math.abs(lastSyncPulseIndex + scanLineSamples - pulses[pulses.length - 1]) > syncPulseToleranceSamples;
-		if (pictureChanged)
-			drawLines(0xff0000ff, 8);
+		if (pictureChanged) {
+			drawLines(0xff000000, 10);
+			drawLines(0xff00ffff, 8);
+			drawLines(0xff000000, 10);
+		}
 		if (pulses[0] >= scanLineSamples && pictureChanged) {
 			int endPulse = pulses[0];
 			int extrapolate = endPulse / scanLineSamples;
