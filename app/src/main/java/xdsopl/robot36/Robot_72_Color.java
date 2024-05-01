@@ -10,7 +10,6 @@ public class Robot_72_Color implements Mode {
 	private final ExponentialMovingAverage lowPassFilter;
 	private final int horizontalPixels;
 	private final int verticalPixels;
-	private final int firstSyncPulseIndex;
 	private final int scanLineSamples;
 	private final int luminanceSamples;
 	private final int chrominanceSamples;
@@ -30,7 +29,6 @@ public class Robot_72_Color implements Mode {
 		double separatorSeconds = 0.0045;
 		double porchSeconds = 0.0015;
 		double chrominanceSeconds = 0.069;
-		firstSyncPulseIndex = (int) Math.round(syncPulseSeconds * sampleRate);
 		double scanLineSeconds = syncPulseSeconds + syncPorchSeconds + luminanceSeconds + 2 * (separatorSeconds + porchSeconds + chrominanceSeconds);
 		scanLineSamples = (int) Math.round(scanLineSeconds * sampleRate);
 		luminanceSamples = (int) Math.round(luminanceSeconds * sampleRate);
@@ -80,7 +78,7 @@ public class Robot_72_Color implements Mode {
 
 	@Override
 	public int getFirstSyncPulseIndex() {
-		return firstSyncPulseIndex;
+		return 0;
 	}
 
 	@Override

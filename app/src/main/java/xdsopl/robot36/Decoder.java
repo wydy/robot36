@@ -11,6 +11,7 @@ import java.util.Arrays;
 
 public class Decoder {
 
+	private final SimpleMovingAverage syncPulseFilter;
 	private final Demodulator demodulator;
 	private final PixelBuffer pixelBuffer;
 	private final PixelBuffer scopeBuffer;
@@ -27,6 +28,7 @@ public class Decoder {
 	private final float[] last9msFrequencyOffsets;
 	private final float[] last20msFrequencyOffsets;
 	private final float[] visCodeBitFrequencies;
+	private final int syncPulseFilterDelay;
 	private final int scanLineMinSamples;
 	private final int syncPulseToleranceSamples;
 	private final int scanLineToleranceSamples;
@@ -54,6 +56,10 @@ public class Decoder {
 		this.imageBuffer = imageBuffer;
 		pixelBuffer = new PixelBuffer(scopeBuffer.width, 2);
 		demodulator = new Demodulator(sampleRate);
+		double syncPulseFilterSeconds = 0.0025;
+		int syncPulseFilterSamples = (int) Math.round(syncPulseFilterSeconds * sampleRate) | 1;
+		syncPulseFilterDelay = (syncPulseFilterSamples - 1) / 2;
+		syncPulseFilter = new SimpleMovingAverage(syncPulseFilterSamples);
 		double scanLineMaxSeconds = 7;
 		int scanLineMaxSamples = (int) Math.round(scanLineMaxSeconds * sampleRate);
 		scanLineBuffer = new float[scanLineMaxSamples];
@@ -231,7 +237,7 @@ public class Decoder {
 	private boolean detectHeader(int syncPulseIndex) {
 		if (!checkHeader)
 			return false;
-		if (syncPulseIndex < 2 * leaderBreakSamples || curSample < syncPulseIndex + leaderToneSamples + visCodeSamples)
+		if (syncPulseIndex < 2 * leaderBreakSamples || curSample < syncPulseIndex + leaderToneSamples + visCodeSamples + visCodeBitSamples)
 			return false;
 		checkHeader = false;
 		float preBreakFreq = 0;
@@ -273,6 +279,22 @@ public class Decoder {
 	private boolean handleHeader(int leaderBreakIndex) {
 		if (!detectHeader(leaderBreakIndex))
 			return false;
+		double syncPorchFrequency = 1500;
+		double syncPulseFrequency = 1200;
+		double centerFrequency = 1900;
+		double halfBandWidth = 400;
+		double syncThresholdFrequency = (syncPulseFrequency + syncPorchFrequency) / 2;
+		double syncThresholdValue = (syncThresholdFrequency - centerFrequency) / halfBandWidth;
+		int syncPulseIndex = leaderBreakIndex + leaderToneSamples + visCodeSamples - visCodeBitSamples;
+		int end = leaderBreakIndex + leaderToneSamples + visCodeSamples + visCodeBitSamples;
+		for (int i = 0; i < syncPulseFilter.length; ++i)
+			syncPulseFilter.avg(scanLineBuffer[syncPulseIndex++]);
+		while (++syncPulseIndex < end)
+			if (syncPulseFilter.avg(scanLineBuffer[syncPulseIndex]) > syncThresholdValue)
+				break;
+		if (syncPulseIndex >= end)
+			return false;
+		syncPulseIndex -= syncPulseFilterDelay;
 		Mode mode;
 		int[] pulses;
 		int[] lines;
@@ -294,7 +316,7 @@ public class Decoder {
 		imageBuffer.height = mode.getHeight();
 		imageBuffer.line = 0;
 		lastMode = mode;
-		lastSyncPulseIndex = leaderBreakIndex + leaderToneSamples + visCodeSamples + mode.getFirstSyncPulseIndex();
+		lastSyncPulseIndex = syncPulseIndex + mode.getFirstSyncPulseIndex();
 		lastScanLineSamples = mode.getScanLineSamples();
 		lastFrequencyOffset = leaderFreqOffset;
 		for (int i = 0; i < pulses.length; ++i)

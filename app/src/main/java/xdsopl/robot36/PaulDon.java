@@ -10,7 +10,6 @@ public class PaulDon implements Mode {
 	private final ExponentialMovingAverage lowPassFilter;
 	private final int horizontalPixels;
 	private final int verticalPixels;
-	private final int firstSyncPulseIndex;
 	private final int scanLineSamples;
 	private final int channelSamples;
 	private final int beginSamples;
@@ -30,7 +29,6 @@ public class PaulDon implements Mode {
 		this.verticalPixels = verticalPixels;
 		double syncPulseSeconds = 0.02;
 		double syncPorchSeconds = 0.00208;
-		firstSyncPulseIndex = (int) Math.round(syncPulseSeconds * sampleRate);
 		double scanLineSeconds = syncPulseSeconds + syncPorchSeconds + 4 * (channelSeconds);
 		scanLineSamples = (int) Math.round(scanLineSeconds * sampleRate);
 		channelSamples = (int) Math.round(channelSeconds * sampleRate);
@@ -79,7 +77,7 @@ public class PaulDon implements Mode {
 
 	@Override
 	public int getFirstSyncPulseIndex() {
-		return firstSyncPulseIndex;
+		return 0;
 	}
 
 	@Override

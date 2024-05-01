@@ -19,13 +19,13 @@ public final class RGBModes {
 		double blueEndSeconds = blueBeginSeconds + channelSeconds;
 		double redBeginSeconds = blueEndSeconds + separatorSeconds;
 		double redEndSeconds = redBeginSeconds + channelSeconds;
-		return new RGBDecoder("Martin " + name, code, 320, 256, syncPulseSeconds, scanLineSeconds, greenBeginSeconds, redBeginSeconds, redEndSeconds, greenBeginSeconds, greenEndSeconds, blueBeginSeconds, blueEndSeconds, redEndSeconds, sampleRate);
+		return new RGBDecoder("Martin " + name, code, 320, 256, 0, scanLineSeconds, greenBeginSeconds, redBeginSeconds, redEndSeconds, greenBeginSeconds, greenEndSeconds, blueBeginSeconds, blueEndSeconds, redEndSeconds, sampleRate);
 	}
 
 	public static RGBDecoder Scottie(String name, int code, double channelSeconds, int sampleRate) {
 		double syncPulseSeconds = 0.009;
 		double separatorSeconds = 0.0015;
-		double firstSyncPulseSeconds = 2 * (syncPulseSeconds + separatorSeconds + channelSeconds);
+		double firstSyncPulseSeconds = syncPulseSeconds + 2 * (separatorSeconds + channelSeconds);
 		double scanLineSeconds = syncPulseSeconds + 3 * (channelSeconds + separatorSeconds);
 		double blueEndSeconds = -syncPulseSeconds;
 		double blueBeginSeconds = blueEndSeconds - channelSeconds;
@@ -47,6 +47,6 @@ public final class RGBModes {
 		double greenEndSeconds = greenBeginSeconds + channelSeconds;
 		double blueBeginSeconds = greenEndSeconds;
 		double blueEndSeconds = blueBeginSeconds + channelSeconds;
-		return new RGBDecoder("Wraase SC2-180", 55, 320, 256, syncPulseSeconds, scanLineSeconds, redBeginSeconds, redBeginSeconds, redEndSeconds, greenBeginSeconds, greenEndSeconds, blueBeginSeconds, blueEndSeconds, blueEndSeconds, sampleRate);
+		return new RGBDecoder("Wraase SC2-180", 55, 320, 256, 0, scanLineSeconds, redBeginSeconds, redBeginSeconds, redEndSeconds, greenBeginSeconds, greenEndSeconds, blueBeginSeconds, blueEndSeconds, blueEndSeconds, sampleRate);
 	}
 }
