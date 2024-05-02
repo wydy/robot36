@@ -11,7 +11,7 @@ import java.util.Arrays;
 
 public class Decoder {
 
-	private final SimpleMovingAverage syncPulseFilter;
+	private final SimpleMovingAverage pulseFilter;
 	private final Demodulator demodulator;
 	private final PixelBuffer pixelBuffer;
 	private final PixelBuffer scopeBuffer;
@@ -28,12 +28,12 @@ public class Decoder {
 	private final float[] last9msFrequencyOffsets;
 	private final float[] last20msFrequencyOffsets;
 	private final float[] visCodeBitFrequencies;
-	private final int syncPulseFilterDelay;
+	private final int pulseFilterDelay;
 	private final int scanLineMinSamples;
 	private final int syncPulseToleranceSamples;
 	private final int scanLineToleranceSamples;
 	private final int leaderToneSamples;
-	private final int leaderBreakSamples;
+	private final int leaderToneToleranceSamples;
 	private final int transitionSamples;
 	private final int visCodeBitSamples;
 	private final int visCodeSamples;
@@ -43,13 +43,11 @@ public class Decoder {
 	private final ArrayList<Mode> syncPulse20msModes;
 
 	public Mode lastMode;
-	private boolean checkHeader;
-	private int visCode;
 	private int curSample;
+	private int leaderBreakIndex;
 	private int lastSyncPulseIndex;
 	private int lastScanLineSamples;
 	private float lastFrequencyOffset;
-	private float leaderFreqOffset;
 
 	Decoder(PixelBuffer scopeBuffer, PixelBuffer imageBuffer, int sampleRate) {
 		this.scopeBuffer = scopeBuffer;
@@ -57,10 +55,10 @@ public class Decoder {
 		imageBuffer.line = -1;
 		pixelBuffer = new PixelBuffer(scopeBuffer.width, 2);
 		demodulator = new Demodulator(sampleRate);
-		double syncPulseFilterSeconds = 0.0025;
-		int syncPulseFilterSamples = (int) Math.round(syncPulseFilterSeconds * sampleRate) | 1;
-		syncPulseFilterDelay = (syncPulseFilterSamples - 1) / 2;
-		syncPulseFilter = new SimpleMovingAverage(syncPulseFilterSamples);
+		double pulseFilterSeconds = 0.0025;
+		int pulseFilterSamples = (int) Math.round(pulseFilterSeconds * sampleRate) | 1;
+		pulseFilterDelay = (pulseFilterSamples - 1) / 2;
+		pulseFilter = new SimpleMovingAverage(pulseFilterSamples);
 		double scanLineMaxSeconds = 7;
 		int scanLineMaxSamples = (int) Math.round(scanLineMaxSeconds * sampleRate);
 		scanLineBuffer = new float[scanLineMaxSamples];
@@ -69,8 +67,8 @@ public class Decoder {
 		scratchBuffer = new float[scratchBufferSamples];
 		double leaderToneSeconds = 0.3;
 		leaderToneSamples = (int) Math.round(leaderToneSeconds * sampleRate);
-		double leaderBreakSeconds = 0.01;
-		leaderBreakSamples = (int) Math.round(leaderBreakSeconds * sampleRate);
+		double leaderToneToleranceSeconds = leaderToneSeconds * 0.2;
+		leaderToneToleranceSamples = (int) Math.round(leaderToneToleranceSeconds * sampleRate);
 		double transitionSeconds = 0.0005;
 		transitionSamples = (int) Math.round(transitionSeconds * sampleRate);
 		double visCodeBitSeconds = 0.03;
@@ -117,11 +115,6 @@ public class Decoder {
 		syncPulse20msModes.add(new PaulDon("160", 98, 512, 400, 0.195584, sampleRate));
 		syncPulse20msModes.add(new PaulDon("180", 96, 640, 496, 0.18304, sampleRate));
 		syncPulse20msModes.add(new PaulDon("240", 97, 640, 496, 0.24448, sampleRate));
-	}
-
-	private void adjustSyncPulses(int[] pulses, int shift) {
-		for (int i = 0; i < pulses.length; ++i)
-			pulses[i] -= shift;
 	}
 
 	private double scanLineMean(int[] lines) {
@@ -222,9 +215,15 @@ public class Decoder {
 		}
 	}
 
+	private void adjustSyncPulses(int[] pulses, int shift) {
+		for (int i = 0; i < pulses.length; ++i)
+			pulses[i] -= shift;
+	}
+
 	private void shiftSamples(int shift) {
 		if (shift <= 0 || shift > curSample)
 			return;
+		leaderBreakIndex -= shift;
 		lastSyncPulseIndex -= shift;
 		adjustSyncPulses(last5msSyncPulses, shift);
 		adjustSyncPulses(last9msSyncPulses, shift);
@@ -235,67 +234,78 @@ public class Decoder {
 			scanLineBuffer[curSample++] = scanLineBuffer[i];
 	}
 
-	private boolean detectHeader(int syncPulseIndex) {
-		if (!checkHeader)
+	private boolean handleHeader() {
+		if (leaderBreakIndex < visCodeBitSamples + leaderToneToleranceSamples || curSample < leaderBreakIndex + leaderToneSamples + leaderToneToleranceSamples + visCodeSamples + visCodeBitSamples)
 			return false;
-		if (syncPulseIndex < 2 * leaderBreakSamples || curSample < syncPulseIndex + leaderToneSamples + visCodeSamples + visCodeBitSamples)
-			return false;
-		checkHeader = false;
+		int breakPulseIndex = leaderBreakIndex;
+		leaderBreakIndex = 0;
 		float preBreakFreq = 0;
-		for (int i = 0; i < leaderBreakSamples; ++i)
-			preBreakFreq += scanLineBuffer[syncPulseIndex - 2 * leaderBreakSamples + i];
-		float centerFreq = 1900;
+		for (int i = 0; i < leaderToneToleranceSamples; ++i)
+			preBreakFreq += scanLineBuffer[breakPulseIndex - visCodeBitSamples - leaderToneToleranceSamples + i];
+		float leaderToneFrequency = 1900;
+		float centerFrequency = 1900;
+		float toleranceFrequency = 50;
 		float halfBandWidth = 400;
-		preBreakFreq = preBreakFreq * halfBandWidth / leaderBreakSamples + centerFreq;
-		if (preBreakFreq < 1850 || preBreakFreq > 1950)
+		preBreakFreq = preBreakFreq * halfBandWidth / leaderToneToleranceSamples + centerFrequency;
+		if (Math.abs(preBreakFreq - leaderToneFrequency) > toleranceFrequency)
 			return false;
 		float leaderFreq = 0;
-		for (int i = transitionSamples; i < leaderToneSamples - transitionSamples; ++i)
-			leaderFreq += scanLineBuffer[syncPulseIndex + i];
-		leaderFreqOffset = leaderFreq / (leaderToneSamples - 2 * transitionSamples);
-		leaderFreq = leaderFreq * halfBandWidth / (leaderToneSamples - 2 * transitionSamples) + centerFreq;
-		if (leaderFreq < 1850 || leaderFreq > 1950)
+		for (int i = transitionSamples; i < leaderToneSamples - leaderToneToleranceSamples; ++i)
+			leaderFreq += scanLineBuffer[breakPulseIndex + i];
+		float leaderFreqOffset = leaderFreq / (leaderToneSamples - transitionSamples - leaderToneToleranceSamples);
+		leaderFreq = leaderFreqOffset * halfBandWidth + centerFrequency;
+		if (Math.abs(leaderFreq - leaderToneFrequency) > toleranceFrequency)
 			return false;
+		float stopBitFrequency = 1200;
+		float pulseThresholdFrequency = (stopBitFrequency + leaderToneFrequency) / 2;
+		float pulseThresholdValue = (pulseThresholdFrequency - centerFrequency) / halfBandWidth;
+		int visBeginIndex = breakPulseIndex + leaderToneSamples - leaderToneToleranceSamples;
+		int visEndIndex = breakPulseIndex + leaderToneSamples + leaderToneToleranceSamples + visCodeBitSamples;
+		for (int i = 0; i < pulseFilter.length; ++i)
+			pulseFilter.avg(scanLineBuffer[visBeginIndex++] - leaderFreqOffset);
+		while (++visBeginIndex < visEndIndex)
+			if (pulseFilter.avg(scanLineBuffer[visBeginIndex] - leaderFreqOffset) < pulseThresholdValue)
+				break;
+		if (visBeginIndex >= visEndIndex)
+			return false;
+		visBeginIndex -= pulseFilterDelay;
+		visEndIndex = visBeginIndex + visCodeSamples;
 		Arrays.fill(visCodeBitFrequencies, 0);
 		for (int j = 0; j < 10; ++j)
 			for (int i = transitionSamples; i < visCodeBitSamples - transitionSamples; ++i)
-				visCodeBitFrequencies[j] += scanLineBuffer[syncPulseIndex + leaderToneSamples + visCodeBitSamples * j + i] - leaderFreqOffset;
+				visCodeBitFrequencies[j] += scanLineBuffer[visBeginIndex + visCodeBitSamples * j + i] - leaderFreqOffset;
 		for (int i = 0; i < 10; ++i)
-			visCodeBitFrequencies[i] = visCodeBitFrequencies[i] * halfBandWidth / (visCodeBitSamples - 2 * transitionSamples) + centerFreq;
-		if (visCodeBitFrequencies[0] < 1150 || visCodeBitFrequencies[0] > 1250 || visCodeBitFrequencies[9] < 1150 || visCodeBitFrequencies[9] > 1250)
+			visCodeBitFrequencies[i] = visCodeBitFrequencies[i] * halfBandWidth / (visCodeBitSamples - 2 * transitionSamples) + centerFrequency;
+		if (Math.abs(visCodeBitFrequencies[0] - stopBitFrequency) > toleranceFrequency || Math.abs(visCodeBitFrequencies[9] - stopBitFrequency) > toleranceFrequency)
 			return false;
+		float oneBitFrequency = 1100;
+		float zeroBitFrequency = 1300;
 		for (int i = 1; i < 9; ++i)
-			if (visCodeBitFrequencies[i] < 1050 || visCodeBitFrequencies[i] > 1150 && visCodeBitFrequencies[i] < 1250 || visCodeBitFrequencies[i] > 1350)
+			if (Math.abs(visCodeBitFrequencies[i] - oneBitFrequency) > toleranceFrequency && Math.abs(visCodeBitFrequencies[i] - zeroBitFrequency) > toleranceFrequency)
 				return false;
-		visCode = 0;
+		int visCode = 0;
 		for (int i = 0; i < 8; ++i)
-			visCode |= (visCodeBitFrequencies[i + 1] < 1200 ? 1 : 0) << i;
+			visCode |= (visCodeBitFrequencies[i + 1] < stopBitFrequency ? 1 : 0) << i;
 		boolean check = true;
 		for (int i = 0; i < 8; ++i)
 			check ^= (visCode & 1 << i) != 0;
 		visCode &= 127;
-		return check;
-	}
-
-	private boolean handleHeader(int leaderBreakIndex) {
-		if (!detectHeader(leaderBreakIndex))
+		if (!check)
 			return false;
-		double syncPorchFrequency = 1500;
-		double syncPulseFrequency = 1200;
-		double centerFrequency = 1900;
-		double halfBandWidth = 400;
-		double syncThresholdFrequency = (syncPulseFrequency + syncPorchFrequency) / 2;
-		double syncThresholdValue = (syncThresholdFrequency - centerFrequency) / halfBandWidth;
-		int syncPulseIndex = leaderBreakIndex + leaderToneSamples + visCodeSamples - visCodeBitSamples;
-		int end = leaderBreakIndex + leaderToneSamples + visCodeSamples + visCodeBitSamples;
-		for (int i = 0; i < syncPulseFilter.length; ++i)
-			syncPulseFilter.avg(scanLineBuffer[syncPulseIndex++]);
-		while (++syncPulseIndex < end)
-			if (syncPulseFilter.avg(scanLineBuffer[syncPulseIndex]) > syncThresholdValue)
+		float syncPorchFrequency = 1500;
+		float syncPulseFrequency = 1200;
+		float syncThresholdFrequency = (syncPulseFrequency + syncPorchFrequency) / 2;
+		float syncThresholdValue = (syncThresholdFrequency - centerFrequency) / halfBandWidth;
+		int syncPulseIndex = visEndIndex - visCodeBitSamples;
+		int syncPulseMaxIndex = visEndIndex + visCodeBitSamples;
+		for (int i = 0; i < pulseFilter.length; ++i)
+			pulseFilter.avg(scanLineBuffer[syncPulseIndex++] - leaderFreqOffset);
+		while (++syncPulseIndex < syncPulseMaxIndex)
+			if (pulseFilter.avg(scanLineBuffer[syncPulseIndex] - leaderFreqOffset) > syncThresholdValue)
 				break;
-		if (syncPulseIndex >= end)
+		if (syncPulseIndex >= syncPulseMaxIndex)
 			return false;
-		syncPulseIndex -= syncPulseFilterDelay;
+		syncPulseIndex -= pulseFilterDelay;
 		Mode mode;
 		int[] pulses;
 		int[] lines;
@@ -393,15 +403,16 @@ public class Decoder {
 				case FiveMilliSeconds:
 					return processSyncPulse(syncPulse5msModes, last5msFrequencyOffsets, last5msSyncPulses, last5msScanLines, syncPulseIndex);
 				case NineMilliSeconds:
-					checkHeader = true;
+					leaderBreakIndex = syncPulseIndex;
 					return processSyncPulse(syncPulse9msModes, last9msFrequencyOffsets, last9msSyncPulses, last9msScanLines, syncPulseIndex);
 				case TwentyMilliSeconds:
+					leaderBreakIndex = syncPulseIndex;
 					return processSyncPulse(syncPulse20msModes, last20msFrequencyOffsets, last20msSyncPulses, last20msScanLines, syncPulseIndex);
 				default:
 					return false;
 			}
 		}
-		if (handleHeader(last9msSyncPulses[last9msSyncPulses.length - 1]))
+		if (handleHeader())
 			return true;
 		if (curSample > lastSyncPulseIndex + (lastScanLineSamples * 5) / 4) {
 			copyLines(lastMode.decodeScanLine(pixelBuffer, scratchBuffer, scanLineBuffer, scopeBuffer.width, lastSyncPulseIndex, lastScanLineSamples, lastFrequencyOffset));
