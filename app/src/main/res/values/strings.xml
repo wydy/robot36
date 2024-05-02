@@ -37,15 +37,18 @@
 	<string name="disable">Disable</string>
 	<string name="close">Close</string>
 	<string name="privacy_policy">Privacy Policy</string>
-	<string name="privacy_policy_text">To be able to decode SSTV encoded images the app needs access to the microphone.
-Having access to the microphone is considered to be a sensitive permission and you have the right to know what the app does with that access:
-The data recorded from the microphone is only used to fed the SSTV decoder, VU meter and the spectrum analyzer for visualization of its frequency content.
-The app uses a very small temporary buffer in volatile memory and constantly overwrites this buffer with new data from the microphone.
-The resulting images from the SSTV decoder is the only data that gets stored in persistent storage on your Android device.</string>
+	<string name="privacy_policy_text">Microphone Access:
+\n\nThis app requires access to your device\'s microphone to decode Slow Scan Television (SSTV) signals.
+The microphone captures the audio containing the SSTV transmission.
+\n\nData Handling:
+\n\nThe app uses a small temporary buffer in memory to process the audio data in real-time.
+This buffer is constantly overwritten with new data as the decoding progresses.
+The app does not store the raw audio captured from the microphone.
+Only the decoded images resulting from the SSTV process are saved on your device\'s storage.</string>
 	<string name="about">About Robot36</string>
 	<string name="about_text">Robot36 %1$s\nCopyright 2024 Ahmet Inan
 \n\nPlease read DISCLAIMER at the bottom of this page.
-\n\nRobot36 decodes SSTV encoded audio signals to images.
+\n\nRobot36 decodes Slow Scan Television (SSTV) images from audio.
 \n\nImplementation:\nhttps://github.com/xdsopl/robot36\nBSD Zero Clause License
 \n\nMode specifications:\nhttp://www.barberdsp.com/downloads/Dayton%%20Paper.pdf\nby JL Barber - 2000
 \n\nDISCLAIMER:\nTHE SOFTWARE IS PROVIDED \"AS IS\" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.</string>
