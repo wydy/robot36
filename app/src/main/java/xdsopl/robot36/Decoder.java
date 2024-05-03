@@ -43,7 +43,7 @@ public class Decoder {
 	private final ArrayList<Mode> syncPulse20msModes;
 
 	public Mode lastMode;
-	private int curSample;
+	private int currentSample;
 	private int leaderBreakIndex;
 	private int lastSyncPulseIndex;
 	private int lastScanLineSamples;
@@ -97,7 +97,6 @@ public class Decoder {
 		Mode robot36 = new Robot_36_Color(sampleRate);
 		lastMode = robot36;
 		lastScanLineSamples = robot36.getScanLineSamples();
-		lastSyncPulseIndex = curSample;
 		syncPulse5msModes = new ArrayList<>();
 		syncPulse5msModes.add(RGBModes.Wraase_SC2_180(sampleRate));
 		syncPulse5msModes.add(RGBModes.Martin("1", 44, 0.146432, sampleRate));
@@ -221,19 +220,19 @@ public class Decoder {
 	}
 
 	private void shiftSamples(int shift) {
-		if (shift <= 0 || shift > curSample)
+		if (shift <= 0 || shift > currentSample)
 			return;
-		curSample -= shift;
+		currentSample -= shift;
 		leaderBreakIndex -= shift;
 		lastSyncPulseIndex -= shift;
 		adjustSyncPulses(last5msSyncPulses, shift);
 		adjustSyncPulses(last9msSyncPulses, shift);
 		adjustSyncPulses(last20msSyncPulses, shift);
-		System.arraycopy(scanLineBuffer, shift, scanLineBuffer, 0, curSample);
+		System.arraycopy(scanLineBuffer, shift, scanLineBuffer, 0, currentSample);
 	}
 
 	private boolean handleHeader() {
-		if (leaderBreakIndex < visCodeBitSamples + leaderToneToleranceSamples || curSample < leaderBreakIndex + leaderToneSamples + leaderToneToleranceSamples + visCodeSamples + visCodeBitSamples)
+		if (leaderBreakIndex < visCodeBitSamples + leaderToneToleranceSamples || currentSample < leaderBreakIndex + leaderToneSamples + leaderToneToleranceSamples + visCodeSamples + visCodeBitSamples)
 			return false;
 		int breakPulseIndex = leaderBreakIndex;
 		leaderBreakIndex = 0;
@@ -390,11 +389,11 @@ public class Decoder {
 
 	public boolean process(float[] recordBuffer, int channelSelect) {
 		boolean syncPulseDetected = demodulator.process(recordBuffer, channelSelect);
-		int syncPulseIndex = curSample + demodulator.syncPulseOffset;
+		int syncPulseIndex = currentSample + demodulator.syncPulseOffset;
 		int channels = channelSelect > 0 ? 2 : 1;
 		for (int j = 0; j < recordBuffer.length / channels; ++j) {
-			scanLineBuffer[curSample++] = recordBuffer[j];
-			if (curSample >= scanLineBuffer.length) {
+			scanLineBuffer[currentSample++] = recordBuffer[j];
+			if (currentSample >= scanLineBuffer.length) {
 				shiftSamples(lastScanLineSamples);
 				syncPulseIndex -= lastScanLineSamples;
 			}
@@ -415,7 +414,7 @@ public class Decoder {
 		}
 		if (handleHeader())
 			return true;
-		if (curSample > lastSyncPulseIndex + (lastScanLineSamples * 5) / 4) {
+		if (currentSample > lastSyncPulseIndex + (lastScanLineSamples * 5) / 4) {
 			copyLines(lastMode.decodeScanLine(pixelBuffer, scratchBuffer, scanLineBuffer, scopeBuffer.width, lastSyncPulseIndex, lastScanLineSamples, lastFrequencyOffset));
 			lastSyncPulseIndex += lastScanLineSamples;
 			return true;
