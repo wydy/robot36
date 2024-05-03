@@ -223,15 +223,13 @@ public class Decoder {
 	private void shiftSamples(int shift) {
 		if (shift <= 0 || shift > curSample)
 			return;
+		curSample -= shift;
 		leaderBreakIndex -= shift;
 		lastSyncPulseIndex -= shift;
 		adjustSyncPulses(last5msSyncPulses, shift);
 		adjustSyncPulses(last9msSyncPulses, shift);
 		adjustSyncPulses(last20msSyncPulses, shift);
-		int endSample = curSample;
-		curSample = 0;
-		for (int i = shift; i < endSample; ++i)
-			scanLineBuffer[curSample++] = scanLineBuffer[i];
+		System.arraycopy(scanLineBuffer, shift, scanLineBuffer, 0, curSample);
 	}
 
 	private boolean handleHeader() {
