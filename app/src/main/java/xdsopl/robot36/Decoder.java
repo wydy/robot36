@@ -330,8 +330,11 @@ public class Decoder {
 		lastSyncPulseIndex = syncPulseIndex + mode.getFirstSyncPulseIndex();
 		lastScanLineSamples = mode.getScanLineSamples();
 		lastFrequencyOffset = leaderFreqOffset;
+		int oldestSyncPulseIndex = lastSyncPulseIndex - (pulses.length - 1) * lastScanLineSamples;
+		if (mode.getFirstSyncPulseIndex() > 0)
+			oldestSyncPulseIndex -= lastScanLineSamples;
 		for (int i = 0; i < pulses.length; ++i)
-			pulses[i] = lastSyncPulseIndex + (i - pulses.length + 1) * lastScanLineSamples;
+			pulses[i] = oldestSyncPulseIndex + i * lastScanLineSamples;
 		Arrays.fill(lines, lastScanLineSamples);
 		shiftSamples(lastSyncPulseIndex + mode.getBegin());
 		drawLines(0xff00ff00, 8);
