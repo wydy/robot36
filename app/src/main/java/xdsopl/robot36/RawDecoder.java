@@ -23,7 +23,7 @@ public class RawDecoder implements Mode {
 
 	@Override
 	public String getName() {
-		return "Raw";
+		return "Raw Mode";
 	}
 
 	@Override

@@ -83,6 +83,16 @@ public class MainActivity extends AppCompatActivity {
 		setTitle(str);
 	}
 
+	private void forceMode(int id) {
+		if (decoder != null)
+			decoder.forceMode(getString(id));
+	}
+
+	private void autoMode() {
+		if (decoder != null)
+			decoder.autoMode();
+	}
+
 	private final AudioRecord.OnRecordPositionUpdateListener recordListener = new AudioRecord.OnRecordPositionUpdateListener() {
 		@Override
 		public void onMarkerReached(AudioRecord ignore) {
@@ -97,7 +107,7 @@ public class MainActivity extends AppCompatActivity {
 			if (newLines) {
 				processScope();
 				processImage();
-				setStatus(decoder.lastMode.getName());
+				setStatus(decoder.currentMode.getName());
 			}
 		}
 	};
@@ -128,7 +138,7 @@ public class MainActivity extends AppCompatActivity {
 		for (int i = 0; i < samples; ++i) {
 			int x = Math.round((recordBuffer[i] + 2.5f) * 0.25f * stride);
 			if (x >= spread && x < stride - spread)
-				for (int j = - spread; j <= spread; ++j)
+				for (int j = -spread; j <= spread; ++j)
 					freqPlotBuffer.pixels[line + x + j] += 1 + spread * spread - j * j;
 		}
 		int factor = 960 / samples;
@@ -399,6 +409,70 @@ public class MainActivity extends AppCompatActivity {
 		int id = item.getItemId();
 		if (id == R.id.action_store_scope) {
 			storeBitmap(scopeBitmap);
+			return true;
+		}
+		if (id == R.id.action_auto_mode) {
+			autoMode();
+			return true;
+		}
+		if (id == R.id.action_force_raw_mode) {
+			forceMode(R.string.raw_mode);
+			return true;
+		}
+		if (id == R.id.action_force_robot36_color) {
+			forceMode(R.string.robot36_color);
+			return true;
+		}
+		if (id == R.id.action_force_robot72_color) {
+			forceMode(R.string.robot72_color);
+			return true;
+		}
+		if (id == R.id.action_force_pd50) {
+			forceMode(R.string.pd50);
+			return true;
+		}
+		if (id == R.id.action_force_pd90) {
+			forceMode(R.string.pd90);
+			return true;
+		}
+		if (id == R.id.action_force_pd120) {
+			forceMode(R.string.pd120);
+			return true;
+		}
+		if (id == R.id.action_force_pd160) {
+			forceMode(R.string.pd160);
+			return true;
+		}
+		if (id == R.id.action_force_pd180) {
+			forceMode(R.string.pd180);
+			return true;
+		}
+		if (id == R.id.action_force_pd240) {
+			forceMode(R.string.pd240);
+			return true;
+		}
+		if (id == R.id.action_force_martin1) {
+			forceMode(R.string.martin1);
+			return true;
+		}
+		if (id == R.id.action_force_martin2) {
+			forceMode(R.string.martin2);
+			return true;
+		}
+		if (id == R.id.action_force_scottie1) {
+			forceMode(R.string.scottie1);
+			return true;
+		}
+		if (id == R.id.action_force_scottie2) {
+			forceMode(R.string.scottie2);
+			return true;
+		}
+		if (id == R.id.action_force_scottie_dx) {
+			forceMode(R.string.scottie_dx);
+			return true;
+		}
+		if (id == R.id.action_force_wraase_sc2_180) {
+			forceMode(R.string.wraase_sc2_180);
 			return true;
 		}
 		if (id == R.id.action_set_record_rate_8000) {

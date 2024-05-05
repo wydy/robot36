@@ -47,6 +47,6 @@ public final class RGBModes {
 		double greenEndSeconds = greenBeginSeconds + channelSeconds;
 		double blueBeginSeconds = greenEndSeconds;
 		double blueEndSeconds = blueBeginSeconds + channelSeconds;
-		return new RGBDecoder("Wraase SC2-180", 55, 320, 256, 0, scanLineSeconds, redBeginSeconds, redBeginSeconds, redEndSeconds, greenBeginSeconds, greenEndSeconds, blueBeginSeconds, blueEndSeconds, blueEndSeconds, sampleRate);
+		return new RGBDecoder("Wraase SC2–180", 55, 320, 256, 0, scanLineSeconds, redBeginSeconds, redBeginSeconds, redEndSeconds, greenBeginSeconds, greenEndSeconds, blueBeginSeconds, blueEndSeconds, blueEndSeconds, sampleRate);
 	}
 }
