@@ -47,7 +47,7 @@ public class Decoder {
 	private int currentSample;
 	private int leaderBreakIndex;
 	private int lastSyncPulseIndex;
-	private int lastScanLineSamples;
+	private int currentScanLineSamples;
 	private float lastFrequencyOffset;
 
 	Decoder(PixelBuffer scopeBuffer, PixelBuffer imageBuffer, int sampleRate) {
@@ -97,7 +97,7 @@ public class Decoder {
 		rawMode = new RawDecoder(sampleRate);
 		Mode robot36 = new Robot_36_Color(sampleRate);
 		currentMode = robot36;
-		lastScanLineSamples = robot36.getScanLineSamples();
+		currentScanLineSamples = robot36.getScanLineSamples();
 		syncPulse5msModes = new ArrayList<>();
 		syncPulse5msModes.add(RGBModes.Wraase_SC2_180(sampleRate));
 		syncPulse5msModes.add(RGBModes.Martin("1", 44, 0.146432, sampleRate));
@@ -336,14 +336,14 @@ public class Decoder {
 		imageBuffer.line = 0;
 		currentMode = mode;
 		lastSyncPulseIndex = syncPulseIndex + mode.getFirstSyncPulseIndex();
-		lastScanLineSamples = mode.getScanLineSamples();
+		currentScanLineSamples = mode.getScanLineSamples();
 		lastFrequencyOffset = leaderFreqOffset;
-		int oldestSyncPulseIndex = lastSyncPulseIndex - (pulses.length - 1) * lastScanLineSamples;
+		int oldestSyncPulseIndex = lastSyncPulseIndex - (pulses.length - 1) * currentScanLineSamples;
 		if (mode.getFirstSyncPulseIndex() > 0)
-			oldestSyncPulseIndex -= lastScanLineSamples;
+			oldestSyncPulseIndex -= currentScanLineSamples;
 		for (int i = 0; i < pulses.length; ++i)
-			pulses[i] = oldestSyncPulseIndex + i * lastScanLineSamples;
-		Arrays.fill(lines, lastScanLineSamples);
+			pulses[i] = oldestSyncPulseIndex + i * currentScanLineSamples;
+		Arrays.fill(lines, currentScanLineSamples);
 		shiftSamples(lastSyncPulseIndex + mode.getBegin());
 		drawLines(0xff00ff00, 8);
 		drawLines(0xff000000, 10);
@@ -376,7 +376,7 @@ public class Decoder {
 			Mode prevMode = currentMode;
 			currentMode = detectMode(modes, scanLineSamples);
 			pictureChanged = currentMode != prevMode
-				|| Math.abs(lastScanLineSamples - scanLineSamples) > scanLineToleranceSamples
+				|| Math.abs(currentScanLineSamples - scanLineSamples) > scanLineToleranceSamples
 				|| Math.abs(lastSyncPulseIndex + scanLineSamples - pulses[pulses.length - 1]) > syncPulseToleranceSamples;
 		}
 		if (pictureChanged) {
@@ -395,7 +395,7 @@ public class Decoder {
 		for (int i = pictureChanged ? 0 : lines.length - 1; i < lines.length; ++i)
 			copyLines(currentMode.decodeScanLine(pixelBuffer, scratchBuffer, scanLineBuffer, scopeBuffer.width, pulses[i], lines[i], frequencyOffset));
 		lastSyncPulseIndex = pulses[pulses.length - 1];
-		lastScanLineSamples = scanLineSamples;
+		currentScanLineSamples = scanLineSamples;
 		lastFrequencyOffset = frequencyOffset;
 		shiftSamples(lastSyncPulseIndex + currentMode.getBegin());
 		return true;
@@ -408,8 +408,8 @@ public class Decoder {
 		for (int j = 0; j < recordBuffer.length / channels; ++j) {
 			scanLineBuffer[currentSample++] = recordBuffer[j];
 			if (currentSample >= scanLineBuffer.length) {
-				shiftSamples(lastScanLineSamples);
-				syncPulseIndex -= lastScanLineSamples;
+				shiftSamples(currentScanLineSamples);
+				syncPulseIndex -= currentScanLineSamples;
 			}
 		}
 		if (syncPulseDetected) {
@@ -428,9 +428,9 @@ public class Decoder {
 		}
 		if (handleHeader())
 			return true;
-		if (currentSample > lastSyncPulseIndex + (lastScanLineSamples * 5) / 4) {
-			copyLines(currentMode.decodeScanLine(pixelBuffer, scratchBuffer, scanLineBuffer, scopeBuffer.width, lastSyncPulseIndex, lastScanLineSamples, lastFrequencyOffset));
-			lastSyncPulseIndex += lastScanLineSamples;
+		if (currentSample > lastSyncPulseIndex + (currentScanLineSamples * 5) / 4) {
+			copyLines(currentMode.decodeScanLine(pixelBuffer, scratchBuffer, scanLineBuffer, scopeBuffer.width, lastSyncPulseIndex, currentScanLineSamples, lastFrequencyOffset));
+			lastSyncPulseIndex += currentScanLineSamples;
 			return true;
 		}
 		return false;
@@ -448,6 +448,8 @@ public class Decoder {
 		imageBuffer.line = -1;
 		if (mode == null)
 			mode = rawMode;
+		else
+			currentScanLineSamples = mode.getScanLineSamples();
 		currentMode = mode;
 	}
 
