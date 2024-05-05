@@ -334,9 +334,9 @@ public class MainActivity extends AppCompatActivity {
 
 	@Override
 	protected void onCreate(Bundle state) {
-		final int defaultSampleRate = 8000;
+		final int defaultSampleRate = 44100;
 		final int defaultChannelSelect = 0;
-		final int defaultAudioSource = MediaRecorder.AudioSource.DEFAULT;
+		final int defaultAudioSource = MediaRecorder.AudioSource.MIC;
 		if (state == null) {
 			SharedPreferences pref = getPreferences(Context.MODE_PRIVATE);
 			AppCompatDelegate.setDefaultNightMode(pref.getInt("nightMode", AppCompatDelegate.getDefaultNightMode()));
