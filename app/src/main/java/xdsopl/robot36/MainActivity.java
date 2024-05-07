@@ -24,10 +24,13 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
+import android.text.Html;
+import android.text.method.LinkMovementMethod;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -558,11 +561,11 @@ public class MainActivity extends AppCompatActivity {
 			return true;
 		}
 		if (id == R.id.action_privacy_policy) {
-			showTextPage(getString(R.string.privacy_policy), getString(R.string.privacy_policy_text));
+			showTextPage(getString(R.string.privacy_policy_text));
 			return true;
 		}
 		if (id == R.id.action_about) {
-			showTextPage(getString(R.string.about), getString(R.string.about_text, BuildConfig.VERSION_NAME));
+			showTextPage(getString(R.string.about_text, BuildConfig.VERSION_NAME));
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
@@ -614,11 +617,13 @@ public class MainActivity extends AppCompatActivity {
 		createPeakMeter();
 	}
 
-	private void showTextPage(String title, String message) {
+	private void showTextPage(String message) {
+		TextView view = new TextView(this);
+		view.setText(Html.fromHtml(message, Html.FROM_HTML_MODE_LEGACY));
+		view.setMovementMethod(LinkMovementMethod.getInstance());
 		AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.Theme_AlertDialog);
 		builder.setNeutralButton(R.string.close, null);
-		builder.setTitle(title);
-		builder.setMessage(message);
+		builder.setView(view);
 		builder.show();
 	}
 
