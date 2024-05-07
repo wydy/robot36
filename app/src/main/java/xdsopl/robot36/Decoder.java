@@ -437,23 +437,28 @@ public class Decoder {
 	}
 
 	public void forceMode(String name) {
-		lockMode = true;
+		if (rawMode.getName().equals(name)) {
+			lockMode = true;
+			imageBuffer.line = -1;
+			currentMode = rawMode;
+			return;
+		}
 		Mode mode = findMode(syncPulse5msModes, name);
 		if (mode == null)
 			mode = findMode(syncPulse9msModes, name);
 		if (mode == null)
 			mode = findMode(syncPulse20msModes, name);
-		if (mode == currentMode)
+		if (mode == currentMode) {
+			lockMode = true;
 			return;
-		imageBuffer.line = -1;
-		if (mode == null)
-			mode = rawMode;
-		else
+		}
+		if (mode != null) {
+			lockMode = true;
+			imageBuffer.line = -1;
+			currentMode = mode;
 			currentScanLineSamples = mode.getScanLineSamples();
-		currentMode = mode;
-	}
-
-	public void autoMode() {
+			return;
+		}
 		lockMode = false;
 	}
 }

@@ -69,6 +69,7 @@ public class MainActivity extends AppCompatActivity {
 	private AudioRecord audioRecord;
 	private Decoder decoder;
 	private Menu menu;
+	private String forceMode;
 	private int recordRate;
 	private int recordChannel;
 	private int audioSource;
@@ -84,13 +85,24 @@ public class MainActivity extends AppCompatActivity {
 	}
 
 	private void forceMode(int id) {
+		menu.findItem(R.id.action_auto_mode).setIcon(R.drawable.baseline_lock_24);
+		forceMode = getString(id);
 		if (decoder != null)
-			decoder.forceMode(getString(id));
+			decoder.forceMode(forceMode);
 	}
 
 	private void autoMode() {
+		int icon;
+		if (decoder == null || forceMode != null && !forceMode.equals(getString(R.string.auto_mode))) {
+			icon = R.drawable.baseline_auto_mode_24;
+			forceMode = getString(R.string.auto_mode);
+		} else {
+			icon = R.drawable.baseline_lock_24;
+			forceMode = decoder.currentMode.getName();
+		}
+		menu.findItem(R.id.action_auto_mode).setIcon(icon);
 		if (decoder != null)
-			decoder.autoMode();
+			decoder.forceMode(forceMode);
 	}
 
 	private final AudioRecord.OnRecordPositionUpdateListener recordListener = new AudioRecord.OnRecordPositionUpdateListener() {
@@ -197,8 +209,10 @@ public class MainActivity extends AppCompatActivity {
 			if (audioRecord.getState() == AudioRecord.STATE_INITIALIZED) {
 				audioRecord.setRecordPositionUpdateListener(recordListener);
 				audioRecord.setPositionNotificationPeriod(frameCount);
-				if (rateChanged)
+				if (rateChanged) {
 					decoder = new Decoder(scopeBuffer, imageBuffer, recordRate);
+					decoder.forceMode(forceMode);
+				}
 				startListening();
 			} else {
 				setStatus(R.string.audio_init_failed);
