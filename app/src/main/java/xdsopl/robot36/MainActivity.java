@@ -430,7 +430,7 @@ public class MainActivity extends AppCompatActivity {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		int id = item.getItemId();
 		if (id == R.id.action_store_scope) {
-			storeBitmap(scopeBitmap);
+			storeScope();
 			return true;
 		}
 		if (id == R.id.action_auto_mode) {
@@ -574,6 +574,14 @@ public class MainActivity extends AppCompatActivity {
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
+	}
+
+	private void storeScope() {
+		int width = scopeBuffer.width;
+		int height = scopeBuffer.height / 2;
+		int stride = scopeBuffer.width;
+		int offset = stride * scopeBuffer.line;
+		storeBitmap(Bitmap.createBitmap(scopeBuffer.pixels, offset, stride, width, height, Bitmap.Config.ARGB_8888));
 	}
 
 	private void createScope(Configuration config) {
