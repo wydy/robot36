@@ -4,6 +4,12 @@
 	xmlns:tools="http://schemas.android.com/tools"
 	tools:context="xdsopl.robot36.MainActivity">
 	<item
+		android:id="@+id/action_auto_mode"
+		android:icon="@drawable/baseline_auto_mode_24"
+		android:title="@string/auto_mode"
+		app:iconTint="@color/tint"
+		app:showAsAction="always"/>
+	<item
 		android:id="@+id/action_store_scope"
 		android:icon="@drawable/baseline_save_alt_24"
 		android:title="@string/store_scope"
@@ -15,12 +21,6 @@
 		android:title="@string/share"
 		app:actionProviderClass="androidx.appcompat.widget.ShareActionProvider"
 		app:showAsAction="always" />
-	<item
-		android:id="@+id/action_auto_mode"
-		android:icon="@drawable/baseline_auto_mode_24"
-		android:title="@string/auto_mode"
-		app:iconTint="@color/tint"
-		app:showAsAction="always"/>
 	<item android:title="@string/force_mode">
 		<menu>
 			<item
