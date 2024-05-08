@@ -27,8 +27,10 @@ import android.provider.MediaStore;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -620,9 +622,10 @@ public class MainActivity extends AppCompatActivity {
 	}
 
 	private void showTextPage(String message) {
-		TextView view = new TextView(this);
-		view.setText(Html.fromHtml(message, Html.FROM_HTML_MODE_LEGACY));
-		view.setMovementMethod(LinkMovementMethod.getInstance());
+		View view = LayoutInflater.from(this).inflate(R.layout.text_page, null);
+		TextView text = view.findViewById(R.id.message);
+		text.setText(Html.fromHtml(message, Html.FROM_HTML_MODE_LEGACY));
+		text.setMovementMethod(LinkMovementMethod.getInstance());
 		AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.Theme_AlertDialog);
 		builder.setNeutralButton(R.string.close, null);
 		builder.setView(view);
