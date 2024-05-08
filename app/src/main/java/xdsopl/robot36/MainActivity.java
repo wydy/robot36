@@ -78,6 +78,7 @@ public class MainActivity extends AppCompatActivity {
 	private int audioSource;
 	private int fgColor;
 	private int thinColor;
+	private int tintColor;
 
 	private void setStatus(int id) {
 		setTitle(id);
@@ -136,7 +137,7 @@ public class MainActivity extends AppCompatActivity {
 		if (max > 0)
 			peak = (int) Math.round(Math.min(Math.max(-Math.PI * Math.log(max), 0), pixels));
 		Arrays.fill(peakMeterBuffer.pixels, 0, peak, thinColor);
-		Arrays.fill(peakMeterBuffer.pixels, peak, pixels, fgColor);
+		Arrays.fill(peakMeterBuffer.pixels, peak, pixels, tintColor);
 		peakMeterBitmap.setPixels(peakMeterBuffer.pixels, 0, peakMeterBuffer.width, 0, 0, peakMeterBuffer.width, peakMeterBuffer.height);
 		peakMeterView.invalidate();
 	}
@@ -383,6 +384,7 @@ public class MainActivity extends AppCompatActivity {
 		handleInsets();
 		fgColor = getColor(R.color.fg);
 		thinColor = getColor(R.color.thin);
+		tintColor = getColor(R.color.tint);
 		scopeBuffer = new PixelBuffer(640, 2 * 1280);
 		createScope(config);
 		freqPlotBuffer = new PixelBuffer(256, 2 * 256);
