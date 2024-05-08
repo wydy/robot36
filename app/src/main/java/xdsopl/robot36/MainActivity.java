@@ -26,6 +26,7 @@ import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
+import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -578,8 +579,11 @@ public class MainActivity extends AppCompatActivity {
 	private void createScope(Configuration config) {
 		int width = scopeBuffer.width;
 		int height = scopeBuffer.height / 2;
+		DisplayMetrics metrics = getResources().getDisplayMetrics();
 		if (config.orientation == Configuration.ORIENTATION_LANDSCAPE)
 			height /= 2;
+		else
+			height = Math.min(Math.max((width * (metrics.heightPixels - 257)) / metrics.widthPixels, height / 2), height);
 		scopeBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
 		int stride = scopeBuffer.width;
 		int offset = stride * (scopeBuffer.line + scopeBuffer.height / 2 - height);
