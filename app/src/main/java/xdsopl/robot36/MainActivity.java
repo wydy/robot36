@@ -76,8 +76,8 @@ public class MainActivity extends AppCompatActivity {
 	private int recordRate;
 	private int recordChannel;
 	private int audioSource;
-	private int tint;
-	private int thin;
+	private int fgColor;
+	private int thinColor;
 
 	private void setStatus(int id) {
 		setTitle(id);
@@ -135,8 +135,8 @@ public class MainActivity extends AppCompatActivity {
 		int peak = pixels;
 		if (max > 0)
 			peak = (int) Math.round(Math.min(Math.max(-Math.PI * Math.log(max), 0), pixels));
-		Arrays.fill(peakMeterBuffer.pixels, 0, peak, thin);
-		Arrays.fill(peakMeterBuffer.pixels, peak, pixels, tint);
+		Arrays.fill(peakMeterBuffer.pixels, 0, peak, thinColor);
+		Arrays.fill(peakMeterBuffer.pixels, peak, pixels, fgColor);
 		peakMeterBitmap.setPixels(peakMeterBuffer.pixels, 0, peakMeterBuffer.width, 0, 0, peakMeterBuffer.width, peakMeterBuffer.height);
 		peakMeterView.invalidate();
 	}
@@ -381,8 +381,8 @@ public class MainActivity extends AppCompatActivity {
 		EdgeToEdge.enable(this);
 		setContentView(config.orientation == Configuration.ORIENTATION_LANDSCAPE ? R.layout.activity_main_land : R.layout.activity_main);
 		handleInsets();
-		tint = getColor(R.color.tint);
-		thin = getColor(R.color.thin);
+		fgColor = getColor(R.color.fg);
+		thinColor = getColor(R.color.thin);
 		scopeBuffer = new PixelBuffer(640, 2 * 1280);
 		createScope(config);
 		freqPlotBuffer = new PixelBuffer(256, 2 * 256);
