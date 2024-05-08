@@ -158,7 +158,7 @@ public class MainActivity extends AppCompatActivity {
 		}
 		int factor = 960 / samples;
 		for (int i = 0; i < stride; ++i)
-			freqPlotBuffer.pixels[line + i] = 0xff000000 | 0x00010101 * Math.min(factor * freqPlotBuffer.pixels[line + i], 255);
+			freqPlotBuffer.pixels[line + i] = 0x00FFFFFF & fgColor | Math.min(factor * freqPlotBuffer.pixels[line + i], 255) << 24;
 		System.arraycopy(freqPlotBuffer.pixels, line, freqPlotBuffer.pixels, line + stride * (freqPlotBuffer.height / 2), stride);
 		freqPlotBuffer.line = (freqPlotBuffer.line + 1) % (freqPlotBuffer.height / 2);
 		int offset = stride * (freqPlotBuffer.line + freqPlotBuffer.height / 2 - height);
