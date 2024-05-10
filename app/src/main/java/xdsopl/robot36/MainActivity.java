@@ -584,12 +584,15 @@ public class MainActivity extends AppCompatActivity {
 	}
 
 	private void createScope(Configuration config) {
-		int width = scopeBuffer.width;
-		int height = scopeBuffer.height / 2;
+		int screenWidthDp = config.screenWidthDp;
+		int screenHeightDp = config.screenHeightDp;
+		int freqPlotHeightDp = 64;
 		if (config.orientation == Configuration.ORIENTATION_LANDSCAPE)
-			height /= 2;
+			screenWidthDp /= 2;
 		else
-			height = Math.min(Math.max((width * (config.screenHeightDp - 101)) / config.screenWidthDp, height / 2), height);
+			screenHeightDp -= freqPlotHeightDp;
+		int width = scopeBuffer.width;
+		int height = Math.min(Math.max((width * screenHeightDp) / screenWidthDp, 496), scopeBuffer.height / 2);
 		scopeBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
 		int stride = scopeBuffer.width;
 		int offset = stride * (scopeBuffer.line + scopeBuffer.height / 2 - height);
