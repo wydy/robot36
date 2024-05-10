@@ -21,7 +21,7 @@
 	<ImageView
 		android:id="@+id/freq_plot"
 		android:layout_width="0dp"
-		android:layout_height="wrap_content"
+		android:layout_height="64dp"
 		android:contentDescription="@string/freq_plot_description"
 		app:layout_constraintBottom_toBottomOf="parent"
 		app:layout_constraintEnd_toStartOf="@+id/peak_meter"
@@ -31,7 +31,7 @@
 	<ImageView
 		android:id="@+id/peak_meter"
 		android:layout_width="16dp"
-		android:layout_height="0dp"
+		android:layout_height="64dp"
 		android:contentDescription="@string/peak_meter_description"
 		app:layout_constraintBottom_toBottomOf="parent"
 		app:layout_constraintEnd_toEndOf="parent"
