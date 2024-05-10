@@ -26,7 +26,6 @@ import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
-import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -389,12 +388,12 @@ public class MainActivity extends AppCompatActivity {
 		thinColor = getColor(R.color.thin);
 		tintColor = getColor(R.color.tint);
 		scopeBuffer = new PixelBuffer(640, 2 * 1280);
-		createScope(config);
 		freqPlotBuffer = new PixelBuffer(256, 2 * 256);
-		createFreqPlot(config);
 		peakMeterBuffer = new PixelBuffer(1, 16);
-		createPeakMeter();
 		imageBuffer = new PixelBuffer(640, 496);
+		createScope(config);
+		createFreqPlot(config);
+		createPeakMeter();
 		List<String> permissions = new ArrayList<>();
 		if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
 			permissions.add(Manifest.permission.RECORD_AUDIO);
@@ -587,11 +586,10 @@ public class MainActivity extends AppCompatActivity {
 	private void createScope(Configuration config) {
 		int width = scopeBuffer.width;
 		int height = scopeBuffer.height / 2;
-		DisplayMetrics metrics = getResources().getDisplayMetrics();
 		if (config.orientation == Configuration.ORIENTATION_LANDSCAPE)
 			height /= 2;
 		else
-			height = Math.min(Math.max((width * (metrics.heightPixels - 257)) / metrics.widthPixels, height / 2), height);
+			height = Math.min(Math.max((width * (config.screenHeightDp - 101)) / config.screenWidthDp, height / 2), height);
 		scopeBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
 		int stride = scopeBuffer.width;
 		int offset = stride * (scopeBuffer.line + scopeBuffer.height / 2 - height);
