@@ -591,6 +591,8 @@ public class MainActivity extends AppCompatActivity {
 			screenWidthDp /= 2;
 		else
 			screenHeightDp -= freqPlotHeightDp;
+		int actionBarHeightDp = 64;
+		screenHeightDp -= actionBarHeightDp;
 		int width = scopeBuffer.width;
 		int height = Math.min(Math.max((width * screenHeightDp) / screenWidthDp, 496), scopeBuffer.height / 2);
 		scopeBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
