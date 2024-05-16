@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<string name="share">分享</string>
+	<string name="store_scope">保存图像</string>
+	<string name="auto_mode">自动解码</string>
+	<string name="force_mode">强制指定解码模式</string>
+	<string name="listening">监听中</string>
+	<string name="audio_settings">音频设置</string>
+	<string name="sample_rate">采样率</string>
+	<string name="channel_select">通道选择</string>
+	<string name="channel_default">默认</string>
+	<string name="audio_source">音源</string>
+	<string name="source_default">默认</string>
+	<string name="source_microphone">麦克风</string>
+	<string name="source_camcorder">摄录机</string>
+	<string name="source_voice_recognition">音频识别</string>
+	<string name="source_unprocessed">不处理</string>
+	<string name="audio_init_failed">初始化音频失败</string>
+	<string name="audio_setup_failed">音频设定失败</string>
+	<string name="audio_permission_denied">音频权限被拒绝</string>
+	<string name="audio_recording_error">音频录制出错</string>
+	<string name="creating_picture_directory_failed">创建图片文件夹出错</string>
+	<string name="creating_picture_file_failed">创建图片文件出错</string>
+	<string name="storing_picture_failed">写入图像数据失败</string>
+	<string name="scope_description">解码的SSTV图像</string>
+	<string name="freq_plot_description">频率图</string>
+	<string name="peak_meter_description">音频峰值信号水平</string>
+	<string name="night_mode">夜间模式</string>
+	<string name="enable">开启</string>
+	<string name="disable">禁用</string>
+	<string name="close">关闭</string>
+	<string name="privacy_policy">隐私策略</string>
+	<string name="about">关于Robot36</string>
+</resources>
