@@ -1,0 +1,58 @@
+<resources>
+	<string name="share">Teilen</string>
+	<string name="store_scope">Schirm Speichern</string>
+	<string name="auto_mode">Automatikmodus</string>
+	<string name="force_mode">Modus Erzwingen</string>
+	<string name="listening">Aufnahme Läuft</string>
+	<string name="audio_settings">Audioeinstellungen</string>
+	<string name="sample_rate">Abtastrate</string>
+	<string name="channel_select">Kanalwahl</string>
+	<string name="channel_default">Standard</string>
+	<string name="channel_first">Erste</string>
+	<string name="channel_second">Zweite</string>
+	<string name="channel_summation">Summierung</string>
+	<string name="channel_analytic">Analytisch</string>
+	<string name="audio_source">Audioquelle</string>
+	<string name="source_default">Standard</string>
+	<string name="source_microphone">Mikrofon</string>
+	<string name="source_camcorder">Videokamera</string>
+	<string name="source_voice_recognition">Spracherkennung</string>
+	<string name="source_unprocessed">Unbearbeitet</string>
+	<string name="audio_init_failed">Audioinitialisierung fehlgeschlagen</string>
+	<string name="audio_setup_failed">Audioeinrichtung fehlgeschlagen</string>
+	<string name="audio_permission_denied">Audioberechtigung verweigert</string>
+	<string name="audio_recording_error">Aufnahme fehlgeschlagen</string>
+	<string name="creating_picture_directory_failed">Erstellen des Bildverzeichnisses fehlgeschlagen</string>
+	<string name="creating_picture_file_failed">Erstellen der Bilddatei fehlgeschlagen</string>
+	<string name="storing_picture_failed">Speichern des Bildes fehlgeschlagen</string>
+	<string name="scope_description">Dekodiertes SSTV-Bild</string>
+	<string name="freq_plot_description">Frequenzdiagramm</string>
+	<string name="peak_meter_description">Spitzenpegel des Audiosignals</string>
+	<string name="night_mode">Nachtmodus</string>
+	<string name="enable">Aktivieren</string>
+	<string name="disable">Deaktivieren</string>
+	<string name="close">Schließen</string>
+	<string name="privacy_policy">Datenschutzerklärung</string>
+	<string name="privacy_policy_text"><![CDATA[
+<p><h1>Datenschutzerklärung</h1></p>
+<p><h5>Zugriff auf das Mikrofon</h5>
+Diese App benötigt Zugriff auf das Mikrofon Ihres Geräts, um Slow Scan Television (SSTV)-Signale zu dekodieren.
+Das Mikrofon erfasst den Ton, der das SSTV-Signal enthält.
+</p>
+<p><h5>Datenverarbeitung</h5>
+Die App verwendet einen kleinen temporären Puffer im Speicher, um die Audiodaten in Echtzeit zu verarbeiten.
+Dieser Puffer wird kontinuierlich mit neuen Daten überschrieben, während die Dekodierung fortschreitet.
+Die App speichert <b>nicht</b> den rohen Ton, der vom Mikrofon erfasst wird.
+Nur die <b>dekodierten Bilder</b>, die aus dem SSTV-Prozess resultieren, werden auf Ihrem Gerät gespeichert.
+</p>
+]]></string>
+	<string name="about">Über Robot36</string>
+	<string name="about_text"><![CDATA[
+<p><h1>Über Robot36 %1$s</h1>Urheberrecht 2024 Ahmet Inan</p>
+<p>Bitte lesen Sie den Haftungsausschluss am Ende dieser Seite</p>
+<p><h5>Beschreibung</h5>Decodiert Slow-Scan-Fernsehbilder aus Audio</p>
+<p><h5>Implementierung</h5><a href="https://github.com/xdsopl/robot36">Robot36 auf GitHub</a><br />BSD Zero Clause Lizenz</p>
+<p><h5>Modusspezifikationen</h5><a href="http://www.barberdsp.com/downloads/Dayton%%20Paper.pdf">Dayton Paper</a><br />von JL Barber - 2000<br /></p>
+<p><h5>Haftungsausschluss</h5>THE SOFTWARE IS PROVIDED \"AS IS\" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.</p>
+]]></string>
+</resources>
