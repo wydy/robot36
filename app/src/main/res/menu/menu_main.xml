@@ -8,7 +8,7 @@
 		android:icon="@drawable/baseline_auto_mode_24"
 		android:title="@string/auto_mode"
 		app:iconTint="@color/tint"
-		app:showAsAction="always"/>
+		app:showAsAction="always" />
 	<item
 		android:id="@+id/action_store_scope"
 		android:icon="@drawable/baseline_save_alt_24"
@@ -23,9 +23,6 @@
 		app:showAsAction="always" />
 	<item android:title="@string/force_mode">
 		<menu>
-			<item
-				android:id="@+id/action_force_raw_mode"
-				android:title="@string/raw_mode" />
 			<item android:title="@string/robot_modes">
 				<menu>
 					<item
@@ -88,6 +85,9 @@
 						android:title="@string/wraase_sc2_180" />
 				</menu>
 			</item>
+			<item
+				android:id="@+id/action_force_raw_mode"
+				android:title="@string/raw_mode" />
 		</menu>
 	</item>
 	<item android:title="@string/audio_settings">
