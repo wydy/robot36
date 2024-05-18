@@ -10,8 +10,10 @@ public class RawDecoder implements Mode {
 	private final ExponentialMovingAverage lowPassFilter;
 	private final int smallPictureMaxSamples;
 	private final int mediumPictureMaxSamples;
+	private final String name;
 
-	RawDecoder(int sampleRate) {
+	RawDecoder(String name, int sampleRate) {
+		this.name = name;
 		smallPictureMaxSamples = (int) Math.round(0.125 * sampleRate);
 		mediumPictureMaxSamples = (int) Math.round(0.175 * sampleRate);
 		lowPassFilter = new ExponentialMovingAverage();
@@ -23,7 +25,7 @@ public class RawDecoder implements Mode {
 
 	@Override
 	public String getName() {
-		return "Raw Mode";
+		return name;
 	}
 
 	@Override

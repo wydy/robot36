@@ -4,12 +4,12 @@
 	<string name="store_scope">Store Scope</string>
 	<string name="auto_mode">Auto Mode</string>
 	<string name="force_mode">Force Mode</string>
-	<string name="robot_modes" translatable="false">Robot Modes</string>
-	<string name="pd_modes" translatable="false">PD Modes</string>
-	<string name="martin_modes" translatable="false">Martin Modes</string>
-	<string name="scottie_modes" translatable="false">Scottie Modes</string>
-	<string name="wraase_modes" translatable="false">Wraase Modes</string>
-	<string name="raw_mode" translatable="false">Raw Mode</string>
+	<string name="robot_modes" translatable="false">Robot</string>
+	<string name="pd_modes" translatable="false">PD</string>
+	<string name="martin_modes" translatable="false">Martin</string>
+	<string name="scottie_modes" translatable="false">Scottie</string>
+	<string name="wraase_modes" translatable="false">Wraase</string>
+	<string name="raw_mode">Raw Mode</string>
 	<string name="robot36_color" translatable="false">Robot 36 Color</string>
 	<string name="robot72_color" translatable="false">Robot 72 Color</string>
 	<string name="pd50" translatable="false">PD 50</string>

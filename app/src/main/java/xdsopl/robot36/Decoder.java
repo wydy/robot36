@@ -50,7 +50,7 @@ public class Decoder {
 	private int currentScanLineSamples;
 	private float lastFrequencyOffset;
 
-	Decoder(PixelBuffer scopeBuffer, PixelBuffer imageBuffer, int sampleRate) {
+	Decoder(PixelBuffer scopeBuffer, PixelBuffer imageBuffer, String rawName, int sampleRate) {
 		this.scopeBuffer = scopeBuffer;
 		this.imageBuffer = imageBuffer;
 		imageBuffer.line = -1;
@@ -94,7 +94,7 @@ public class Decoder {
 		syncPulseToleranceSamples = (int) Math.round(syncPulseToleranceSeconds * sampleRate);
 		double scanLineToleranceSeconds = 0.001;
 		scanLineToleranceSamples = (int) Math.round(scanLineToleranceSeconds * sampleRate);
-		rawMode = new RawDecoder(sampleRate);
+		rawMode = new RawDecoder(rawName, sampleRate);
 		Mode robot36 = new Robot_36_Color(sampleRate);
 		currentMode = robot36;
 		currentScanLineSamples = robot36.getScanLineSamples();

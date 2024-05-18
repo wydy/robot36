@@ -3,6 +3,7 @@
 	<string name="store_scope">Schirm Speichern</string>
 	<string name="auto_mode">Automatikmodus</string>
 	<string name="force_mode">Modus Erzwingen</string>
+	<string name="raw_mode">Rohmodus</string>
 	<string name="listening">Aufnahme Läuft</string>
 	<string name="audio_settings">Audioeinstellungen</string>
 	<string name="sample_rate">Abtastrate</string>

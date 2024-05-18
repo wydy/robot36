@@ -216,7 +216,7 @@ public class MainActivity extends AppCompatActivity {
 				audioRecord.setRecordPositionUpdateListener(recordListener);
 				audioRecord.setPositionNotificationPeriod(frameCount);
 				if (rateChanged) {
-					decoder = new Decoder(scopeBuffer, imageBuffer, recordRate);
+					decoder = new Decoder(scopeBuffer, imageBuffer, getString(R.string.raw_mode), recordRate);
 					decoder.forceMode(forceMode);
 				}
 				startListening();
