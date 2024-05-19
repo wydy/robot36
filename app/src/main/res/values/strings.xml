@@ -1,16 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
 	<string name="app_name" translatable="false">Robot36</string>
-	<string name="share">Share</string>
-	<string name="store_scope">Store Scope</string>
-	<string name="toggle_mode">Toggle Mode</string>
-	<string name="auto_mode">Auto Mode</string>
-	<string name="force_mode">Force Mode</string>
 	<string name="robot_modes" translatable="false">Robot</string>
 	<string name="pd_modes" translatable="false">PD</string>
 	<string name="martin_modes" translatable="false">Martin</string>
 	<string name="scottie_modes" translatable="false">Scottie</string>
 	<string name="wraase_modes" translatable="false">Wraase</string>
-	<string name="raw_mode">Raw Mode</string>
 	<string name="robot36_color" translatable="false">Robot 36 Color</string>
 	<string name="robot72_color" translatable="false">Robot 72 Color</string>
 	<string name="pd50" translatable="false">PD 50</string>
@@ -25,14 +20,20 @@
 	<string name="scottie2" translatable="false">Scottie 2</string>
 	<string name="scottie_dx" translatable="false">Scottie DX</string>
 	<string name="wraase_sc2_180" translatable="false">Wraase SC2–180</string>
-	<string name="listening">Listening</string>
-	<string name="audio_settings">Audio Settings</string>
-	<string name="sample_rate">Sample Rate</string>
 	<string name="rate_8000" translatable="false">8 kHz</string>
 	<string name="rate_16000" translatable="false">16 kHz</string>
 	<string name="rate_32000" translatable="false">32 kHz</string>
 	<string name="rate_44100" translatable="false">44.1 kHz</string>
 	<string name="rate_48000" translatable="false">48 kHz</string>
+	<string name="share">Share</string>
+	<string name="store_scope">Store Scope</string>
+	<string name="toggle_mode">Toggle Mode</string>
+	<string name="auto_mode">Auto Mode</string>
+	<string name="force_mode">Force Mode</string>
+	<string name="raw_mode">Raw Mode</string>
+	<string name="listening">Listening</string>
+	<string name="audio_settings">Audio Settings</string>
+	<string name="sample_rate">Sample Rate</string>
 	<string name="channel_select">Channel Select</string>
 	<string name="channel_default">Default</string>
 	<string name="channel_first">First</string>
