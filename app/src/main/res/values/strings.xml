@@ -2,6 +2,7 @@
 	<string name="app_name" translatable="false">Robot36</string>
 	<string name="share">Share</string>
 	<string name="store_scope">Store Scope</string>
+	<string name="toggle_mode">Toggle Mode</string>
 	<string name="auto_mode">Auto Mode</string>
 	<string name="force_mode">Force Mode</string>
 	<string name="robot_modes" translatable="false">Robot</string>

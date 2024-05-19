@@ -2,6 +2,7 @@
 <resources>
 	<string name="share">分享</string>
 	<string name="store_scope">保存图像</string>
+	<string name="toggle_mode">切换模式</string>
 	<string name="auto_mode">自动解码</string>
 	<string name="force_mode">强制指定解码模式</string>
 	<string name="raw_mode">原始模式</string>

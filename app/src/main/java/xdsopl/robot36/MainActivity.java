@@ -90,25 +90,31 @@ public class MainActivity extends AppCompatActivity {
 		setTitle(str);
 	}
 
-	private void forceMode(int id) {
-		menu.findItem(R.id.action_auto_mode).setIcon(R.drawable.baseline_lock_24);
-		forceMode = getString(id);
+	private void forceMode(String name) {
+		int icon;
+		if (name.equals(getString(R.string.auto_mode)))
+			icon = R.drawable.baseline_auto_mode_24;
+		else
+			icon = R.drawable.baseline_lock_24;
+		menu.findItem(R.id.action_toggle_mode).setIcon(icon);
+		forceMode = name;
 		if (decoder != null)
 			decoder.forceMode(forceMode);
 	}
 
+	private void forceMode(int id) {
+		forceMode(getString(id));
+	}
+
 	private void autoMode() {
-		int icon;
-		if (decoder == null || forceMode != null && !forceMode.equals(getString(R.string.auto_mode))) {
-			icon = R.drawable.baseline_auto_mode_24;
-			forceMode = getString(R.string.auto_mode);
-		} else {
-			icon = R.drawable.baseline_lock_24;
-			forceMode = decoder.currentMode.getName();
-		}
-		menu.findItem(R.id.action_auto_mode).setIcon(icon);
-		if (decoder != null)
-			decoder.forceMode(forceMode);
+		forceMode(R.string.auto_mode);
+	}
+
+	private void toggleMode() {
+		if (decoder == null || forceMode != null && !forceMode.equals(getString(R.string.auto_mode)))
+			autoMode();
+		else
+			forceMode(decoder.currentMode.getName());
 	}
 
 	private final AudioRecord.OnRecordPositionUpdateListener recordListener = new AudioRecord.OnRecordPositionUpdateListener() {
@@ -430,6 +436,10 @@ public class MainActivity extends AppCompatActivity {
 		int id = item.getItemId();
 		if (id == R.id.action_store_scope) {
 			storeScope();
+			return true;
+		}
+		if (id == R.id.action_toggle_mode) {
+			toggleMode();
 			return true;
 		}
 		if (id == R.id.action_auto_mode) {

@@ -1,6 +1,7 @@
 <resources>
 	<string name="share">Teilen</string>
 	<string name="store_scope">Schirm Speichern</string>
+	<string name="toggle_mode">Modus umschalten</string>
 	<string name="auto_mode">Automatikmodus</string>
 	<string name="force_mode">Modus Erzwingen</string>
 	<string name="raw_mode">Rohmodus</string>

@@ -4,9 +4,9 @@
 	xmlns:tools="http://schemas.android.com/tools"
 	tools:context="xdsopl.robot36.MainActivity">
 	<item
-		android:id="@+id/action_auto_mode"
+		android:id="@+id/action_toggle_mode"
 		android:icon="@drawable/baseline_auto_mode_24"
-		android:title="@string/auto_mode"
+		android:title="@string/toggle_mode"
 		app:iconTint="@color/tint"
 		app:showAsAction="always" />
 	<item
@@ -88,6 +88,9 @@
 			<item
 				android:id="@+id/action_force_raw_mode"
 				android:title="@string/raw_mode" />
+			<item
+				android:id="@+id/action_auto_mode"
+				android:title="@string/auto_mode" />
 		</menu>
 	</item>
 	<item android:title="@string/audio_settings">
