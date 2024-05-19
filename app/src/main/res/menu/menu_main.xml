@@ -21,7 +21,7 @@
 		android:title="@string/share"
 		app:actionProviderClass="androidx.appcompat.widget.ShareActionProvider"
 		app:showAsAction="always" />
-	<item android:title="@string/force_mode">
+	<item android:title="@string/lock_mode">
 		<menu>
 			<item android:title="@string/robot_modes">
 				<menu>

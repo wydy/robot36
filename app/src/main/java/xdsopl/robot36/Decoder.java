@@ -436,7 +436,7 @@ public class Decoder {
 		return false;
 	}
 
-	public void forceMode(String name) {
+	public void setMode(String name) {
 		if (rawMode.getName().equals(name)) {
 			lockMode = true;
 			imageBuffer.line = -1;

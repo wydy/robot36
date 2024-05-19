@@ -74,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
 	private AudioRecord audioRecord;
 	private Decoder decoder;
 	private Menu menu;
-	private String forceMode;
+	private String currentMode;
 	private int recordRate;
 	private int recordChannel;
 	private int audioSource;
@@ -90,31 +90,31 @@ public class MainActivity extends AppCompatActivity {
 		setTitle(str);
 	}
 
-	private void forceMode(String name) {
+	private void setMode(String name) {
 		int icon;
 		if (name.equals(getString(R.string.auto_mode)))
 			icon = R.drawable.baseline_auto_mode_24;
 		else
 			icon = R.drawable.baseline_lock_24;
 		menu.findItem(R.id.action_toggle_mode).setIcon(icon);
-		forceMode = name;
+		currentMode = name;
 		if (decoder != null)
-			decoder.forceMode(forceMode);
+			decoder.setMode(currentMode);
 	}
 
-	private void forceMode(int id) {
-		forceMode(getString(id));
+	private void setMode(int id) {
+		setMode(getString(id));
 	}
 
 	private void autoMode() {
-		forceMode(R.string.auto_mode);
+		setMode(R.string.auto_mode);
 	}
 
 	private void toggleMode() {
-		if (decoder == null || forceMode != null && !forceMode.equals(getString(R.string.auto_mode)))
+		if (decoder == null || currentMode != null && !currentMode.equals(getString(R.string.auto_mode)))
 			autoMode();
 		else
-			forceMode(decoder.currentMode.getName());
+			setMode(decoder.currentMode.getName());
 	}
 
 	private final AudioRecord.OnRecordPositionUpdateListener recordListener = new AudioRecord.OnRecordPositionUpdateListener() {
@@ -223,7 +223,7 @@ public class MainActivity extends AppCompatActivity {
 				audioRecord.setPositionNotificationPeriod(frameCount);
 				if (rateChanged) {
 					decoder = new Decoder(scopeBuffer, imageBuffer, getString(R.string.raw_mode), recordRate);
-					decoder.forceMode(forceMode);
+					decoder.setMode(currentMode);
 				}
 				startListening();
 			} else {
@@ -447,63 +447,63 @@ public class MainActivity extends AppCompatActivity {
 			return true;
 		}
 		if (id == R.id.action_force_raw_mode) {
-			forceMode(R.string.raw_mode);
+			setMode(R.string.raw_mode);
 			return true;
 		}
 		if (id == R.id.action_force_robot36_color) {
-			forceMode(R.string.robot36_color);
+			setMode(R.string.robot36_color);
 			return true;
 		}
 		if (id == R.id.action_force_robot72_color) {
-			forceMode(R.string.robot72_color);
+			setMode(R.string.robot72_color);
 			return true;
 		}
 		if (id == R.id.action_force_pd50) {
-			forceMode(R.string.pd50);
+			setMode(R.string.pd50);
 			return true;
 		}
 		if (id == R.id.action_force_pd90) {
-			forceMode(R.string.pd90);
+			setMode(R.string.pd90);
 			return true;
 		}
 		if (id == R.id.action_force_pd120) {
-			forceMode(R.string.pd120);
+			setMode(R.string.pd120);
 			return true;
 		}
 		if (id == R.id.action_force_pd160) {
-			forceMode(R.string.pd160);
+			setMode(R.string.pd160);
 			return true;
 		}
 		if (id == R.id.action_force_pd180) {
-			forceMode(R.string.pd180);
+			setMode(R.string.pd180);
 			return true;
 		}
 		if (id == R.id.action_force_pd240) {
-			forceMode(R.string.pd240);
+			setMode(R.string.pd240);
 			return true;
 		}
 		if (id == R.id.action_force_martin1) {
-			forceMode(R.string.martin1);
+			setMode(R.string.martin1);
 			return true;
 		}
 		if (id == R.id.action_force_martin2) {
-			forceMode(R.string.martin2);
+			setMode(R.string.martin2);
 			return true;
 		}
 		if (id == R.id.action_force_scottie1) {
-			forceMode(R.string.scottie1);
+			setMode(R.string.scottie1);
 			return true;
 		}
 		if (id == R.id.action_force_scottie2) {
-			forceMode(R.string.scottie2);
+			setMode(R.string.scottie2);
 			return true;
 		}
 		if (id == R.id.action_force_scottie_dx) {
-			forceMode(R.string.scottie_dx);
+			setMode(R.string.scottie_dx);
 			return true;
 		}
 		if (id == R.id.action_force_wraase_sc2_180) {
-			forceMode(R.string.wraase_sc2_180);
+			setMode(R.string.wraase_sc2_180);
 			return true;
 		}
 		if (id == R.id.action_set_record_rate_8000) {
