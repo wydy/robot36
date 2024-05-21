@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+	<string name="language">Язык</string>
 	<string name="share">Поделиться</string>
 	<string name="store_scope">Сохранить экран</string>
 	<string name="toggle_mode">Зафиксировать режим</string>

@@ -4,6 +4,26 @@
 	xmlns:tools="http://schemas.android.com/tools"
 	tools:context="xdsopl.robot36.MainActivity">
 	<item
+		android:icon="@drawable/baseline_language_24"
+		android:title="@string/language"
+		app:showAsAction="always"
+		app:iconTint="@color/tint">
+		<menu>
+			<item
+				android:id="@+id/action_english"
+				android:title="@string/english" />
+			<item
+				android:id="@+id/action_simplified_chinese"
+				android:title="@string/simplified_chinese" />
+			<item
+				android:id="@+id/action_russian"
+				android:title="@string/russian" />
+			<item
+				android:id="@+id/action_german"
+				android:title="@string/german" />
+		</menu>
+	</item>
+	<item
 		android:id="@+id/action_toggle_mode"
 		android:icon="@drawable/baseline_auto_mode_24"
 		android:title="@string/toggle_mode"

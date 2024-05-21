@@ -44,6 +44,7 @@ import androidx.appcompat.widget.ShareActionProvider;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
+import androidx.core.os.LocaleListCompat;
 import androidx.core.view.MenuItemCompat;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -75,6 +76,7 @@ public class MainActivity extends AppCompatActivity {
 	private Decoder decoder;
 	private Menu menu;
 	private String currentMode;
+	private String language;
 	private int recordRate;
 	private int recordChannel;
 	private int audioSource;
@@ -355,6 +357,7 @@ public class MainActivity extends AppCompatActivity {
 		state.putInt("recordRate", recordRate);
 		state.putInt("recordChannel", recordChannel);
 		state.putInt("audioSource", audioSource);
+		state.putString("language", language);
 		super.onSaveInstanceState(state);
 	}
 
@@ -365,6 +368,7 @@ public class MainActivity extends AppCompatActivity {
 		edit.putInt("recordRate", recordRate);
 		edit.putInt("recordChannel", recordChannel);
 		edit.putInt("audioSource", audioSource);
+		edit.putString("language", language);
 		edit.apply();
 	}
 
@@ -373,19 +377,23 @@ public class MainActivity extends AppCompatActivity {
 		final int defaultSampleRate = 44100;
 		final int defaultChannelSelect = 0;
 		final int defaultAudioSource = MediaRecorder.AudioSource.MIC;
+		final String defaultLanguage = "en-US";
 		if (state == null) {
 			SharedPreferences pref = getPreferences(Context.MODE_PRIVATE);
 			AppCompatDelegate.setDefaultNightMode(pref.getInt("nightMode", AppCompatDelegate.getDefaultNightMode()));
 			recordRate = pref.getInt("recordRate", defaultSampleRate);
 			recordChannel = pref.getInt("recordChannel", defaultChannelSelect);
 			audioSource = pref.getInt("audioSource", defaultAudioSource);
+			language = pref.getString("language", defaultLanguage);
 		} else {
 			AppCompatDelegate.setDefaultNightMode(state.getInt("nightMode", AppCompatDelegate.getDefaultNightMode()));
 			recordRate = state.getInt("recordRate", defaultSampleRate);
 			recordChannel = state.getInt("recordChannel", defaultChannelSelect);
 			audioSource = state.getInt("audioSource", defaultAudioSource);
+			language = state.getString("language", defaultLanguage);
 		}
 		super.onCreate(state);
+		setLanguage(language);
 		Configuration config = getResources().getConfiguration();
 		EdgeToEdge.enable(this);
 		setContentView(config.orientation == Configuration.ORIENTATION_LANDSCAPE ? R.layout.activity_main_land : R.layout.activity_main);
@@ -582,7 +590,28 @@ public class MainActivity extends AppCompatActivity {
 			showTextPage(getString(R.string.about_text, BuildConfig.VERSION_NAME));
 			return true;
 		}
+		if (id == R.id.action_english) {
+			setLanguage("en-US");
+			return true;
+		}
+		if (id == R.id.action_simplified_chinese) {
+			setLanguage("zh-CN");
+			return true;
+		}
+		if (id == R.id.action_russian) {
+			setLanguage("ru");
+			return true;
+		}
+		if (id == R.id.action_german) {
+			setLanguage("de");
+			return true;
+		}
 		return super.onOptionsItemSelected(item);
+	}
+
+	private void setLanguage(String language) {
+		this.language = language;
+		AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(language));
 	}
 
 	private void storeScope() {

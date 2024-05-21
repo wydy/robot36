@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+	<string name="language">Sprache</string>
 	<string name="share">Teilen</string>
 	<string name="store_scope">Schirm Speichern</string>
 	<string name="toggle_mode">Modus umschalten</string>
