@@ -57,6 +57,6 @@ Apenas as <b>imagens decodificadas</b> resultantes do processo SSTV são salvas 
 <p><h5>Descrição</h5>Decodifica imagens de televisão de varredura lenta a partir de áudio</p>
 <p><h5>Código fonte</h5><a href="https://github.com/xdsopl/robot36">Robot36 no GitHub</a><br />BSD Zero Clause License</p>
 <p><h5>Especificação técnica</h5><a href="http://www.barberdsp.com/downloads/Dayton%%20Paper.pdf">Dayton Paper</a><br />por JL Barber - 2000</p>
-<p><h5>AVISO</h5>O SOFTWARE É FORNECIDO "COMO ESTÁ" E O AUTOR RENUNCIA A TODAS AS GARANTIAS EM RELAÇÃO A ESTE SOFTWARE, INCLUINDO TODAS AS GARANTIAS IMPLÍCITAS DE COMERCIABILIDADE E ADEQUAÇÃO A UM PROPÓSITO ESPECÍFICO. EM NENHUM CASO O AUTOR SERÁ RESPONSÁVEL POR QUAISQUER DANOS ESPECIAIS, DIRETOS, INDIRETOS OU CONSEQUENCIAIS OU QUAISQUER DANOS RESULTANTES DE PERDA DE USO, DADOS OU LUCROS, SEJA EM AÇÃO DE CONTRATO, NEGLIGÊNCIA OU OUTRA AÇÃO DELITUOSA, DECORRENTE DE OU EM CONEXÃO COM O USO OU DESEMPENHO DESTE SOFTWARE.</p>
+<p><h5>AVISO</h5>%2$s</p>
 ]]></string>
 </resources>

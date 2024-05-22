@@ -587,7 +587,7 @@ public class MainActivity extends AppCompatActivity {
 			return true;
 		}
 		if (id == R.id.action_about) {
-			showTextPage(getString(R.string.about_text, BuildConfig.VERSION_NAME));
+			showTextPage(getString(R.string.about_text, BuildConfig.VERSION_NAME, getString(R.string.disclaimer)));
 			return true;
 		}
 		if (id == R.id.action_english) {
