@@ -46,8 +46,8 @@ O microfone captura o áudio contendo a transmissão SSTV.
 <p><h5>Manipulaçãode dados</h5>
 O aplicativo utiliza um pequeno buffer temporário na memória para processar os dados de áudio em tempo real.
 Este buffer é constantemente sobrescrito com novos dados à medida que a decodificação avança.
-O aplicativo <b>não</b> armazena o áudio bruto capturado pelo microfone.
-Apenas as <b>imagens decodificadas</b> resultantes do processo SSTV são salvas no armazenamento do seu dispositivo.
+O aplicativo não armazena o áudio bruto capturado pelo microfone.
+Apenas as imagens decodificadas resultantes do processo SSTV são salvas no armazenamento do seu dispositivo.
 </p>
 ]]></string>
 	<string name="about">Sobre Robot36</string>

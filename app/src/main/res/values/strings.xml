@@ -77,8 +77,8 @@ The microphone captures the audio containing the SSTV transmission.
 <p><h5>Data Handling</h5>
 The app uses a small temporary buffer in memory to process the audio data in real-time.
 This buffer is constantly overwritten with new data as the decoding progresses.
-The app <b>does not</b> store the raw audio captured from the microphone.
-Only the <b>decoded images</b> resulting from the SSTV process are saved on your device\'s storage.
+The app does not store the raw audio captured from the microphone.
+Only the decoded images resulting from the SSTV process are saved on your device\'s storage.
 </p>
 ]]></string>
 	<string name="about">About Robot36</string>

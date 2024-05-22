@@ -46,8 +46,8 @@ Das Mikrofon erfasst den Ton, der das SSTV-Signal enthält.
 <p><h5>Datenverarbeitung</h5>
 Die App verwendet einen kleinen temporären Puffer im Speicher, um die Audiodaten in Echtzeit zu verarbeiten.
 Dieser Puffer wird kontinuierlich mit neuen Daten überschrieben, während die Dekodierung fortschreitet.
-Die App speichert <b>nicht</b> den rohen Ton, der vom Mikrofon erfasst wird.
-Nur die <b>dekodierten Bilder</b>, die aus dem SSTV-Prozess resultieren, werden auf Ihrem Gerät gespeichert.
+Die App speichert nicht den rohen Ton, der vom Mikrofon erfasst wird.
+Nur die dekodierten Bilder, die aus dem SSTV-Prozess resultieren, werden auf Ihrem Gerät gespeichert.
 </p>
 ]]></string>
 	<string name="about">Über Robot36</string>
