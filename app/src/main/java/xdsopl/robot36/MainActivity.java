@@ -377,7 +377,7 @@ public class MainActivity extends AppCompatActivity {
 		final int defaultSampleRate = 44100;
 		final int defaultChannelSelect = 0;
 		final int defaultAudioSource = MediaRecorder.AudioSource.MIC;
-		final String defaultLanguage = "en-US";
+		final String defaultLanguage = "system";
 		if (state == null) {
 			SharedPreferences pref = getPreferences(Context.MODE_PRIVATE);
 			AppCompatDelegate.setDefaultNightMode(pref.getInt("nightMode", AppCompatDelegate.getDefaultNightMode()));
@@ -615,7 +615,8 @@ public class MainActivity extends AppCompatActivity {
 
 	private void setLanguage(String language) {
 		this.language = language;
-		AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(language));
+		if (!language.equals("system"))
+			AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(language));
 	}
 
 	private void storeScope() {
