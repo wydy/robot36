@@ -37,9 +37,9 @@
 	<string name="enable">Включить</string>
 	<string name="disable">Выключить</string>
 	<string name="close">Закрыть</string>
-	<string name="privacy_policy">Политика конфиденциальности</string>
+	<string name="privacy_policy">Политика приватности</string>
 	<string name="privacy_policy_text"><![CDATA[
-<p><h1>Политика конфиденциальности</h1></p>
+<p><h1>Политика приватности</h1></p>
 <p><h5>Доступ к микрофону</h5>
 Это приложение требует доступ к микрофону вашего устройства для декодирования сигналов телевидения с медленной развёрткой (SSTV).
 Микрофон записывает аудио, содержащее передачу SSTV.
