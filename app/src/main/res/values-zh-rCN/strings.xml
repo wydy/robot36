@@ -2,6 +2,7 @@
 <resources>
 	<string name="language">语言</string>
 	<string name="share">分享</string>
+	<string name="more_options">更多选项</string>
 	<string name="store_scope">保存图像</string>
 	<string name="toggle_mode">切换模式</string>
 	<string name="auto_mode">自动解码</string>
