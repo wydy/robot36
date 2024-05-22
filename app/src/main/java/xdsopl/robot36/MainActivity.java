@@ -606,6 +606,10 @@ public class MainActivity extends AppCompatActivity {
 			setLanguage("de");
 			return true;
 		}
+		if (id == R.id.action_brazilian_portuguese) {
+			setLanguage("pt-BR");
+			return true;
+		}
 		return super.onOptionsItemSelected(item);
 	}
 

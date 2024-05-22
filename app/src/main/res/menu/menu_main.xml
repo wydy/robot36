@@ -21,6 +21,9 @@
 			<item
 				android:id="@+id/action_german"
 				android:title="@string/german" />
+			<item
+				android:id="@+id/action_brazilian_portuguese"
+				android:title="@string/brazilian_portuguese" />
 		</menu>
 	</item>
 	<item
