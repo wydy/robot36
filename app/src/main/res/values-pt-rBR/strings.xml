@@ -31,7 +31,7 @@
 	<string name="creating_picture_file_failed">Falha ao criar imagem</string>
 	<string name="storing_picture_failed">Falha ao salvar imagem</string>
 	<string name="scope_description">Imagem SSTV decodificada</string>
-	<string name="freq_plot_description">Gráficode frequência</string>
+	<string name="freq_plot_description">Gráfico de frequência</string>
 	<string name="peak_meter_description">Nível de sinal de áudio máximo</string>
 	<string name="night_mode">Modo noturno</string>
 	<string name="enable">Habilitar</string>
@@ -44,7 +44,7 @@
 Este aplicativo requer acesso ao microfone do seu dispositivo para decodificar sinais de televisão de varredura lenta (SSTV).
 O microfone captura o áudio contendo a transmissão SSTV.
 </p>
-<p><h5>Manipulaçãode dados</h5>
+<p><h5>Manipulação de dados</h5>
 O aplicativo utiliza um pequeno buffer temporário na memória para processar os dados de áudio em tempo real.
 Este buffer é constantemente sobrescrito com novos dados à medida que a decodificação avança.
 O aplicativo não armazena o áudio bruto capturado pelo microfone.
