@@ -10,8 +10,8 @@ android {
         applicationId "xdsopl.robot36"
         minSdk 24
         targetSdk 34
-        versionCode 60
-        versionName "2.10"
+        versionCode 61
+        versionName "2.11"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
