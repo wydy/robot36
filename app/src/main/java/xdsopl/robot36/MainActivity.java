@@ -229,6 +229,8 @@ public class MainActivity extends AppCompatActivity {
 				}
 				startListening();
 			} else {
+				audioRecord.release();
+				audioRecord = null;
 				setStatus(R.string.audio_init_failed);
 			}
 		} catch (IllegalArgumentException e) {
