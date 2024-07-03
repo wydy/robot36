@@ -190,7 +190,7 @@ public class MainActivity extends AppCompatActivity {
 		if (imageBuffer.line < imageBuffer.height)
 			return;
 		imageBuffer.line = -1;
-		storeBitmap(Bitmap.createBitmap(imageBuffer.pixels, imageBuffer.width, imageBuffer.height, Bitmap.Config.ARGB_8888));
+		//storeBitmap(Bitmap.createBitmap(imageBuffer.pixels, imageBuffer.width, imageBuffer.height, Bitmap.Config.ARGB_8888));
 	}
 
 	private void initAudioRecord() {
