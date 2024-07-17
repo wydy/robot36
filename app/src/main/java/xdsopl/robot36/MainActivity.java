@@ -632,7 +632,7 @@ public class MainActivity extends AppCompatActivity {
 	private void createScope(Configuration config) {
 		int screenWidthDp = config.screenWidthDp;
 		int screenHeightDp = config.screenHeightDp;
-		int freqPlotHeightDp = 64;
+		int freqPlotHeightDp = 240;
 		if (config.orientation == Configuration.ORIENTATION_LANDSCAPE)
 			screenWidthDp /= 2;
 		else
@@ -654,7 +654,7 @@ public class MainActivity extends AppCompatActivity {
 		int width = freqPlotBuffer.width;
 		int height = freqPlotBuffer.height / 2;
 		if (config.orientation != Configuration.ORIENTATION_LANDSCAPE)
-			height /= 4;
+			height = 95;
 		freqPlotBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
 		int stride = freqPlotBuffer.width;
 		int offset = stride * (freqPlotBuffer.line + freqPlotBuffer.height / 2 - height);
