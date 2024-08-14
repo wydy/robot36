@@ -71,6 +71,7 @@ public class MainActivity extends AppCompatActivity {
 	private PixelBuffer peakMeterBuffer;
 	private ImageView peakMeterView;
 	private PixelBuffer imageBuffer;
+	private short[] shortBuffer;
 	private float[] recordBuffer;
 	private AudioRecord audioRecord;
 	private Decoder decoder;
@@ -80,6 +81,7 @@ public class MainActivity extends AppCompatActivity {
 	private int recordRate;
 	private int recordChannel;
 	private int audioSource;
+	private int audioFormat;
 	private int fgColor;
 	private int thinColor;
 	private int tintColor;
@@ -126,7 +128,13 @@ public class MainActivity extends AppCompatActivity {
 
 		@Override
 		public void onPeriodicNotification(AudioRecord audioRecord) {
-			audioRecord.read(recordBuffer, 0, recordBuffer.length, AudioRecord.READ_BLOCKING);
+			if (shortBuffer == null) {
+				audioRecord.read(recordBuffer, 0, recordBuffer.length, AudioRecord.READ_BLOCKING);
+			} else {
+				audioRecord.read(shortBuffer, 0, shortBuffer.length, AudioRecord.READ_BLOCKING);
+				for (int i = 0; i < shortBuffer.length; ++i)
+					recordBuffer[i] = .000030517578125f * shortBuffer[i];
+			}
 			processPeakMeter();
 			boolean newLines = decoder.process(recordBuffer, recordChannel);
 			processFreqPlot();
@@ -199,7 +207,8 @@ public class MainActivity extends AppCompatActivity {
 			rateChanged = audioRecord.getSampleRate() != recordRate;
 			boolean channelChanged = audioRecord.getChannelCount() != (recordChannel == 0 ? 1 : 2);
 			boolean sourceChanged = audioRecord.getAudioSource() != audioSource;
-			if (!rateChanged && !channelChanged && !sourceChanged)
+			boolean formatChanged = audioRecord.getAudioFormat() != audioFormat;
+			if (!rateChanged && !channelChanged && !sourceChanged && !formatChanged)
 				return;
 			stopListening();
 			audioRecord.release();
@@ -211,13 +220,14 @@ public class MainActivity extends AppCompatActivity {
 			channelCount = 2;
 			channelConfig = AudioFormat.CHANNEL_IN_STEREO;
 		}
-		int sampleSize = 4;
+		int sampleSize = audioFormat == AudioFormat.ENCODING_PCM_FLOAT ? 4 : 2;
 		int frameSize = sampleSize * channelCount;
-		int audioFormat = AudioFormat.ENCODING_PCM_FLOAT;
 		int readsPerSecond = 50;
 		int bufferSize = Integer.highestOneBit(recordRate) * frameSize;
 		int frameCount = recordRate / readsPerSecond;
-		recordBuffer = new float[frameCount * channelCount];
+		int bufferCount = frameCount * channelCount;
+		recordBuffer = new float[bufferCount];
+		shortBuffer = audioFormat == AudioFormat.ENCODING_PCM_FLOAT ? null : new short[bufferCount];
 		try {
 			audioRecord = new AudioRecord(audioSource, recordRate, channelConfig, audioFormat, bufferSize);
 			if (audioRecord.getState() == AudioRecord.STATE_INITIALIZED) {
@@ -244,7 +254,10 @@ public class MainActivity extends AppCompatActivity {
 		if (audioRecord != null) {
 			audioRecord.startRecording();
 			if (audioRecord.getRecordingState() == AudioRecord.RECORDSTATE_RECORDING) {
-				audioRecord.read(recordBuffer, 0, recordBuffer.length, AudioRecord.READ_BLOCKING);
+				if (shortBuffer == null)
+					audioRecord.read(recordBuffer, 0, recordBuffer.length, AudioRecord.READ_BLOCKING);
+				else
+					audioRecord.read(shortBuffer, 0, recordBuffer.length, AudioRecord.READ_BLOCKING);
 				setStatus(R.string.listening);
 			} else {
 				setStatus(R.string.audio_recording_error);
@@ -278,6 +291,14 @@ public class MainActivity extends AppCompatActivity {
 			return;
 		audioSource = newAudioSource;
 		updateAudioSourceMenu();
+		initAudioRecord();
+	}
+
+	private void setAudioFormat(int newAudioFormat) {
+		if (audioFormat == newAudioFormat)
+			return;
+		audioFormat = newAudioFormat;
+		updateAudioFormatMenu();
 		initAudioRecord();
 	}
 
@@ -341,6 +362,10 @@ public class MainActivity extends AppCompatActivity {
 		}
 	}
 
+	private void updateAudioFormatMenu() {
+		menu.findItem(audioFormat == AudioFormat.ENCODING_PCM_FLOAT ? R.id.action_set_floating_point : R.id.action_set_fixed_point).setChecked(true);
+	}
+
 	private final int permissionID = 1;
 
 	@Override
@@ -359,6 +384,7 @@ public class MainActivity extends AppCompatActivity {
 		state.putInt("recordRate", recordRate);
 		state.putInt("recordChannel", recordChannel);
 		state.putInt("audioSource", audioSource);
+		state.putInt("audioFormat", audioFormat);
 		state.putString("language", language);
 		super.onSaveInstanceState(state);
 	}
@@ -370,6 +396,7 @@ public class MainActivity extends AppCompatActivity {
 		edit.putInt("recordRate", recordRate);
 		edit.putInt("recordChannel", recordChannel);
 		edit.putInt("audioSource", audioSource);
+		edit.putInt("audioFormat", audioFormat);
 		edit.putString("language", language);
 		edit.apply();
 	}
@@ -379,6 +406,7 @@ public class MainActivity extends AppCompatActivity {
 		final int defaultSampleRate = 44100;
 		final int defaultChannelSelect = 0;
 		final int defaultAudioSource = MediaRecorder.AudioSource.MIC;
+		final int defaultAudioFormat = AudioFormat.ENCODING_PCM_FLOAT;
 		final String defaultLanguage = "system";
 		if (state == null) {
 			SharedPreferences pref = getPreferences(Context.MODE_PRIVATE);
@@ -386,12 +414,14 @@ public class MainActivity extends AppCompatActivity {
 			recordRate = pref.getInt("recordRate", defaultSampleRate);
 			recordChannel = pref.getInt("recordChannel", defaultChannelSelect);
 			audioSource = pref.getInt("audioSource", defaultAudioSource);
+			audioFormat = pref.getInt("audioFormat", defaultAudioFormat);
 			language = pref.getString("language", defaultLanguage);
 		} else {
 			AppCompatDelegate.setDefaultNightMode(state.getInt("nightMode", AppCompatDelegate.getDefaultNightMode()));
 			recordRate = state.getInt("recordRate", defaultSampleRate);
 			recordChannel = state.getInt("recordChannel", defaultChannelSelect);
 			audioSource = state.getInt("audioSource", defaultAudioSource);
+			audioFormat = state.getInt("audioFormat", defaultAudioFormat);
 			language = state.getString("language", defaultLanguage);
 		}
 		super.onCreate(state);
@@ -438,6 +468,7 @@ public class MainActivity extends AppCompatActivity {
 		updateRecordRateMenu();
 		updateRecordChannelMenu();
 		updateAudioSourceMenu();
+		updateAudioFormatMenu();
 		return true;
 	}
 
@@ -574,6 +605,14 @@ public class MainActivity extends AppCompatActivity {
 		}
 		if (id == R.id.action_set_source_unprocessed) {
 			setAudioSource(MediaRecorder.AudioSource.UNPROCESSED);
+			return true;
+		}
+		if (id == R.id.action_set_floating_point) {
+			setAudioFormat(AudioFormat.ENCODING_PCM_FLOAT);
+			return true;
+		}
+		if (id == R.id.action_set_fixed_point) {
+			setAudioFormat(AudioFormat.ENCODING_PCM_16BIT);
 			return true;
 		}
 		if (id == R.id.action_enable_night_mode) {

@@ -54,6 +54,9 @@
 	<string name="source_camcorder">Camcorder</string>
 	<string name="source_voice_recognition">Voice Recognition</string>
 	<string name="source_unprocessed">Unprocessed</string>
+	<string name="audio_format">Audio Format</string>
+	<string name="fixed_point">Fixed Point</string>
+	<string name="floating_point">Floating Point</string>
 	<string name="audio_init_failed">Audio init failed</string>
 	<string name="audio_setup_failed">Audio setup failed</string>
 	<string name="audio_permission_denied">Audio permission denied</string>

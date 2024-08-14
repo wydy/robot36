@@ -23,6 +23,9 @@
 	<string name="source_camcorder">摄录机</string>
 	<string name="source_voice_recognition">音频识别</string>
 	<string name="source_unprocessed">不处理</string>
+	<string name="audio_format">音频格式</string>
+	<string name="fixed_point">定点数</string>
+	<string name="floating_point">浮点数</string>
 	<string name="audio_init_failed">初始化音频失败</string>
 	<string name="audio_setup_failed">音频设定失败</string>
 	<string name="audio_permission_denied">音频权限被拒绝</string>

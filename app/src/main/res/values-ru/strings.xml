@@ -23,6 +23,9 @@
 	<string name="source_camcorder">Камера</string>
 	<string name="source_voice_recognition">Распознавание голоса</string>
 	<string name="source_unprocessed">Необработанный</string>
+	<string name="audio_format">Аудио формат</string>
+	<string name="fixed_point">Фиксированная точка</string>
+	<string name="floating_point">Плавающая точка</string>
 	<string name="audio_init_failed">Ошибка инициализации аудио</string>
 	<string name="audio_setup_failed">Ошибка настройки аудио</string>
 	<string name="audio_permission_denied">Аудио - отказано в доступе</string>

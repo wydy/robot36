@@ -23,6 +23,9 @@
 	<string name="source_camcorder">Filmadora</string>
 	<string name="source_voice_recognition">Reconhecimento de voz</string>
 	<string name="source_unprocessed">Não processado</string>
+	<string name="audio_format">Formato de Áudio</string>
+	<string name="fixed_point">Ponto Fixo</string>
+	<string name="floating_point">Ponto Flutuante</string>
 	<string name="audio_init_failed">Falha ao iniciar o áudio</string>
 	<string name="audio_setup_failed">Falha na configuração de áudio</string>
 	<string name="audio_permission_denied">Permissão de áudio negada</string>

@@ -23,6 +23,9 @@
 	<string name="source_camcorder">Videokamera</string>
 	<string name="source_voice_recognition">Spracherkennung</string>
 	<string name="source_unprocessed">Unbearbeitet</string>
+	<string name="audio_format">Audioformat</string>
+	<string name="fixed_point">Festkomma</string>
+	<string name="floating_point">Gleitkomma</string>
 	<string name="audio_init_failed">Audioinitialisierung fehlgeschlagen</string>
 	<string name="audio_setup_failed">Audioeinrichtung fehlgeschlagen</string>
 	<string name="audio_permission_denied">Audioberechtigung verweigert</string>
