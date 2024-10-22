@@ -651,6 +651,10 @@ public class MainActivity extends AppCompatActivity {
 			setLanguage("pt-BR");
 			return true;
 		}
+		if (id == R.id.action_polish) {
+			setLanguage("pl");
+			return true;
+		}
 		return super.onOptionsItemSelected(item);
 	}
 
