@@ -36,6 +36,7 @@
 	<string name="scope_description">Zdekodowano obraz SSTV</string>
 	<string name="freq_plot_description">Wykres częstotliwości</string>
 	<string name="peak_meter_description">Szczytowy poziom sygnału audio</string>
+	<string name="auto_save">Automatyczne zapisywanie</string>
 	<string name="night_mode">Tryb nocny</string>
 	<string name="enable">Włącz</string>
 	<string name="disable">Wyłącz</string>

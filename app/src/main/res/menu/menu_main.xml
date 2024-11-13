@@ -206,6 +206,25 @@
 				</menu>
 			</item>
 			<item
+				android:icon="@drawable/baseline_auto_mode_24"
+				android:title="@string/auto_save"
+				app:iconTint="@color/tint">
+				<menu>
+					<group android:checkableBehavior="single">
+						<item
+							android:id="@+id/action_enable_auto_save"
+							android:icon="@drawable/baseline_save_alt_24"
+							android:title="@string/enable"
+							app:iconTint="@color/tint" />
+						<item
+							android:id="@+id/action_disable_auto_save"
+							android:icon="@drawable/outline_scan_delete_24"
+							android:title="@string/disable"
+							app:iconTint="@color/tint" />
+					</group>
+				</menu>
+			</item>
+			<item
 				android:icon="@drawable/baseline_language_24"
 				android:title="@string/language"
 				app:iconTint="@color/tint">

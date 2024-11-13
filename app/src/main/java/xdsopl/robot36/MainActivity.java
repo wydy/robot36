@@ -85,6 +85,7 @@ public class MainActivity extends AppCompatActivity {
 	private int fgColor;
 	private int thinColor;
 	private int tintColor;
+	private boolean autoSave;
 
 	private void setStatus(int id) {
 		setTitle(id);
@@ -198,7 +199,8 @@ public class MainActivity extends AppCompatActivity {
 		if (imageBuffer.line < imageBuffer.height)
 			return;
 		imageBuffer.line = -1;
-		storeBitmap(Bitmap.createBitmap(imageBuffer.pixels, imageBuffer.width, imageBuffer.height, Bitmap.Config.ARGB_8888));
+		if (autoSave)
+			storeBitmap(Bitmap.createBitmap(imageBuffer.pixels, imageBuffer.width, imageBuffer.height, Bitmap.Config.ARGB_8888));
 	}
 
 	private void initAudioRecord() {
@@ -302,6 +304,20 @@ public class MainActivity extends AppCompatActivity {
 		initAudioRecord();
 	}
 
+	private void setAutoSave(boolean newAutoSave) {
+		if (autoSave == newAutoSave)
+			return;
+		autoSave = newAutoSave;
+		updateAutoSaveMenu();
+	}
+
+	private void updateAutoSaveMenu() {
+		if (autoSave)
+			menu.findItem(R.id.action_enable_auto_save).setChecked(true);
+		else
+			menu.findItem(R.id.action_disable_auto_save).setChecked(true);
+	}
+
 	private void updateRecordRateMenu() {
 		switch (recordRate) {
 			case 8000:
@@ -385,6 +401,7 @@ public class MainActivity extends AppCompatActivity {
 		state.putInt("recordChannel", recordChannel);
 		state.putInt("audioSource", audioSource);
 		state.putInt("audioFormat", audioFormat);
+		state.putBoolean("autoSave", autoSave);
 		state.putString("language", language);
 		super.onSaveInstanceState(state);
 	}
@@ -397,6 +414,7 @@ public class MainActivity extends AppCompatActivity {
 		edit.putInt("recordChannel", recordChannel);
 		edit.putInt("audioSource", audioSource);
 		edit.putInt("audioFormat", audioFormat);
+		edit.putBoolean("autoSave", autoSave);
 		edit.putString("language", language);
 		edit.apply();
 	}
@@ -407,6 +425,7 @@ public class MainActivity extends AppCompatActivity {
 		final int defaultChannelSelect = 0;
 		final int defaultAudioSource = MediaRecorder.AudioSource.MIC;
 		final int defaultAudioFormat = AudioFormat.ENCODING_PCM_FLOAT;
+		final boolean defaultAutoSave = true;
 		final String defaultLanguage = "system";
 		if (state == null) {
 			SharedPreferences pref = getPreferences(Context.MODE_PRIVATE);
@@ -415,6 +434,7 @@ public class MainActivity extends AppCompatActivity {
 			recordChannel = pref.getInt("recordChannel", defaultChannelSelect);
 			audioSource = pref.getInt("audioSource", defaultAudioSource);
 			audioFormat = pref.getInt("audioFormat", defaultAudioFormat);
+			autoSave = pref.getBoolean("autoSave", defaultAutoSave);
 			language = pref.getString("language", defaultLanguage);
 		} else {
 			AppCompatDelegate.setDefaultNightMode(state.getInt("nightMode", AppCompatDelegate.getDefaultNightMode()));
@@ -422,6 +442,7 @@ public class MainActivity extends AppCompatActivity {
 			recordChannel = state.getInt("recordChannel", defaultChannelSelect);
 			audioSource = state.getInt("audioSource", defaultAudioSource);
 			audioFormat = state.getInt("audioFormat", defaultAudioFormat);
+			autoSave = state.getBoolean("autoSave", defaultAutoSave);
 			language = state.getString("language", defaultLanguage);
 		}
 		super.onCreate(state);
@@ -469,6 +490,7 @@ public class MainActivity extends AppCompatActivity {
 		updateRecordChannelMenu();
 		updateAudioSourceMenu();
 		updateAudioFormatMenu();
+		updateAutoSaveMenu();
 		return true;
 	}
 
@@ -613,6 +635,14 @@ public class MainActivity extends AppCompatActivity {
 		}
 		if (id == R.id.action_set_fixed_point) {
 			setAudioFormat(AudioFormat.ENCODING_PCM_16BIT);
+			return true;
+		}
+		if (id == R.id.action_enable_auto_save) {
+			setAutoSave(true);
+			return true;
+		}
+		if (id == R.id.action_disable_auto_save) {
+			setAutoSave(false);
 			return true;
 		}
 		if (id == R.id.action_enable_night_mode) {

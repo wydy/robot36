@@ -36,6 +36,7 @@
 	<string name="scope_description">Декодированное изображение SSTV</string>
 	<string name="freq_plot_description">График частот</string>
 	<string name="peak_meter_description">Пиковый уровень аудиосигнала</string>
+	<string name="auto_save">Автосохранение</string>
 	<string name="night_mode">Ночной режим</string>
 	<string name="enable">Включить</string>
 	<string name="disable">Выключить</string>

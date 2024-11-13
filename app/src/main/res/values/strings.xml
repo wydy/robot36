@@ -68,6 +68,7 @@
 	<string name="scope_description">Decoded SSTV picture</string>
 	<string name="freq_plot_description">Frequency plot</string>
 	<string name="peak_meter_description">Peak audio signal level</string>
+	<string name="auto_save">Auto Save</string>
 	<string name="night_mode">Night Mode</string>
 	<string name="enable">Enable</string>
 	<string name="disable">Disable</string>
