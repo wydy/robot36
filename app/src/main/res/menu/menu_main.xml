@@ -247,6 +247,9 @@
 					<item
 						android:id="@+id/action_polish"
 						android:title="@string/polish" />
+					<item
+						android:id="@+id/action_ukrainian"
+						android:title="@string/ukrainian" />
 				</menu>
 			</item>
 			<item

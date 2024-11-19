@@ -685,6 +685,10 @@ public class MainActivity extends AppCompatActivity {
 			setLanguage("pl");
 			return true;
 		}
+		if (id == R.id.action_ukrainian) {
+			setLanguage("uk");
+			return true;
+		}
 		return super.onOptionsItemSelected(item);
 	}
 
