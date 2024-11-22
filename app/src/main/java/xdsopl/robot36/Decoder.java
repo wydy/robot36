@@ -54,7 +54,7 @@ public class Decoder {
 		this.scopeBuffer = scopeBuffer;
 		this.imageBuffer = imageBuffer;
 		imageBuffer.line = -1;
-		pixelBuffer = new PixelBuffer(scopeBuffer.width, 2);
+		pixelBuffer = new PixelBuffer(800, 2);
 		demodulator = new Demodulator(sampleRate);
 		double pulseFilterSeconds = 0.0025;
 		int pulseFilterSamples = (int) Math.round(pulseFilterSeconds * sampleRate) | 1;
@@ -115,7 +115,7 @@ public class Decoder {
 		syncPulse20msModes.add(new PaulDon("160", 98, 512, 400, 0.195584, sampleRate));
 		syncPulse20msModes.add(new PaulDon("180", 96, 640, 496, 0.18304, sampleRate));
 		syncPulse20msModes.add(new PaulDon("240", 97, 640, 496, 0.24448, sampleRate));
-		syncPulse20msModes.add(new PaulDon("290", 94, 640, 616, 0.2288, sampleRate));
+		syncPulse20msModes.add(new PaulDon("290", 94, 800, 616, 0.2288, sampleRate));
 	}
 
 	private double scanLineMean(int[] lines) {
@@ -170,11 +170,12 @@ public class Decoder {
 	}
 
 	private void copyUnscaled() {
+		int width = Math.min(scopeBuffer.width, pixelBuffer.width);
 		for (int row = 0; row < pixelBuffer.height; ++row) {
 			int line = scopeBuffer.width * scopeBuffer.line;
-			System.arraycopy(pixelBuffer.pixels, row * pixelBuffer.width, scopeBuffer.pixels, line, pixelBuffer.width);
-			Arrays.fill(scopeBuffer.pixels, line + pixelBuffer.width, line + scopeBuffer.width, 0);
-			System.arraycopy(scopeBuffer.pixels, line, scopeBuffer.pixels, scopeBuffer.width * (scopeBuffer.line + scopeBuffer.height / 2), scopeBuffer.width);
+			System.arraycopy(pixelBuffer.pixels, row * pixelBuffer.width, scopeBuffer.pixels, line, width);
+			Arrays.fill(scopeBuffer.pixels, line + width, line + scopeBuffer.width, 0);
+			System.arraycopy(scopeBuffer.pixels, line, scopeBuffer.pixels, scopeBuffer.width * (scopeBuffer.line + scopeBuffer.height / 2), width);
 			scopeBuffer.line = (scopeBuffer.line + 1) % (scopeBuffer.height / 2);
 		}
 	}
@@ -207,7 +208,7 @@ public class Decoder {
 			finish = imageBuffer.line == imageBuffer.height;
 		}
 		int scale = scopeBuffer.width / pixelBuffer.width;
-		if (scale == 1)
+		if (scale <= 1)
 			copyUnscaled();
 		else
 			copyScaled(scale);

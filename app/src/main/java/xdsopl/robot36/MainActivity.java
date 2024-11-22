@@ -457,7 +457,7 @@ public class MainActivity extends AppCompatActivity {
 		scopeBuffer = new PixelBuffer(640, 2 * 1280);
 		freqPlotBuffer = new PixelBuffer(256, 2 * 256);
 		peakMeterBuffer = new PixelBuffer(1, 16);
-		imageBuffer = new PixelBuffer(640, 616);
+		imageBuffer = new PixelBuffer(800, 616);
 		createScope(config);
 		createFreqPlot(config);
 		createPeakMeter();
