@@ -115,6 +115,7 @@ public class Decoder {
 		syncPulse20msModes.add(new PaulDon("160", 98, 512, 400, 0.195584, sampleRate));
 		syncPulse20msModes.add(new PaulDon("180", 96, 640, 496, 0.18304, sampleRate));
 		syncPulse20msModes.add(new PaulDon("240", 97, 640, 496, 0.24448, sampleRate));
+		syncPulse20msModes.add(new PaulDon("290", 94, 640, 616, 0.2288, sampleRate));
 	}
 
 	private double scanLineMean(int[] lines) {

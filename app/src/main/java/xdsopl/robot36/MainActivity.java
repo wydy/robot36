@@ -457,7 +457,7 @@ public class MainActivity extends AppCompatActivity {
 		scopeBuffer = new PixelBuffer(640, 2 * 1280);
 		freqPlotBuffer = new PixelBuffer(256, 2 * 256);
 		peakMeterBuffer = new PixelBuffer(1, 16);
-		imageBuffer = new PixelBuffer(640, 496);
+		imageBuffer = new PixelBuffer(640, 616);
 		createScope(config);
 		createFreqPlot(config);
 		createPeakMeter();
@@ -543,6 +543,10 @@ public class MainActivity extends AppCompatActivity {
 		}
 		if (id == R.id.action_force_pd240) {
 			setMode(R.string.pd240);
+			return true;
+		}
+		if (id == R.id.action_force_pd290) {
+			setMode(R.string.pd290);
 			return true;
 		}
 		if (id == R.id.action_force_martin1) {
